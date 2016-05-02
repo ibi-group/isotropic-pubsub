@@ -9,6 +9,7 @@
         ],
         "sourceMaps": "inline"
     },
+    "bugs": "https://github.com/ibi-group/isotropic-pubsub/issues",
     "contributors": [
         "Duane Sibilly <duane.sibilly@ibigroup.com>"
     ],
@@ -48,9 +49,11 @@
         },
         "root": true
     },
+    "homepage": "https://github.com/ibi-group/isotropic-pubsub",
     "license": "BSD-3-Clause",
     "main": "lib/pubsub.js",
     "name": "isotropic-pubsub",
+    "repository": "ibi-group/isotropic-pubsub",
     "scripts": {
         "build": "babel js -d lib",
         "lint": "eslint js test",
