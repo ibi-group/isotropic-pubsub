@@ -28,7 +28,9 @@ const _Dispatcher = _make({
         }
 
         if (this._config.data) {
-            data = data ? Object.assign(new Dict(), this._config.data, data) : this._config.data;
+            data = data ?
+                Object.assign(new Dict(), this._config.data, data) :
+                this._config.data;
         }
 
         const config = new Dict({
@@ -40,10 +42,12 @@ const _Dispatcher = _make({
                 preventable: this._config.preventable,
                 publisher
             }),
-            distributionPath = this._config.distributable ? getDistributionPath() : new Map([[
-                publisher,
-                state
-            ]]),
+            distributionPath = this._config.distributable ?
+                getDistributionPath() :
+                new Map([[
+                    publisher,
+                    state
+                ]]),
             event = this._Event(config);
 
         let once;
@@ -127,10 +131,12 @@ const _Dispatcher = _make({
         return this;
     },
     subscribe (config) {
-        return config.publicSubscription && !this._config.allowPublicSubscription ? this._Subscription() : this._callLifecycleFunction('subscribedFunction', config.host, {
-            config,
-            dispatcher: this
-        }) || this._subscribe(config);
+        return config.publicSubscription && !this._config.allowPublicSubscription ?
+            this._Subscription() :
+            this._callLifecycleFunction('subscribedFunction', config.host, {
+                config,
+                dispatcher: this
+            }) || this._subscribe(config);
     },
     _callCallbackFunction (callbackFunction, host = this, ...args) {
         switch (typeof callbackFunction) {
@@ -199,7 +205,9 @@ const _Dispatcher = _make({
             config.allowPublicSubscription = true;
         }
 
-        config.completeOnce = config.publishOnce ? false : !!config.completeOnce;
+        config.completeOnce = config.publishOnce ?
+            false :
+            !!config.completeOnce;
 
         if (config.dispatchStoppable !== false) {
             config.dispatchStoppable = true;
@@ -265,7 +273,7 @@ const _Dispatcher = _make({
             }
         }
 
-        config.subscriptionId = Symbol();
+        config.subscriptionId = Symbol('subscriptionId');
         config.unsubscribe = () => this._unsubscribe(config);
 
         subscriptions.set(config.subscriptionId, config);

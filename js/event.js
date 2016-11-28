@@ -25,7 +25,9 @@ export default _make({
         return this._config.eventStopped;
     },
     isPrevented (stageName) {
-        return this._config.prevented ? this._config.prevented.has(stageName) : false;
+        return this._config.prevented ?
+            this._config.prevented.has(stageName) :
+            false;
     },
     get name () {
         return this._config.name;
@@ -74,7 +76,9 @@ export default _make({
         return this;
     },
     unsubscribe () {
-        return typeof this._config.unsubscribe === 'function' ? this._config.unsubscribe() : false;
+        return typeof this._config.unsubscribe === 'function' ?
+            this._config.unsubscribe() :
+            false;
     },
     _init (config = {}) {
         this._config = config;
