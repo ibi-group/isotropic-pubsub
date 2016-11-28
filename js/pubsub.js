@@ -131,15 +131,17 @@ const _protectedDefineEventMethod = function ({
                 return subscriptions;
             }, []);
 
-            return subscriptions.length === 1 ? subscriptions[0] : _Subscription({
-                get subscribed () {
-                    return this.subscriptions.some(subscription => subscription.subscribed);
-                },
-                subscriptions,
-                unsubscribe () {
-                    this.subscriptions.forEach(subscription => subscription.unsubscribe());
-                }
-            });
+            return subscriptions.length === 1 ?
+                subscriptions[0] :
+                _Subscription({
+                    get subscribed () {
+                        return this.subscriptions.some(subscription => subscription.subscribed);
+                    },
+                    subscriptions,
+                    unsubscribe () {
+                        this.subscriptions.forEach(subscription => subscription.unsubscribe());
+                    }
+                });
         },
         defineEvent: _publicDefineEventMethod,
         publish (eventName, data) {
@@ -173,14 +175,21 @@ const _protectedDefineEventMethod = function ({
             return this;
         },
         subscribe (stageName, eventName, config) {
-            return this._getEvent(eventName).subscribe(Object.assign({}, typeof config === 'object' ? config : {
-                callbackFunction: config
-            }, {
-                host: this,
-                publicSubscription: true,
-                stageName,
-                state: this._getEventState(eventName)
-            }));
+            return this._getEvent(eventName).subscribe(Object.assign(
+                {},
+                typeof config === 'object' ?
+                    config :
+                    /* eslint-disable indent */
+                    {
+                        callbackFunction: config
+                    }, /* eslint-enable indent */
+                {
+                    host: this,
+                    publicSubscription: true,
+                    stageName,
+                    state: this._getEventState(eventName)
+                }
+            ));
         },
         _bulkSubscribe (bulkConfig) {
             if (!Array.isArray(bulkConfig)) {
@@ -251,15 +260,17 @@ const _protectedDefineEventMethod = function ({
                 return subscriptions;
             }, []);
 
-            return subscriptions.length === 1 ? subscriptions[0] : _Subscription({
-                get subscribed () {
-                    return this.subscriptions.some(subscription => subscription.subscribed);
-                },
-                subscriptions,
-                unsubscribe () {
-                    this.subscriptions.forEach(subscription => subscription.unsubscribe());
-                }
-            });
+            return subscriptions.length === 1 ?
+                subscriptions[0] :
+                _Subscription({
+                    get subscribed () {
+                        return this.subscriptions.some(subscription => subscription.subscribed);
+                    },
+                    subscriptions,
+                    unsubscribe () {
+                        this.subscriptions.forEach(subscription => subscription.unsubscribe());
+                    }
+                });
         },
         get _Dispatcher () {
             return this.constructor._Dispatcher;
@@ -340,13 +351,20 @@ const _protectedDefineEventMethod = function ({
             return config;
         },
         _subscribe (stageName, eventName, config) {
-            return this._getEvent(eventName).subscribe(Object.assign({}, typeof config === 'object' ? config : {
-                callbackFunction: config
-            }, {
-                host: this,
-                stageName,
-                state: this._getEventState(eventName)
-            }));
+            return this._getEvent(eventName).subscribe(Object.assign(
+                {},
+                typeof config === 'object' ?
+                    config :
+                    /* eslint-disable indent */
+                    {
+                        callbackFunction: config
+                    }, /* eslint-enable indent */
+                {
+                    host: this,
+                    stageName,
+                    state: this._getEventState(eventName)
+                }
+            ));
         }
     }, {
         defineEvent: _publicDefineEventMethod,

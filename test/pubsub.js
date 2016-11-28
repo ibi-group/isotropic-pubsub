@@ -3135,7 +3135,7 @@ describe('pubsub', () => {
     });
 
     it('should allow custom event stages', () => {
-        const customSymbol = Symbol(),
+        const customSymbol = Symbol('customSymbol'),
             pubsub = Pubsub(),
             subscriptionsExecuted = [];
 
@@ -4659,7 +4659,7 @@ describe('pubsub', () => {
     it('should allow method names as late bound subscription callback functions', () => {
         const subscriptionsExecuted = [],
 
-            customMethodSymbol = Symbol(),
+            customMethodSymbol = Symbol('customMethodSymbol'),
             CustomPubsub = make(Pubsub, {
                 _beforeTestEvent () {
                     subscriptionsExecuted.push('before');
@@ -4701,7 +4701,7 @@ describe('pubsub', () => {
     it('should allow method names as late bound once subscription callback functions', () => {
         const subscriptionsExecuted = [],
 
-            customMethodSymbol = Symbol(),
+            customMethodSymbol = Symbol('customMethodSymbol'),
             CustomPubsub = make(Pubsub, {
                 _beforeTestEvent () {
                     subscriptionsExecuted.push('before');
