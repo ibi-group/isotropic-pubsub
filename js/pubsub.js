@@ -143,6 +143,100 @@ const _protectedDefineEventMethod = function ({
                     }
                 });
         },
+        bulkUnsubscribe (stageName, eventName) {
+            let unsubscribed = false;
+
+            if (typeof eventName === 'undefined') {
+                if (typeof stageName === 'undefined') {
+                    for (const state of Dict.values(this._eventState)) {
+                        for (const subscriptions of Dict.values(state.subscriptions)) {
+                            for (const subscription of subscriptions.values()) {
+                                if (subscription.unsubscribe({
+                                    publicUnsubscription: true
+                                })) {
+                                    unsubscribed = true;
+                                }
+                            }
+                        }
+                    }
+                } else {
+                    if (!Array.isArray(stageName)) {
+                        stageName = [
+                            stageName
+                        ];
+                    }
+
+                    stageName.forEach(config => {
+                        let eventName,
+                            stageName;
+
+                        switch (typeof config) {
+                            case 'string':
+                            case 'symbol':
+                                eventName = config;
+                                break;
+                            default:
+                                eventName = config.eventName;
+                                stageName = config.stageName;
+                        }
+
+                        const state = this._eventState[eventName];
+
+                        if (state) {
+                            for (const subscriptions of stageName ?
+                                /* eslint-disable indent */
+                                [
+                                    state.subscriptions[stageName] || new Map()
+                                ] :
+                                /* eslint-enable indent */
+                                Dict.values(state.subscriptions)) {
+                                for (const subscription of subscriptions.values()) {
+                                    if (subscription.unsubscribe({
+                                        publicUnsubscription: true
+                                    })) {
+                                        unsubscribed = true;
+                                    }
+                                }
+                            }
+                        }
+                    });
+                }
+            } else {
+                if (!Array.isArray(eventName)) {
+                    eventName = [
+                        eventName
+                    ];
+                }
+
+                if (!Array.isArray(stageName)) {
+                    stageName = [
+                        stageName
+                    ];
+                }
+
+                eventName.forEach(eventName => {
+                    const state = this._eventState[eventName];
+
+                    if (state) {
+                        stageName.forEach(stageName => {
+                            const subscriptions = state.subscriptions[stageName];
+
+                            if (subscriptions) {
+                                for (const subscription of subscriptions.values()) {
+                                    if (subscription.unsubscribe({
+                                        publicUnsubscription: true
+                                    })) {
+                                        unsubscribed = true;
+                                    }
+                                }
+                            }
+                        });
+                    }
+                });
+            }
+
+            return unsubscribed;
+        },
         defineEvent: _publicDefineEventMethod,
         publish (eventName, data) {
             this._getEvent(eventName).publish({
@@ -271,6 +365,94 @@ const _protectedDefineEventMethod = function ({
                         this.subscriptions.forEach(subscription => subscription.unsubscribe());
                     }
                 });
+        },
+        _bulkUnsubscribe (stageName, eventName) {
+            let unsubscribed = false;
+
+            if (typeof eventName === 'undefined') {
+                if (typeof stageName === 'undefined') {
+                    for (const state of Dict.values(this._eventState)) {
+                        for (const subscriptions of Dict.values(state.subscriptions)) {
+                            for (const subscription of subscriptions.values()) {
+                                if (subscription.unsubscribe()) {
+                                    unsubscribed = true;
+                                }
+                            }
+                        }
+                    }
+                } else {
+                    if (!Array.isArray(stageName)) {
+                        stageName = [
+                            stageName
+                        ];
+                    }
+
+                    stageName.forEach(config => {
+                        let eventName,
+                            stageName;
+
+                        switch (typeof config) {
+                            case 'string':
+                            case 'symbol':
+                                eventName = config;
+                                break;
+                            default:
+                                eventName = config.eventName;
+                                stageName = config.stageName;
+                        }
+
+                        const state = this._eventState[eventName];
+
+                        if (state) {
+                            for (const subscriptions of stageName ?
+                                /* eslint-disable indent */
+                                [
+                                    state.subscriptions[stageName] || new Map()
+                                ] :
+                                /* eslint-enable indent */
+                                Dict.values(state.subscriptions)) {
+                                for (const subscription of subscriptions.values()) {
+                                    if (subscription.unsubscribe()) {
+                                        unsubscribed = true;
+                                    }
+                                }
+                            }
+                        }
+                    });
+                }
+            } else {
+                if (!Array.isArray(eventName)) {
+                    eventName = [
+                        eventName
+                    ];
+                }
+
+                if (!Array.isArray(stageName)) {
+                    stageName = [
+                        stageName
+                    ];
+                }
+
+                eventName.forEach(eventName => {
+                    const state = this._eventState[eventName];
+
+                    if (state) {
+                        stageName.forEach(stageName => {
+                            const subscriptions = state.subscriptions[stageName];
+
+                            if (subscriptions) {
+                                for (const subscription of subscriptions.values()) {
+                                    if (subscription.unsubscribe()) {
+                                        unsubscribed = true;
+                                    }
+                                }
+                            }
+                        });
+                    }
+                });
+            }
+
+            return unsubscribed;
         },
         get _Dispatcher () {
             return this.constructor._Dispatcher;

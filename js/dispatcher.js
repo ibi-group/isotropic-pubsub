@@ -205,6 +205,10 @@ const _Dispatcher = _make({
             config.allowPublicSubscription = true;
         }
 
+        if (config.allowPublicUnsubscription !== false) {
+            config.allowPublicUnsubscription = true;
+        }
+
         config.completeOnce = config.publishOnce ?
             false :
             !!config.completeOnce;
@@ -274,7 +278,9 @@ const _Dispatcher = _make({
         }
 
         config.subscriptionId = Symbol('subscriptionId');
-        config.unsubscribe = () => this._unsubscribe(config);
+        config.unsubscribe = ({
+            publicUnsubscription
+        } = {}) => (!publicUnsubscription || this._config.allowPublicUnsubscription) && this._unsubscribe(config);
 
         subscriptions.set(config.subscriptionId, config);
 

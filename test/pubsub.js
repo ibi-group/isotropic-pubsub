@@ -2102,6 +2102,1934 @@ describe('pubsub', () => {
         ]);
     });
 
+    it('should allow bulk unsubscription of all subscriptions', () => {
+        let subscriptionExecutionCount = 0;
+
+        const callbackFunction = () => {
+                subscriptionExecutionCount += 1;
+            },
+            pubsub = Pubsub(),
+            testSubscription0 = pubsub.before('testEvent0', callbackFunction),
+            testSubscription1 = pubsub.before('testEvent0', callbackFunction),
+            testSubscription2 = pubsub.before('testEvent0', callbackFunction),
+            testSubscription3 = pubsub.on('testEvent0', callbackFunction),
+            testSubscription4 = pubsub.on('testEvent0', callbackFunction),
+            testSubscription5 = pubsub.on('testEvent0', callbackFunction),
+            testSubscription6 = pubsub.after('testEvent0', callbackFunction),
+            testSubscription7 = pubsub.after('testEvent0', callbackFunction),
+            testSubscription8 = pubsub.after('testEvent0', callbackFunction),
+            testSubscription9 = pubsub.before('testEvent1', callbackFunction),
+            testSubscription10 = pubsub.before('testEvent1', callbackFunction),
+            testSubscription11 = pubsub.before('testEvent1', callbackFunction),
+            testSubscription12 = pubsub.on('testEvent1', callbackFunction),
+            testSubscription13 = pubsub.on('testEvent1', callbackFunction),
+            testSubscription14 = pubsub.on('testEvent1', callbackFunction),
+            testSubscription15 = pubsub.after('testEvent1', callbackFunction),
+            testSubscription16 = pubsub.after('testEvent1', callbackFunction),
+            testSubscription17 = pubsub.after('testEvent1', callbackFunction),
+            testSubscription18 = pubsub.before('testEvent2', callbackFunction),
+            testSubscription19 = pubsub.before('testEvent2', callbackFunction),
+            testSubscription20 = pubsub.before('testEvent2', callbackFunction),
+            testSubscription21 = pubsub.on('testEvent2', callbackFunction),
+            testSubscription22 = pubsub.on('testEvent2', callbackFunction),
+            testSubscription23 = pubsub.on('testEvent2', callbackFunction),
+            testSubscription24 = pubsub.after('testEvent2', callbackFunction),
+            testSubscription25 = pubsub.after('testEvent2', callbackFunction),
+            testSubscription26 = pubsub.after('testEvent2', callbackFunction);
+
+        expect(testSubscription0).to.have.property('subscribed', true);
+        expect(testSubscription1).to.have.property('subscribed', true);
+        expect(testSubscription2).to.have.property('subscribed', true);
+        expect(testSubscription3).to.have.property('subscribed', true);
+        expect(testSubscription4).to.have.property('subscribed', true);
+        expect(testSubscription5).to.have.property('subscribed', true);
+        expect(testSubscription6).to.have.property('subscribed', true);
+        expect(testSubscription7).to.have.property('subscribed', true);
+        expect(testSubscription8).to.have.property('subscribed', true);
+        expect(testSubscription9).to.have.property('subscribed', true);
+        expect(testSubscription10).to.have.property('subscribed', true);
+        expect(testSubscription11).to.have.property('subscribed', true);
+        expect(testSubscription12).to.have.property('subscribed', true);
+        expect(testSubscription13).to.have.property('subscribed', true);
+        expect(testSubscription14).to.have.property('subscribed', true);
+        expect(testSubscription15).to.have.property('subscribed', true);
+        expect(testSubscription16).to.have.property('subscribed', true);
+        expect(testSubscription17).to.have.property('subscribed', true);
+        expect(testSubscription18).to.have.property('subscribed', true);
+        expect(testSubscription19).to.have.property('subscribed', true);
+        expect(testSubscription20).to.have.property('subscribed', true);
+        expect(testSubscription21).to.have.property('subscribed', true);
+        expect(testSubscription22).to.have.property('subscribed', true);
+        expect(testSubscription23).to.have.property('subscribed', true);
+        expect(testSubscription24).to.have.property('subscribed', true);
+        expect(testSubscription25).to.have.property('subscribed', true);
+        expect(testSubscription26).to.have.property('subscribed', true);
+
+        pubsub.publish('testEvent0').publish('testEvent1').publish('testEvent2');
+
+        expect(subscriptionExecutionCount).to.equal(27);
+
+        expect(pubsub.bulkUnsubscribe()).to.equal(true);
+
+        expect(testSubscription0).to.have.property('subscribed', false);
+        expect(testSubscription1).to.have.property('subscribed', false);
+        expect(testSubscription2).to.have.property('subscribed', false);
+        expect(testSubscription3).to.have.property('subscribed', false);
+        expect(testSubscription4).to.have.property('subscribed', false);
+        expect(testSubscription5).to.have.property('subscribed', false);
+        expect(testSubscription6).to.have.property('subscribed', false);
+        expect(testSubscription7).to.have.property('subscribed', false);
+        expect(testSubscription8).to.have.property('subscribed', false);
+        expect(testSubscription9).to.have.property('subscribed', false);
+        expect(testSubscription10).to.have.property('subscribed', false);
+        expect(testSubscription11).to.have.property('subscribed', false);
+        expect(testSubscription12).to.have.property('subscribed', false);
+        expect(testSubscription13).to.have.property('subscribed', false);
+        expect(testSubscription14).to.have.property('subscribed', false);
+        expect(testSubscription15).to.have.property('subscribed', false);
+        expect(testSubscription16).to.have.property('subscribed', false);
+        expect(testSubscription17).to.have.property('subscribed', false);
+        expect(testSubscription18).to.have.property('subscribed', false);
+        expect(testSubscription19).to.have.property('subscribed', false);
+        expect(testSubscription20).to.have.property('subscribed', false);
+        expect(testSubscription21).to.have.property('subscribed', false);
+        expect(testSubscription22).to.have.property('subscribed', false);
+        expect(testSubscription23).to.have.property('subscribed', false);
+        expect(testSubscription24).to.have.property('subscribed', false);
+        expect(testSubscription25).to.have.property('subscribed', false);
+        expect(testSubscription26).to.have.property('subscribed', false);
+
+        subscriptionExecutionCount = 0;
+
+        pubsub.publish('testEvent0').publish('testEvent1').publish('testEvent2');
+
+        expect(subscriptionExecutionCount).to.equal(0);
+
+        expect(pubsub.bulkUnsubscribe()).to.equal(false);
+    });
+
+    it('should allow bulk unsubscription of an event', () => {
+        let subscriptionExecutionCount = 0;
+
+        const callbackFunction = () => {
+                subscriptionExecutionCount += 1;
+            },
+            pubsub = Pubsub(),
+            testSubscription0 = pubsub.before('testEvent0', callbackFunction),
+            testSubscription1 = pubsub.before('testEvent0', callbackFunction),
+            testSubscription2 = pubsub.before('testEvent0', callbackFunction),
+            testSubscription3 = pubsub.on('testEvent0', callbackFunction),
+            testSubscription4 = pubsub.on('testEvent0', callbackFunction),
+            testSubscription5 = pubsub.on('testEvent0', callbackFunction),
+            testSubscription6 = pubsub.after('testEvent0', callbackFunction),
+            testSubscription7 = pubsub.after('testEvent0', callbackFunction),
+            testSubscription8 = pubsub.after('testEvent0', callbackFunction),
+            testSubscription9 = pubsub.before('testEvent1', callbackFunction),
+            testSubscription10 = pubsub.before('testEvent1', callbackFunction),
+            testSubscription11 = pubsub.before('testEvent1', callbackFunction),
+            testSubscription12 = pubsub.on('testEvent1', callbackFunction),
+            testSubscription13 = pubsub.on('testEvent1', callbackFunction),
+            testSubscription14 = pubsub.on('testEvent1', callbackFunction),
+            testSubscription15 = pubsub.after('testEvent1', callbackFunction),
+            testSubscription16 = pubsub.after('testEvent1', callbackFunction),
+            testSubscription17 = pubsub.after('testEvent1', callbackFunction),
+            testSubscription18 = pubsub.before('testEvent2', callbackFunction),
+            testSubscription19 = pubsub.before('testEvent2', callbackFunction),
+            testSubscription20 = pubsub.before('testEvent2', callbackFunction),
+            testSubscription21 = pubsub.on('testEvent2', callbackFunction),
+            testSubscription22 = pubsub.on('testEvent2', callbackFunction),
+            testSubscription23 = pubsub.on('testEvent2', callbackFunction),
+            testSubscription24 = pubsub.after('testEvent2', callbackFunction),
+            testSubscription25 = pubsub.after('testEvent2', callbackFunction),
+            testSubscription26 = pubsub.after('testEvent2', callbackFunction);
+
+        expect(testSubscription0).to.have.property('subscribed', true);
+        expect(testSubscription1).to.have.property('subscribed', true);
+        expect(testSubscription2).to.have.property('subscribed', true);
+        expect(testSubscription3).to.have.property('subscribed', true);
+        expect(testSubscription4).to.have.property('subscribed', true);
+        expect(testSubscription5).to.have.property('subscribed', true);
+        expect(testSubscription6).to.have.property('subscribed', true);
+        expect(testSubscription7).to.have.property('subscribed', true);
+        expect(testSubscription8).to.have.property('subscribed', true);
+        expect(testSubscription9).to.have.property('subscribed', true);
+        expect(testSubscription10).to.have.property('subscribed', true);
+        expect(testSubscription11).to.have.property('subscribed', true);
+        expect(testSubscription12).to.have.property('subscribed', true);
+        expect(testSubscription13).to.have.property('subscribed', true);
+        expect(testSubscription14).to.have.property('subscribed', true);
+        expect(testSubscription15).to.have.property('subscribed', true);
+        expect(testSubscription16).to.have.property('subscribed', true);
+        expect(testSubscription17).to.have.property('subscribed', true);
+        expect(testSubscription18).to.have.property('subscribed', true);
+        expect(testSubscription19).to.have.property('subscribed', true);
+        expect(testSubscription20).to.have.property('subscribed', true);
+        expect(testSubscription21).to.have.property('subscribed', true);
+        expect(testSubscription22).to.have.property('subscribed', true);
+        expect(testSubscription23).to.have.property('subscribed', true);
+        expect(testSubscription24).to.have.property('subscribed', true);
+        expect(testSubscription25).to.have.property('subscribed', true);
+        expect(testSubscription26).to.have.property('subscribed', true);
+
+        pubsub.publish('testEvent0').publish('testEvent1').publish('testEvent2');
+
+        expect(subscriptionExecutionCount).to.equal(27);
+
+        expect(pubsub.bulkUnsubscribe('testEvent1')).to.equal(true);
+
+        expect(testSubscription0).to.have.property('subscribed', true);
+        expect(testSubscription1).to.have.property('subscribed', true);
+        expect(testSubscription2).to.have.property('subscribed', true);
+        expect(testSubscription3).to.have.property('subscribed', true);
+        expect(testSubscription4).to.have.property('subscribed', true);
+        expect(testSubscription5).to.have.property('subscribed', true);
+        expect(testSubscription6).to.have.property('subscribed', true);
+        expect(testSubscription7).to.have.property('subscribed', true);
+        expect(testSubscription8).to.have.property('subscribed', true);
+        expect(testSubscription9).to.have.property('subscribed', false);
+        expect(testSubscription10).to.have.property('subscribed', false);
+        expect(testSubscription11).to.have.property('subscribed', false);
+        expect(testSubscription12).to.have.property('subscribed', false);
+        expect(testSubscription13).to.have.property('subscribed', false);
+        expect(testSubscription14).to.have.property('subscribed', false);
+        expect(testSubscription15).to.have.property('subscribed', false);
+        expect(testSubscription16).to.have.property('subscribed', false);
+        expect(testSubscription17).to.have.property('subscribed', false);
+        expect(testSubscription18).to.have.property('subscribed', true);
+        expect(testSubscription19).to.have.property('subscribed', true);
+        expect(testSubscription20).to.have.property('subscribed', true);
+        expect(testSubscription21).to.have.property('subscribed', true);
+        expect(testSubscription22).to.have.property('subscribed', true);
+        expect(testSubscription23).to.have.property('subscribed', true);
+        expect(testSubscription24).to.have.property('subscribed', true);
+        expect(testSubscription25).to.have.property('subscribed', true);
+        expect(testSubscription26).to.have.property('subscribed', true);
+
+        subscriptionExecutionCount = 0;
+
+        pubsub.publish('testEvent0').publish('testEvent1').publish('testEvent2');
+
+        expect(subscriptionExecutionCount).to.equal(18);
+
+        expect(pubsub.bulkUnsubscribe('testEvent1')).to.equal(false);
+    });
+
+    it('should allow bulk unsubscription of multiple events', () => {
+        let subscriptionExecutionCount = 0;
+
+        const callbackFunction = () => {
+                subscriptionExecutionCount += 1;
+            },
+            pubsub = Pubsub(),
+            testSubscription0 = pubsub.before('testEvent0', callbackFunction),
+            testSubscription1 = pubsub.before('testEvent0', callbackFunction),
+            testSubscription2 = pubsub.before('testEvent0', callbackFunction),
+            testSubscription3 = pubsub.on('testEvent0', callbackFunction),
+            testSubscription4 = pubsub.on('testEvent0', callbackFunction),
+            testSubscription5 = pubsub.on('testEvent0', callbackFunction),
+            testSubscription6 = pubsub.after('testEvent0', callbackFunction),
+            testSubscription7 = pubsub.after('testEvent0', callbackFunction),
+            testSubscription8 = pubsub.after('testEvent0', callbackFunction),
+            testSubscription9 = pubsub.before('testEvent1', callbackFunction),
+            testSubscription10 = pubsub.before('testEvent1', callbackFunction),
+            testSubscription11 = pubsub.before('testEvent1', callbackFunction),
+            testSubscription12 = pubsub.on('testEvent1', callbackFunction),
+            testSubscription13 = pubsub.on('testEvent1', callbackFunction),
+            testSubscription14 = pubsub.on('testEvent1', callbackFunction),
+            testSubscription15 = pubsub.after('testEvent1', callbackFunction),
+            testSubscription16 = pubsub.after('testEvent1', callbackFunction),
+            testSubscription17 = pubsub.after('testEvent1', callbackFunction),
+            testSubscription18 = pubsub.before('testEvent2', callbackFunction),
+            testSubscription19 = pubsub.before('testEvent2', callbackFunction),
+            testSubscription20 = pubsub.before('testEvent2', callbackFunction),
+            testSubscription21 = pubsub.on('testEvent2', callbackFunction),
+            testSubscription22 = pubsub.on('testEvent2', callbackFunction),
+            testSubscription23 = pubsub.on('testEvent2', callbackFunction),
+            testSubscription24 = pubsub.after('testEvent2', callbackFunction),
+            testSubscription25 = pubsub.after('testEvent2', callbackFunction),
+            testSubscription26 = pubsub.after('testEvent2', callbackFunction);
+
+        expect(testSubscription0).to.have.property('subscribed', true);
+        expect(testSubscription1).to.have.property('subscribed', true);
+        expect(testSubscription2).to.have.property('subscribed', true);
+        expect(testSubscription3).to.have.property('subscribed', true);
+        expect(testSubscription4).to.have.property('subscribed', true);
+        expect(testSubscription5).to.have.property('subscribed', true);
+        expect(testSubscription6).to.have.property('subscribed', true);
+        expect(testSubscription7).to.have.property('subscribed', true);
+        expect(testSubscription8).to.have.property('subscribed', true);
+        expect(testSubscription9).to.have.property('subscribed', true);
+        expect(testSubscription10).to.have.property('subscribed', true);
+        expect(testSubscription11).to.have.property('subscribed', true);
+        expect(testSubscription12).to.have.property('subscribed', true);
+        expect(testSubscription13).to.have.property('subscribed', true);
+        expect(testSubscription14).to.have.property('subscribed', true);
+        expect(testSubscription15).to.have.property('subscribed', true);
+        expect(testSubscription16).to.have.property('subscribed', true);
+        expect(testSubscription17).to.have.property('subscribed', true);
+        expect(testSubscription18).to.have.property('subscribed', true);
+        expect(testSubscription19).to.have.property('subscribed', true);
+        expect(testSubscription20).to.have.property('subscribed', true);
+        expect(testSubscription21).to.have.property('subscribed', true);
+        expect(testSubscription22).to.have.property('subscribed', true);
+        expect(testSubscription23).to.have.property('subscribed', true);
+        expect(testSubscription24).to.have.property('subscribed', true);
+        expect(testSubscription25).to.have.property('subscribed', true);
+        expect(testSubscription26).to.have.property('subscribed', true);
+
+        pubsub.publish('testEvent0').publish('testEvent1').publish('testEvent2');
+
+        expect(subscriptionExecutionCount).to.equal(27);
+
+        expect(pubsub.bulkUnsubscribe([
+            'testEvent0',
+            'testEvent1'
+        ])).to.equal(true);
+
+        expect(testSubscription0).to.have.property('subscribed', false);
+        expect(testSubscription1).to.have.property('subscribed', false);
+        expect(testSubscription2).to.have.property('subscribed', false);
+        expect(testSubscription3).to.have.property('subscribed', false);
+        expect(testSubscription4).to.have.property('subscribed', false);
+        expect(testSubscription5).to.have.property('subscribed', false);
+        expect(testSubscription6).to.have.property('subscribed', false);
+        expect(testSubscription7).to.have.property('subscribed', false);
+        expect(testSubscription8).to.have.property('subscribed', false);
+        expect(testSubscription9).to.have.property('subscribed', false);
+        expect(testSubscription10).to.have.property('subscribed', false);
+        expect(testSubscription11).to.have.property('subscribed', false);
+        expect(testSubscription12).to.have.property('subscribed', false);
+        expect(testSubscription13).to.have.property('subscribed', false);
+        expect(testSubscription14).to.have.property('subscribed', false);
+        expect(testSubscription15).to.have.property('subscribed', false);
+        expect(testSubscription16).to.have.property('subscribed', false);
+        expect(testSubscription17).to.have.property('subscribed', false);
+        expect(testSubscription18).to.have.property('subscribed', true);
+        expect(testSubscription19).to.have.property('subscribed', true);
+        expect(testSubscription20).to.have.property('subscribed', true);
+        expect(testSubscription21).to.have.property('subscribed', true);
+        expect(testSubscription22).to.have.property('subscribed', true);
+        expect(testSubscription23).to.have.property('subscribed', true);
+        expect(testSubscription24).to.have.property('subscribed', true);
+        expect(testSubscription25).to.have.property('subscribed', true);
+        expect(testSubscription26).to.have.property('subscribed', true);
+
+        subscriptionExecutionCount = 0;
+
+        pubsub.publish('testEvent0').publish('testEvent1').publish('testEvent2');
+
+        expect(subscriptionExecutionCount).to.equal(9);
+
+        expect(pubsub.bulkUnsubscribe([
+            'testEvent0',
+            'testEvent1'
+        ])).to.equal(false);
+    });
+
+    it('should allow bulk unsubscription of an event at a specific stage', () => {
+        let subscriptionExecutionCount = 0;
+
+        const callbackFunction = () => {
+                subscriptionExecutionCount += 1;
+            },
+            pubsub = Pubsub(),
+            testSubscription0 = pubsub.before('testEvent0', callbackFunction),
+            testSubscription1 = pubsub.before('testEvent0', callbackFunction),
+            testSubscription2 = pubsub.before('testEvent0', callbackFunction),
+            testSubscription3 = pubsub.on('testEvent0', callbackFunction),
+            testSubscription4 = pubsub.on('testEvent0', callbackFunction),
+            testSubscription5 = pubsub.on('testEvent0', callbackFunction),
+            testSubscription6 = pubsub.after('testEvent0', callbackFunction),
+            testSubscription7 = pubsub.after('testEvent0', callbackFunction),
+            testSubscription8 = pubsub.after('testEvent0', callbackFunction),
+            testSubscription9 = pubsub.before('testEvent1', callbackFunction),
+            testSubscription10 = pubsub.before('testEvent1', callbackFunction),
+            testSubscription11 = pubsub.before('testEvent1', callbackFunction),
+            testSubscription12 = pubsub.on('testEvent1', callbackFunction),
+            testSubscription13 = pubsub.on('testEvent1', callbackFunction),
+            testSubscription14 = pubsub.on('testEvent1', callbackFunction),
+            testSubscription15 = pubsub.after('testEvent1', callbackFunction),
+            testSubscription16 = pubsub.after('testEvent1', callbackFunction),
+            testSubscription17 = pubsub.after('testEvent1', callbackFunction),
+            testSubscription18 = pubsub.before('testEvent2', callbackFunction),
+            testSubscription19 = pubsub.before('testEvent2', callbackFunction),
+            testSubscription20 = pubsub.before('testEvent2', callbackFunction),
+            testSubscription21 = pubsub.on('testEvent2', callbackFunction),
+            testSubscription22 = pubsub.on('testEvent2', callbackFunction),
+            testSubscription23 = pubsub.on('testEvent2', callbackFunction),
+            testSubscription24 = pubsub.after('testEvent2', callbackFunction),
+            testSubscription25 = pubsub.after('testEvent2', callbackFunction),
+            testSubscription26 = pubsub.after('testEvent2', callbackFunction);
+
+        expect(testSubscription0).to.have.property('subscribed', true);
+        expect(testSubscription1).to.have.property('subscribed', true);
+        expect(testSubscription2).to.have.property('subscribed', true);
+        expect(testSubscription3).to.have.property('subscribed', true);
+        expect(testSubscription4).to.have.property('subscribed', true);
+        expect(testSubscription5).to.have.property('subscribed', true);
+        expect(testSubscription6).to.have.property('subscribed', true);
+        expect(testSubscription7).to.have.property('subscribed', true);
+        expect(testSubscription8).to.have.property('subscribed', true);
+        expect(testSubscription9).to.have.property('subscribed', true);
+        expect(testSubscription10).to.have.property('subscribed', true);
+        expect(testSubscription11).to.have.property('subscribed', true);
+        expect(testSubscription12).to.have.property('subscribed', true);
+        expect(testSubscription13).to.have.property('subscribed', true);
+        expect(testSubscription14).to.have.property('subscribed', true);
+        expect(testSubscription15).to.have.property('subscribed', true);
+        expect(testSubscription16).to.have.property('subscribed', true);
+        expect(testSubscription17).to.have.property('subscribed', true);
+        expect(testSubscription18).to.have.property('subscribed', true);
+        expect(testSubscription19).to.have.property('subscribed', true);
+        expect(testSubscription20).to.have.property('subscribed', true);
+        expect(testSubscription21).to.have.property('subscribed', true);
+        expect(testSubscription22).to.have.property('subscribed', true);
+        expect(testSubscription23).to.have.property('subscribed', true);
+        expect(testSubscription24).to.have.property('subscribed', true);
+        expect(testSubscription25).to.have.property('subscribed', true);
+        expect(testSubscription26).to.have.property('subscribed', true);
+
+        pubsub.publish('testEvent0').publish('testEvent1').publish('testEvent2');
+
+        expect(subscriptionExecutionCount).to.equal(27);
+
+        expect(pubsub.bulkUnsubscribe('on', 'testEvent1')).to.equal(true);
+
+        expect(testSubscription0).to.have.property('subscribed', true);
+        expect(testSubscription1).to.have.property('subscribed', true);
+        expect(testSubscription2).to.have.property('subscribed', true);
+        expect(testSubscription3).to.have.property('subscribed', true);
+        expect(testSubscription4).to.have.property('subscribed', true);
+        expect(testSubscription5).to.have.property('subscribed', true);
+        expect(testSubscription6).to.have.property('subscribed', true);
+        expect(testSubscription7).to.have.property('subscribed', true);
+        expect(testSubscription8).to.have.property('subscribed', true);
+        expect(testSubscription9).to.have.property('subscribed', true);
+        expect(testSubscription10).to.have.property('subscribed', true);
+        expect(testSubscription11).to.have.property('subscribed', true);
+        expect(testSubscription12).to.have.property('subscribed', false);
+        expect(testSubscription13).to.have.property('subscribed', false);
+        expect(testSubscription14).to.have.property('subscribed', false);
+        expect(testSubscription15).to.have.property('subscribed', true);
+        expect(testSubscription16).to.have.property('subscribed', true);
+        expect(testSubscription17).to.have.property('subscribed', true);
+        expect(testSubscription18).to.have.property('subscribed', true);
+        expect(testSubscription19).to.have.property('subscribed', true);
+        expect(testSubscription20).to.have.property('subscribed', true);
+        expect(testSubscription21).to.have.property('subscribed', true);
+        expect(testSubscription22).to.have.property('subscribed', true);
+        expect(testSubscription23).to.have.property('subscribed', true);
+        expect(testSubscription24).to.have.property('subscribed', true);
+        expect(testSubscription25).to.have.property('subscribed', true);
+        expect(testSubscription26).to.have.property('subscribed', true);
+
+        subscriptionExecutionCount = 0;
+
+        pubsub.publish('testEvent0').publish('testEvent1').publish('testEvent2');
+
+        expect(subscriptionExecutionCount).to.equal(24);
+
+        expect(pubsub.bulkUnsubscribe('on', 'testEvent1')).to.equal(false);
+    });
+
+    it('should allow bulk unsubscription of an event at multiple stages', () => {
+        let subscriptionExecutionCount = 0;
+
+        const callbackFunction = () => {
+                subscriptionExecutionCount += 1;
+            },
+            pubsub = Pubsub(),
+            testSubscription0 = pubsub.before('testEvent0', callbackFunction),
+            testSubscription1 = pubsub.before('testEvent0', callbackFunction),
+            testSubscription2 = pubsub.before('testEvent0', callbackFunction),
+            testSubscription3 = pubsub.on('testEvent0', callbackFunction),
+            testSubscription4 = pubsub.on('testEvent0', callbackFunction),
+            testSubscription5 = pubsub.on('testEvent0', callbackFunction),
+            testSubscription6 = pubsub.after('testEvent0', callbackFunction),
+            testSubscription7 = pubsub.after('testEvent0', callbackFunction),
+            testSubscription8 = pubsub.after('testEvent0', callbackFunction),
+            testSubscription9 = pubsub.before('testEvent1', callbackFunction),
+            testSubscription10 = pubsub.before('testEvent1', callbackFunction),
+            testSubscription11 = pubsub.before('testEvent1', callbackFunction),
+            testSubscription12 = pubsub.on('testEvent1', callbackFunction),
+            testSubscription13 = pubsub.on('testEvent1', callbackFunction),
+            testSubscription14 = pubsub.on('testEvent1', callbackFunction),
+            testSubscription15 = pubsub.after('testEvent1', callbackFunction),
+            testSubscription16 = pubsub.after('testEvent1', callbackFunction),
+            testSubscription17 = pubsub.after('testEvent1', callbackFunction),
+            testSubscription18 = pubsub.before('testEvent2', callbackFunction),
+            testSubscription19 = pubsub.before('testEvent2', callbackFunction),
+            testSubscription20 = pubsub.before('testEvent2', callbackFunction),
+            testSubscription21 = pubsub.on('testEvent2', callbackFunction),
+            testSubscription22 = pubsub.on('testEvent2', callbackFunction),
+            testSubscription23 = pubsub.on('testEvent2', callbackFunction),
+            testSubscription24 = pubsub.after('testEvent2', callbackFunction),
+            testSubscription25 = pubsub.after('testEvent2', callbackFunction),
+            testSubscription26 = pubsub.after('testEvent2', callbackFunction);
+
+        expect(testSubscription0).to.have.property('subscribed', true);
+        expect(testSubscription1).to.have.property('subscribed', true);
+        expect(testSubscription2).to.have.property('subscribed', true);
+        expect(testSubscription3).to.have.property('subscribed', true);
+        expect(testSubscription4).to.have.property('subscribed', true);
+        expect(testSubscription5).to.have.property('subscribed', true);
+        expect(testSubscription6).to.have.property('subscribed', true);
+        expect(testSubscription7).to.have.property('subscribed', true);
+        expect(testSubscription8).to.have.property('subscribed', true);
+        expect(testSubscription9).to.have.property('subscribed', true);
+        expect(testSubscription10).to.have.property('subscribed', true);
+        expect(testSubscription11).to.have.property('subscribed', true);
+        expect(testSubscription12).to.have.property('subscribed', true);
+        expect(testSubscription13).to.have.property('subscribed', true);
+        expect(testSubscription14).to.have.property('subscribed', true);
+        expect(testSubscription15).to.have.property('subscribed', true);
+        expect(testSubscription16).to.have.property('subscribed', true);
+        expect(testSubscription17).to.have.property('subscribed', true);
+        expect(testSubscription18).to.have.property('subscribed', true);
+        expect(testSubscription19).to.have.property('subscribed', true);
+        expect(testSubscription20).to.have.property('subscribed', true);
+        expect(testSubscription21).to.have.property('subscribed', true);
+        expect(testSubscription22).to.have.property('subscribed', true);
+        expect(testSubscription23).to.have.property('subscribed', true);
+        expect(testSubscription24).to.have.property('subscribed', true);
+        expect(testSubscription25).to.have.property('subscribed', true);
+        expect(testSubscription26).to.have.property('subscribed', true);
+
+        pubsub.publish('testEvent0').publish('testEvent1').publish('testEvent2');
+
+        expect(subscriptionExecutionCount).to.equal(27);
+
+        expect(pubsub.bulkUnsubscribe([
+            'after',
+            'before'
+        ], 'testEvent1')).to.equal(true);
+
+        expect(testSubscription0).to.have.property('subscribed', true);
+        expect(testSubscription1).to.have.property('subscribed', true);
+        expect(testSubscription2).to.have.property('subscribed', true);
+        expect(testSubscription3).to.have.property('subscribed', true);
+        expect(testSubscription4).to.have.property('subscribed', true);
+        expect(testSubscription5).to.have.property('subscribed', true);
+        expect(testSubscription6).to.have.property('subscribed', true);
+        expect(testSubscription7).to.have.property('subscribed', true);
+        expect(testSubscription8).to.have.property('subscribed', true);
+        expect(testSubscription9).to.have.property('subscribed', false);
+        expect(testSubscription10).to.have.property('subscribed', false);
+        expect(testSubscription11).to.have.property('subscribed', false);
+        expect(testSubscription12).to.have.property('subscribed', true);
+        expect(testSubscription13).to.have.property('subscribed', true);
+        expect(testSubscription14).to.have.property('subscribed', true);
+        expect(testSubscription15).to.have.property('subscribed', false);
+        expect(testSubscription16).to.have.property('subscribed', false);
+        expect(testSubscription17).to.have.property('subscribed', false);
+        expect(testSubscription18).to.have.property('subscribed', true);
+        expect(testSubscription19).to.have.property('subscribed', true);
+        expect(testSubscription20).to.have.property('subscribed', true);
+        expect(testSubscription21).to.have.property('subscribed', true);
+        expect(testSubscription22).to.have.property('subscribed', true);
+        expect(testSubscription23).to.have.property('subscribed', true);
+        expect(testSubscription24).to.have.property('subscribed', true);
+        expect(testSubscription25).to.have.property('subscribed', true);
+        expect(testSubscription26).to.have.property('subscribed', true);
+
+        subscriptionExecutionCount = 0;
+
+        pubsub.publish('testEvent0').publish('testEvent1').publish('testEvent2');
+
+        expect(subscriptionExecutionCount).to.equal(21);
+
+        expect(pubsub.bulkUnsubscribe([
+            'after',
+            'before'
+        ], 'testEvent1')).to.equal(false);
+    });
+
+    it('should allow bulk unsubscription of multiple events at a specific stage', () => {
+        let subscriptionExecutionCount = 0;
+
+        const callbackFunction = () => {
+                subscriptionExecutionCount += 1;
+            },
+            pubsub = Pubsub(),
+            testSubscription0 = pubsub.before('testEvent0', callbackFunction),
+            testSubscription1 = pubsub.before('testEvent0', callbackFunction),
+            testSubscription2 = pubsub.before('testEvent0', callbackFunction),
+            testSubscription3 = pubsub.on('testEvent0', callbackFunction),
+            testSubscription4 = pubsub.on('testEvent0', callbackFunction),
+            testSubscription5 = pubsub.on('testEvent0', callbackFunction),
+            testSubscription6 = pubsub.after('testEvent0', callbackFunction),
+            testSubscription7 = pubsub.after('testEvent0', callbackFunction),
+            testSubscription8 = pubsub.after('testEvent0', callbackFunction),
+            testSubscription9 = pubsub.before('testEvent1', callbackFunction),
+            testSubscription10 = pubsub.before('testEvent1', callbackFunction),
+            testSubscription11 = pubsub.before('testEvent1', callbackFunction),
+            testSubscription12 = pubsub.on('testEvent1', callbackFunction),
+            testSubscription13 = pubsub.on('testEvent1', callbackFunction),
+            testSubscription14 = pubsub.on('testEvent1', callbackFunction),
+            testSubscription15 = pubsub.after('testEvent1', callbackFunction),
+            testSubscription16 = pubsub.after('testEvent1', callbackFunction),
+            testSubscription17 = pubsub.after('testEvent1', callbackFunction),
+            testSubscription18 = pubsub.before('testEvent2', callbackFunction),
+            testSubscription19 = pubsub.before('testEvent2', callbackFunction),
+            testSubscription20 = pubsub.before('testEvent2', callbackFunction),
+            testSubscription21 = pubsub.on('testEvent2', callbackFunction),
+            testSubscription22 = pubsub.on('testEvent2', callbackFunction),
+            testSubscription23 = pubsub.on('testEvent2', callbackFunction),
+            testSubscription24 = pubsub.after('testEvent2', callbackFunction),
+            testSubscription25 = pubsub.after('testEvent2', callbackFunction),
+            testSubscription26 = pubsub.after('testEvent2', callbackFunction);
+
+        expect(testSubscription0).to.have.property('subscribed', true);
+        expect(testSubscription1).to.have.property('subscribed', true);
+        expect(testSubscription2).to.have.property('subscribed', true);
+        expect(testSubscription3).to.have.property('subscribed', true);
+        expect(testSubscription4).to.have.property('subscribed', true);
+        expect(testSubscription5).to.have.property('subscribed', true);
+        expect(testSubscription6).to.have.property('subscribed', true);
+        expect(testSubscription7).to.have.property('subscribed', true);
+        expect(testSubscription8).to.have.property('subscribed', true);
+        expect(testSubscription9).to.have.property('subscribed', true);
+        expect(testSubscription10).to.have.property('subscribed', true);
+        expect(testSubscription11).to.have.property('subscribed', true);
+        expect(testSubscription12).to.have.property('subscribed', true);
+        expect(testSubscription13).to.have.property('subscribed', true);
+        expect(testSubscription14).to.have.property('subscribed', true);
+        expect(testSubscription15).to.have.property('subscribed', true);
+        expect(testSubscription16).to.have.property('subscribed', true);
+        expect(testSubscription17).to.have.property('subscribed', true);
+        expect(testSubscription18).to.have.property('subscribed', true);
+        expect(testSubscription19).to.have.property('subscribed', true);
+        expect(testSubscription20).to.have.property('subscribed', true);
+        expect(testSubscription21).to.have.property('subscribed', true);
+        expect(testSubscription22).to.have.property('subscribed', true);
+        expect(testSubscription23).to.have.property('subscribed', true);
+        expect(testSubscription24).to.have.property('subscribed', true);
+        expect(testSubscription25).to.have.property('subscribed', true);
+        expect(testSubscription26).to.have.property('subscribed', true);
+
+        pubsub.publish('testEvent0').publish('testEvent1').publish('testEvent2');
+
+        expect(subscriptionExecutionCount).to.equal(27);
+
+        expect(pubsub.bulkUnsubscribe('on', [
+            'testEvent0',
+            'testEvent2'
+        ])).to.equal(true);
+
+        expect(testSubscription0).to.have.property('subscribed', true);
+        expect(testSubscription1).to.have.property('subscribed', true);
+        expect(testSubscription2).to.have.property('subscribed', true);
+        expect(testSubscription3).to.have.property('subscribed', false);
+        expect(testSubscription4).to.have.property('subscribed', false);
+        expect(testSubscription5).to.have.property('subscribed', false);
+        expect(testSubscription6).to.have.property('subscribed', true);
+        expect(testSubscription7).to.have.property('subscribed', true);
+        expect(testSubscription8).to.have.property('subscribed', true);
+        expect(testSubscription9).to.have.property('subscribed', true);
+        expect(testSubscription10).to.have.property('subscribed', true);
+        expect(testSubscription11).to.have.property('subscribed', true);
+        expect(testSubscription12).to.have.property('subscribed', true);
+        expect(testSubscription13).to.have.property('subscribed', true);
+        expect(testSubscription14).to.have.property('subscribed', true);
+        expect(testSubscription15).to.have.property('subscribed', true);
+        expect(testSubscription16).to.have.property('subscribed', true);
+        expect(testSubscription17).to.have.property('subscribed', true);
+        expect(testSubscription18).to.have.property('subscribed', true);
+        expect(testSubscription19).to.have.property('subscribed', true);
+        expect(testSubscription20).to.have.property('subscribed', true);
+        expect(testSubscription21).to.have.property('subscribed', false);
+        expect(testSubscription22).to.have.property('subscribed', false);
+        expect(testSubscription23).to.have.property('subscribed', false);
+        expect(testSubscription24).to.have.property('subscribed', true);
+        expect(testSubscription25).to.have.property('subscribed', true);
+        expect(testSubscription26).to.have.property('subscribed', true);
+
+        subscriptionExecutionCount = 0;
+
+        pubsub.publish('testEvent0').publish('testEvent1').publish('testEvent2');
+
+        expect(subscriptionExecutionCount).to.equal(21);
+
+        expect(pubsub.bulkUnsubscribe('on', [
+            'testEvent0',
+            'testEvent2'
+        ])).to.equal(false);
+    });
+
+    it('should allow bulk unsubscription of multiple events at multiple stages', () => {
+        let subscriptionExecutionCount = 0;
+
+        const callbackFunction = () => {
+                subscriptionExecutionCount += 1;
+            },
+            pubsub = Pubsub(),
+            testSubscription0 = pubsub.before('testEvent0', callbackFunction),
+            testSubscription1 = pubsub.before('testEvent0', callbackFunction),
+            testSubscription2 = pubsub.before('testEvent0', callbackFunction),
+            testSubscription3 = pubsub.on('testEvent0', callbackFunction),
+            testSubscription4 = pubsub.on('testEvent0', callbackFunction),
+            testSubscription5 = pubsub.on('testEvent0', callbackFunction),
+            testSubscription6 = pubsub.after('testEvent0', callbackFunction),
+            testSubscription7 = pubsub.after('testEvent0', callbackFunction),
+            testSubscription8 = pubsub.after('testEvent0', callbackFunction),
+            testSubscription9 = pubsub.before('testEvent1', callbackFunction),
+            testSubscription10 = pubsub.before('testEvent1', callbackFunction),
+            testSubscription11 = pubsub.before('testEvent1', callbackFunction),
+            testSubscription12 = pubsub.on('testEvent1', callbackFunction),
+            testSubscription13 = pubsub.on('testEvent1', callbackFunction),
+            testSubscription14 = pubsub.on('testEvent1', callbackFunction),
+            testSubscription15 = pubsub.after('testEvent1', callbackFunction),
+            testSubscription16 = pubsub.after('testEvent1', callbackFunction),
+            testSubscription17 = pubsub.after('testEvent1', callbackFunction),
+            testSubscription18 = pubsub.before('testEvent2', callbackFunction),
+            testSubscription19 = pubsub.before('testEvent2', callbackFunction),
+            testSubscription20 = pubsub.before('testEvent2', callbackFunction),
+            testSubscription21 = pubsub.on('testEvent2', callbackFunction),
+            testSubscription22 = pubsub.on('testEvent2', callbackFunction),
+            testSubscription23 = pubsub.on('testEvent2', callbackFunction),
+            testSubscription24 = pubsub.after('testEvent2', callbackFunction),
+            testSubscription25 = pubsub.after('testEvent2', callbackFunction),
+            testSubscription26 = pubsub.after('testEvent2', callbackFunction);
+
+        expect(testSubscription0).to.have.property('subscribed', true);
+        expect(testSubscription1).to.have.property('subscribed', true);
+        expect(testSubscription2).to.have.property('subscribed', true);
+        expect(testSubscription3).to.have.property('subscribed', true);
+        expect(testSubscription4).to.have.property('subscribed', true);
+        expect(testSubscription5).to.have.property('subscribed', true);
+        expect(testSubscription6).to.have.property('subscribed', true);
+        expect(testSubscription7).to.have.property('subscribed', true);
+        expect(testSubscription8).to.have.property('subscribed', true);
+        expect(testSubscription9).to.have.property('subscribed', true);
+        expect(testSubscription10).to.have.property('subscribed', true);
+        expect(testSubscription11).to.have.property('subscribed', true);
+        expect(testSubscription12).to.have.property('subscribed', true);
+        expect(testSubscription13).to.have.property('subscribed', true);
+        expect(testSubscription14).to.have.property('subscribed', true);
+        expect(testSubscription15).to.have.property('subscribed', true);
+        expect(testSubscription16).to.have.property('subscribed', true);
+        expect(testSubscription17).to.have.property('subscribed', true);
+        expect(testSubscription18).to.have.property('subscribed', true);
+        expect(testSubscription19).to.have.property('subscribed', true);
+        expect(testSubscription20).to.have.property('subscribed', true);
+        expect(testSubscription21).to.have.property('subscribed', true);
+        expect(testSubscription22).to.have.property('subscribed', true);
+        expect(testSubscription23).to.have.property('subscribed', true);
+        expect(testSubscription24).to.have.property('subscribed', true);
+        expect(testSubscription25).to.have.property('subscribed', true);
+        expect(testSubscription26).to.have.property('subscribed', true);
+
+        pubsub.publish('testEvent0').publish('testEvent1').publish('testEvent2');
+
+        expect(subscriptionExecutionCount).to.equal(27);
+
+        expect(pubsub.bulkUnsubscribe([
+            'before',
+            'on'
+        ], [
+            'testEvent0',
+            'testEvent2'
+        ])).to.equal(true);
+
+        expect(testSubscription0).to.have.property('subscribed', false);
+        expect(testSubscription1).to.have.property('subscribed', false);
+        expect(testSubscription2).to.have.property('subscribed', false);
+        expect(testSubscription3).to.have.property('subscribed', false);
+        expect(testSubscription4).to.have.property('subscribed', false);
+        expect(testSubscription5).to.have.property('subscribed', false);
+        expect(testSubscription6).to.have.property('subscribed', true);
+        expect(testSubscription7).to.have.property('subscribed', true);
+        expect(testSubscription8).to.have.property('subscribed', true);
+        expect(testSubscription9).to.have.property('subscribed', true);
+        expect(testSubscription10).to.have.property('subscribed', true);
+        expect(testSubscription11).to.have.property('subscribed', true);
+        expect(testSubscription12).to.have.property('subscribed', true);
+        expect(testSubscription13).to.have.property('subscribed', true);
+        expect(testSubscription14).to.have.property('subscribed', true);
+        expect(testSubscription15).to.have.property('subscribed', true);
+        expect(testSubscription16).to.have.property('subscribed', true);
+        expect(testSubscription17).to.have.property('subscribed', true);
+        expect(testSubscription18).to.have.property('subscribed', false);
+        expect(testSubscription19).to.have.property('subscribed', false);
+        expect(testSubscription20).to.have.property('subscribed', false);
+        expect(testSubscription21).to.have.property('subscribed', false);
+        expect(testSubscription22).to.have.property('subscribed', false);
+        expect(testSubscription23).to.have.property('subscribed', false);
+        expect(testSubscription24).to.have.property('subscribed', true);
+        expect(testSubscription25).to.have.property('subscribed', true);
+        expect(testSubscription26).to.have.property('subscribed', true);
+
+        subscriptionExecutionCount = 0;
+
+        pubsub.publish('testEvent0').publish('testEvent1').publish('testEvent2');
+
+        expect(subscriptionExecutionCount).to.equal(15);
+
+        expect(pubsub.bulkUnsubscribe([
+            'before',
+            'on'
+        ], [
+            'testEvent0',
+            'testEvent2'
+        ])).to.equal(false);
+    });
+
+    it('should allow bulk unsubscription with specific configuration', () => {
+        let subscriptionExecutionCount = 0;
+
+        const callbackFunction = () => {
+                subscriptionExecutionCount += 1;
+            },
+            pubsub = Pubsub(),
+            testSubscription0 = pubsub.before('testEvent0', callbackFunction),
+            testSubscription1 = pubsub.before('testEvent0', callbackFunction),
+            testSubscription2 = pubsub.before('testEvent0', callbackFunction),
+            testSubscription3 = pubsub.on('testEvent0', callbackFunction),
+            testSubscription4 = pubsub.on('testEvent0', callbackFunction),
+            testSubscription5 = pubsub.on('testEvent0', callbackFunction),
+            testSubscription6 = pubsub.after('testEvent0', callbackFunction),
+            testSubscription7 = pubsub.after('testEvent0', callbackFunction),
+            testSubscription8 = pubsub.after('testEvent0', callbackFunction),
+            testSubscription9 = pubsub.before('testEvent1', callbackFunction),
+            testSubscription10 = pubsub.before('testEvent1', callbackFunction),
+            testSubscription11 = pubsub.before('testEvent1', callbackFunction),
+            testSubscription12 = pubsub.on('testEvent1', callbackFunction),
+            testSubscription13 = pubsub.on('testEvent1', callbackFunction),
+            testSubscription14 = pubsub.on('testEvent1', callbackFunction),
+            testSubscription15 = pubsub.after('testEvent1', callbackFunction),
+            testSubscription16 = pubsub.after('testEvent1', callbackFunction),
+            testSubscription17 = pubsub.after('testEvent1', callbackFunction),
+            testSubscription18 = pubsub.before('testEvent2', callbackFunction),
+            testSubscription19 = pubsub.before('testEvent2', callbackFunction),
+            testSubscription20 = pubsub.before('testEvent2', callbackFunction),
+            testSubscription21 = pubsub.on('testEvent2', callbackFunction),
+            testSubscription22 = pubsub.on('testEvent2', callbackFunction),
+            testSubscription23 = pubsub.on('testEvent2', callbackFunction),
+            testSubscription24 = pubsub.after('testEvent2', callbackFunction),
+            testSubscription25 = pubsub.after('testEvent2', callbackFunction),
+            testSubscription26 = pubsub.after('testEvent2', callbackFunction);
+
+        expect(testSubscription0).to.have.property('subscribed', true);
+        expect(testSubscription1).to.have.property('subscribed', true);
+        expect(testSubscription2).to.have.property('subscribed', true);
+        expect(testSubscription3).to.have.property('subscribed', true);
+        expect(testSubscription4).to.have.property('subscribed', true);
+        expect(testSubscription5).to.have.property('subscribed', true);
+        expect(testSubscription6).to.have.property('subscribed', true);
+        expect(testSubscription7).to.have.property('subscribed', true);
+        expect(testSubscription8).to.have.property('subscribed', true);
+        expect(testSubscription9).to.have.property('subscribed', true);
+        expect(testSubscription10).to.have.property('subscribed', true);
+        expect(testSubscription11).to.have.property('subscribed', true);
+        expect(testSubscription12).to.have.property('subscribed', true);
+        expect(testSubscription13).to.have.property('subscribed', true);
+        expect(testSubscription14).to.have.property('subscribed', true);
+        expect(testSubscription15).to.have.property('subscribed', true);
+        expect(testSubscription16).to.have.property('subscribed', true);
+        expect(testSubscription17).to.have.property('subscribed', true);
+        expect(testSubscription18).to.have.property('subscribed', true);
+        expect(testSubscription19).to.have.property('subscribed', true);
+        expect(testSubscription20).to.have.property('subscribed', true);
+        expect(testSubscription21).to.have.property('subscribed', true);
+        expect(testSubscription22).to.have.property('subscribed', true);
+        expect(testSubscription23).to.have.property('subscribed', true);
+        expect(testSubscription24).to.have.property('subscribed', true);
+        expect(testSubscription25).to.have.property('subscribed', true);
+        expect(testSubscription26).to.have.property('subscribed', true);
+
+        pubsub.publish('testEvent0').publish('testEvent1').publish('testEvent2');
+
+        expect(subscriptionExecutionCount).to.equal(27);
+
+        expect(pubsub.bulkUnsubscribe([
+            {
+                eventName: 'testEvent0',
+                stageName: 'before'
+            },
+            'testEvent1',
+            {
+                eventName: 'testEvent2',
+                stageName: 'after'
+            }
+        ])).to.equal(true);
+
+        expect(testSubscription0).to.have.property('subscribed', false);
+        expect(testSubscription1).to.have.property('subscribed', false);
+        expect(testSubscription2).to.have.property('subscribed', false);
+        expect(testSubscription3).to.have.property('subscribed', true);
+        expect(testSubscription4).to.have.property('subscribed', true);
+        expect(testSubscription5).to.have.property('subscribed', true);
+        expect(testSubscription6).to.have.property('subscribed', true);
+        expect(testSubscription7).to.have.property('subscribed', true);
+        expect(testSubscription8).to.have.property('subscribed', true);
+        expect(testSubscription9).to.have.property('subscribed', false);
+        expect(testSubscription10).to.have.property('subscribed', false);
+        expect(testSubscription11).to.have.property('subscribed', false);
+        expect(testSubscription12).to.have.property('subscribed', false);
+        expect(testSubscription13).to.have.property('subscribed', false);
+        expect(testSubscription14).to.have.property('subscribed', false);
+        expect(testSubscription15).to.have.property('subscribed', false);
+        expect(testSubscription16).to.have.property('subscribed', false);
+        expect(testSubscription17).to.have.property('subscribed', false);
+        expect(testSubscription18).to.have.property('subscribed', true);
+        expect(testSubscription19).to.have.property('subscribed', true);
+        expect(testSubscription20).to.have.property('subscribed', true);
+        expect(testSubscription21).to.have.property('subscribed', true);
+        expect(testSubscription22).to.have.property('subscribed', true);
+        expect(testSubscription23).to.have.property('subscribed', true);
+        expect(testSubscription24).to.have.property('subscribed', false);
+        expect(testSubscription25).to.have.property('subscribed', false);
+        expect(testSubscription26).to.have.property('subscribed', false);
+
+        subscriptionExecutionCount = 0;
+
+        pubsub.publish('testEvent0').publish('testEvent1').publish('testEvent2');
+
+        expect(subscriptionExecutionCount).to.equal(12);
+
+        expect(pubsub.bulkUnsubscribe([
+            {
+                eventName: 'testEvent0',
+                stageName: 'before'
+            },
+            'testEvent1',
+            {
+                eventName: 'testEvent2',
+                stageName: 'after'
+            }
+        ])).to.equal(false);
+    });
+
+    it('should handle bulk unsubscription of undefined events', () => {
+        const pubsub = Pubsub();
+
+        expect(pubsub.bulkUnsubscribe('unknownEvent')).to.equal(false);
+        expect(pubsub.bulkUnsubscribe('on', 'unknownEvent')).to.equal(false);
+    });
+
+    it('should not allow public bulk unsubscription when allowPublicUnsubscription is false', () => {
+        let subscriptionExecutionCount = 0;
+
+        const callbackFunction = () => {
+                subscriptionExecutionCount += 1;
+            },
+            pubsub = Pubsub({
+                events: {
+                    testEvent0: {
+                        allowPublicUnsubscription: false
+                    },
+                    testEvent1: {
+                        allowPublicUnsubscription: false
+                    },
+                    testEvent2: {
+                        allowPublicUnsubscription: false
+                    }
+                }
+            }),
+            testSubscription0 = pubsub.before('testEvent0', callbackFunction),
+            testSubscription1 = pubsub.before('testEvent0', callbackFunction),
+            testSubscription2 = pubsub.before('testEvent0', callbackFunction),
+            testSubscription3 = pubsub.on('testEvent0', callbackFunction),
+            testSubscription4 = pubsub.on('testEvent0', callbackFunction),
+            testSubscription5 = pubsub.on('testEvent0', callbackFunction),
+            testSubscription6 = pubsub.after('testEvent0', callbackFunction),
+            testSubscription7 = pubsub.after('testEvent0', callbackFunction),
+            testSubscription8 = pubsub.after('testEvent0', callbackFunction),
+            testSubscription9 = pubsub.before('testEvent1', callbackFunction),
+            testSubscription10 = pubsub.before('testEvent1', callbackFunction),
+            testSubscription11 = pubsub.before('testEvent1', callbackFunction),
+            testSubscription12 = pubsub.on('testEvent1', callbackFunction),
+            testSubscription13 = pubsub.on('testEvent1', callbackFunction),
+            testSubscription14 = pubsub.on('testEvent1', callbackFunction),
+            testSubscription15 = pubsub.after('testEvent1', callbackFunction),
+            testSubscription16 = pubsub.after('testEvent1', callbackFunction),
+            testSubscription17 = pubsub.after('testEvent1', callbackFunction),
+            testSubscription18 = pubsub.before('testEvent2', callbackFunction),
+            testSubscription19 = pubsub.before('testEvent2', callbackFunction),
+            testSubscription20 = pubsub.before('testEvent2', callbackFunction),
+            testSubscription21 = pubsub.on('testEvent2', callbackFunction),
+            testSubscription22 = pubsub.on('testEvent2', callbackFunction),
+            testSubscription23 = pubsub.on('testEvent2', callbackFunction),
+            testSubscription24 = pubsub.after('testEvent2', callbackFunction),
+            testSubscription25 = pubsub.after('testEvent2', callbackFunction),
+            testSubscription26 = pubsub.after('testEvent2', callbackFunction);
+
+        expect(testSubscription0).to.have.property('subscribed', true);
+        expect(testSubscription1).to.have.property('subscribed', true);
+        expect(testSubscription2).to.have.property('subscribed', true);
+        expect(testSubscription3).to.have.property('subscribed', true);
+        expect(testSubscription4).to.have.property('subscribed', true);
+        expect(testSubscription5).to.have.property('subscribed', true);
+        expect(testSubscription6).to.have.property('subscribed', true);
+        expect(testSubscription7).to.have.property('subscribed', true);
+        expect(testSubscription8).to.have.property('subscribed', true);
+        expect(testSubscription9).to.have.property('subscribed', true);
+        expect(testSubscription10).to.have.property('subscribed', true);
+        expect(testSubscription11).to.have.property('subscribed', true);
+        expect(testSubscription12).to.have.property('subscribed', true);
+        expect(testSubscription13).to.have.property('subscribed', true);
+        expect(testSubscription14).to.have.property('subscribed', true);
+        expect(testSubscription15).to.have.property('subscribed', true);
+        expect(testSubscription16).to.have.property('subscribed', true);
+        expect(testSubscription17).to.have.property('subscribed', true);
+        expect(testSubscription18).to.have.property('subscribed', true);
+        expect(testSubscription19).to.have.property('subscribed', true);
+        expect(testSubscription20).to.have.property('subscribed', true);
+        expect(testSubscription21).to.have.property('subscribed', true);
+        expect(testSubscription22).to.have.property('subscribed', true);
+        expect(testSubscription23).to.have.property('subscribed', true);
+        expect(testSubscription24).to.have.property('subscribed', true);
+        expect(testSubscription25).to.have.property('subscribed', true);
+        expect(testSubscription26).to.have.property('subscribed', true);
+
+        pubsub.publish('testEvent0').publish('testEvent1').publish('testEvent2');
+
+        expect(subscriptionExecutionCount).to.equal(27);
+
+        expect(pubsub.bulkUnsubscribe()).to.equal(false);
+        expect(pubsub.bulkUnsubscribe('testEvent0')).to.equal(false);
+        expect(pubsub.bulkUnsubscribe('on', 'testEvent0')).to.equal(false);
+
+        expect(testSubscription0).to.have.property('subscribed', true);
+        expect(testSubscription1).to.have.property('subscribed', true);
+        expect(testSubscription2).to.have.property('subscribed', true);
+        expect(testSubscription3).to.have.property('subscribed', true);
+        expect(testSubscription4).to.have.property('subscribed', true);
+        expect(testSubscription5).to.have.property('subscribed', true);
+        expect(testSubscription6).to.have.property('subscribed', true);
+        expect(testSubscription7).to.have.property('subscribed', true);
+        expect(testSubscription8).to.have.property('subscribed', true);
+        expect(testSubscription9).to.have.property('subscribed', true);
+        expect(testSubscription10).to.have.property('subscribed', true);
+        expect(testSubscription11).to.have.property('subscribed', true);
+        expect(testSubscription12).to.have.property('subscribed', true);
+        expect(testSubscription13).to.have.property('subscribed', true);
+        expect(testSubscription14).to.have.property('subscribed', true);
+        expect(testSubscription15).to.have.property('subscribed', true);
+        expect(testSubscription16).to.have.property('subscribed', true);
+        expect(testSubscription17).to.have.property('subscribed', true);
+        expect(testSubscription18).to.have.property('subscribed', true);
+        expect(testSubscription19).to.have.property('subscribed', true);
+        expect(testSubscription20).to.have.property('subscribed', true);
+        expect(testSubscription21).to.have.property('subscribed', true);
+        expect(testSubscription22).to.have.property('subscribed', true);
+        expect(testSubscription23).to.have.property('subscribed', true);
+        expect(testSubscription24).to.have.property('subscribed', true);
+        expect(testSubscription25).to.have.property('subscribed', true);
+        expect(testSubscription26).to.have.property('subscribed', true);
+
+        subscriptionExecutionCount = 0;
+
+        pubsub.publish('testEvent0').publish('testEvent1').publish('testEvent2');
+
+        expect(subscriptionExecutionCount).to.equal(27);
+    });
+
+    it('should allow protected bulk unsubscription of all subscriptions', () => {
+        let subscriptionExecutionCount = 0;
+
+        const callbackFunction = () => {
+                subscriptionExecutionCount += 1;
+            },
+            pubsub = Pubsub(),
+            testSubscription0 = pubsub.before('testEvent0', callbackFunction),
+            testSubscription1 = pubsub.before('testEvent0', callbackFunction),
+            testSubscription2 = pubsub.before('testEvent0', callbackFunction),
+            testSubscription3 = pubsub.on('testEvent0', callbackFunction),
+            testSubscription4 = pubsub.on('testEvent0', callbackFunction),
+            testSubscription5 = pubsub.on('testEvent0', callbackFunction),
+            testSubscription6 = pubsub.after('testEvent0', callbackFunction),
+            testSubscription7 = pubsub.after('testEvent0', callbackFunction),
+            testSubscription8 = pubsub.after('testEvent0', callbackFunction),
+            testSubscription9 = pubsub.before('testEvent1', callbackFunction),
+            testSubscription10 = pubsub.before('testEvent1', callbackFunction),
+            testSubscription11 = pubsub.before('testEvent1', callbackFunction),
+            testSubscription12 = pubsub.on('testEvent1', callbackFunction),
+            testSubscription13 = pubsub.on('testEvent1', callbackFunction),
+            testSubscription14 = pubsub.on('testEvent1', callbackFunction),
+            testSubscription15 = pubsub.after('testEvent1', callbackFunction),
+            testSubscription16 = pubsub.after('testEvent1', callbackFunction),
+            testSubscription17 = pubsub.after('testEvent1', callbackFunction),
+            testSubscription18 = pubsub.before('testEvent2', callbackFunction),
+            testSubscription19 = pubsub.before('testEvent2', callbackFunction),
+            testSubscription20 = pubsub.before('testEvent2', callbackFunction),
+            testSubscription21 = pubsub.on('testEvent2', callbackFunction),
+            testSubscription22 = pubsub.on('testEvent2', callbackFunction),
+            testSubscription23 = pubsub.on('testEvent2', callbackFunction),
+            testSubscription24 = pubsub.after('testEvent2', callbackFunction),
+            testSubscription25 = pubsub.after('testEvent2', callbackFunction),
+            testSubscription26 = pubsub.after('testEvent2', callbackFunction);
+
+        expect(testSubscription0).to.have.property('subscribed', true);
+        expect(testSubscription1).to.have.property('subscribed', true);
+        expect(testSubscription2).to.have.property('subscribed', true);
+        expect(testSubscription3).to.have.property('subscribed', true);
+        expect(testSubscription4).to.have.property('subscribed', true);
+        expect(testSubscription5).to.have.property('subscribed', true);
+        expect(testSubscription6).to.have.property('subscribed', true);
+        expect(testSubscription7).to.have.property('subscribed', true);
+        expect(testSubscription8).to.have.property('subscribed', true);
+        expect(testSubscription9).to.have.property('subscribed', true);
+        expect(testSubscription10).to.have.property('subscribed', true);
+        expect(testSubscription11).to.have.property('subscribed', true);
+        expect(testSubscription12).to.have.property('subscribed', true);
+        expect(testSubscription13).to.have.property('subscribed', true);
+        expect(testSubscription14).to.have.property('subscribed', true);
+        expect(testSubscription15).to.have.property('subscribed', true);
+        expect(testSubscription16).to.have.property('subscribed', true);
+        expect(testSubscription17).to.have.property('subscribed', true);
+        expect(testSubscription18).to.have.property('subscribed', true);
+        expect(testSubscription19).to.have.property('subscribed', true);
+        expect(testSubscription20).to.have.property('subscribed', true);
+        expect(testSubscription21).to.have.property('subscribed', true);
+        expect(testSubscription22).to.have.property('subscribed', true);
+        expect(testSubscription23).to.have.property('subscribed', true);
+        expect(testSubscription24).to.have.property('subscribed', true);
+        expect(testSubscription25).to.have.property('subscribed', true);
+        expect(testSubscription26).to.have.property('subscribed', true);
+
+        pubsub.publish('testEvent0').publish('testEvent1').publish('testEvent2');
+
+        expect(subscriptionExecutionCount).to.equal(27);
+
+        expect(pubsub._bulkUnsubscribe()).to.equal(true);
+
+        expect(testSubscription0).to.have.property('subscribed', false);
+        expect(testSubscription1).to.have.property('subscribed', false);
+        expect(testSubscription2).to.have.property('subscribed', false);
+        expect(testSubscription3).to.have.property('subscribed', false);
+        expect(testSubscription4).to.have.property('subscribed', false);
+        expect(testSubscription5).to.have.property('subscribed', false);
+        expect(testSubscription6).to.have.property('subscribed', false);
+        expect(testSubscription7).to.have.property('subscribed', false);
+        expect(testSubscription8).to.have.property('subscribed', false);
+        expect(testSubscription9).to.have.property('subscribed', false);
+        expect(testSubscription10).to.have.property('subscribed', false);
+        expect(testSubscription11).to.have.property('subscribed', false);
+        expect(testSubscription12).to.have.property('subscribed', false);
+        expect(testSubscription13).to.have.property('subscribed', false);
+        expect(testSubscription14).to.have.property('subscribed', false);
+        expect(testSubscription15).to.have.property('subscribed', false);
+        expect(testSubscription16).to.have.property('subscribed', false);
+        expect(testSubscription17).to.have.property('subscribed', false);
+        expect(testSubscription18).to.have.property('subscribed', false);
+        expect(testSubscription19).to.have.property('subscribed', false);
+        expect(testSubscription20).to.have.property('subscribed', false);
+        expect(testSubscription21).to.have.property('subscribed', false);
+        expect(testSubscription22).to.have.property('subscribed', false);
+        expect(testSubscription23).to.have.property('subscribed', false);
+        expect(testSubscription24).to.have.property('subscribed', false);
+        expect(testSubscription25).to.have.property('subscribed', false);
+        expect(testSubscription26).to.have.property('subscribed', false);
+
+        subscriptionExecutionCount = 0;
+
+        pubsub.publish('testEvent0').publish('testEvent1').publish('testEvent2');
+
+        expect(subscriptionExecutionCount).to.equal(0);
+
+        expect(pubsub._bulkUnsubscribe()).to.equal(false);
+    });
+
+    it('should allow protected bulk unsubscription of an event', () => {
+        let subscriptionExecutionCount = 0;
+
+        const callbackFunction = () => {
+                subscriptionExecutionCount += 1;
+            },
+            pubsub = Pubsub(),
+            testSubscription0 = pubsub.before('testEvent0', callbackFunction),
+            testSubscription1 = pubsub.before('testEvent0', callbackFunction),
+            testSubscription2 = pubsub.before('testEvent0', callbackFunction),
+            testSubscription3 = pubsub.on('testEvent0', callbackFunction),
+            testSubscription4 = pubsub.on('testEvent0', callbackFunction),
+            testSubscription5 = pubsub.on('testEvent0', callbackFunction),
+            testSubscription6 = pubsub.after('testEvent0', callbackFunction),
+            testSubscription7 = pubsub.after('testEvent0', callbackFunction),
+            testSubscription8 = pubsub.after('testEvent0', callbackFunction),
+            testSubscription9 = pubsub.before('testEvent1', callbackFunction),
+            testSubscription10 = pubsub.before('testEvent1', callbackFunction),
+            testSubscription11 = pubsub.before('testEvent1', callbackFunction),
+            testSubscription12 = pubsub.on('testEvent1', callbackFunction),
+            testSubscription13 = pubsub.on('testEvent1', callbackFunction),
+            testSubscription14 = pubsub.on('testEvent1', callbackFunction),
+            testSubscription15 = pubsub.after('testEvent1', callbackFunction),
+            testSubscription16 = pubsub.after('testEvent1', callbackFunction),
+            testSubscription17 = pubsub.after('testEvent1', callbackFunction),
+            testSubscription18 = pubsub.before('testEvent2', callbackFunction),
+            testSubscription19 = pubsub.before('testEvent2', callbackFunction),
+            testSubscription20 = pubsub.before('testEvent2', callbackFunction),
+            testSubscription21 = pubsub.on('testEvent2', callbackFunction),
+            testSubscription22 = pubsub.on('testEvent2', callbackFunction),
+            testSubscription23 = pubsub.on('testEvent2', callbackFunction),
+            testSubscription24 = pubsub.after('testEvent2', callbackFunction),
+            testSubscription25 = pubsub.after('testEvent2', callbackFunction),
+            testSubscription26 = pubsub.after('testEvent2', callbackFunction);
+
+        expect(testSubscription0).to.have.property('subscribed', true);
+        expect(testSubscription1).to.have.property('subscribed', true);
+        expect(testSubscription2).to.have.property('subscribed', true);
+        expect(testSubscription3).to.have.property('subscribed', true);
+        expect(testSubscription4).to.have.property('subscribed', true);
+        expect(testSubscription5).to.have.property('subscribed', true);
+        expect(testSubscription6).to.have.property('subscribed', true);
+        expect(testSubscription7).to.have.property('subscribed', true);
+        expect(testSubscription8).to.have.property('subscribed', true);
+        expect(testSubscription9).to.have.property('subscribed', true);
+        expect(testSubscription10).to.have.property('subscribed', true);
+        expect(testSubscription11).to.have.property('subscribed', true);
+        expect(testSubscription12).to.have.property('subscribed', true);
+        expect(testSubscription13).to.have.property('subscribed', true);
+        expect(testSubscription14).to.have.property('subscribed', true);
+        expect(testSubscription15).to.have.property('subscribed', true);
+        expect(testSubscription16).to.have.property('subscribed', true);
+        expect(testSubscription17).to.have.property('subscribed', true);
+        expect(testSubscription18).to.have.property('subscribed', true);
+        expect(testSubscription19).to.have.property('subscribed', true);
+        expect(testSubscription20).to.have.property('subscribed', true);
+        expect(testSubscription21).to.have.property('subscribed', true);
+        expect(testSubscription22).to.have.property('subscribed', true);
+        expect(testSubscription23).to.have.property('subscribed', true);
+        expect(testSubscription24).to.have.property('subscribed', true);
+        expect(testSubscription25).to.have.property('subscribed', true);
+        expect(testSubscription26).to.have.property('subscribed', true);
+
+        pubsub.publish('testEvent0').publish('testEvent1').publish('testEvent2');
+
+        expect(subscriptionExecutionCount).to.equal(27);
+
+        expect(pubsub._bulkUnsubscribe('testEvent1')).to.equal(true);
+
+        expect(testSubscription0).to.have.property('subscribed', true);
+        expect(testSubscription1).to.have.property('subscribed', true);
+        expect(testSubscription2).to.have.property('subscribed', true);
+        expect(testSubscription3).to.have.property('subscribed', true);
+        expect(testSubscription4).to.have.property('subscribed', true);
+        expect(testSubscription5).to.have.property('subscribed', true);
+        expect(testSubscription6).to.have.property('subscribed', true);
+        expect(testSubscription7).to.have.property('subscribed', true);
+        expect(testSubscription8).to.have.property('subscribed', true);
+        expect(testSubscription9).to.have.property('subscribed', false);
+        expect(testSubscription10).to.have.property('subscribed', false);
+        expect(testSubscription11).to.have.property('subscribed', false);
+        expect(testSubscription12).to.have.property('subscribed', false);
+        expect(testSubscription13).to.have.property('subscribed', false);
+        expect(testSubscription14).to.have.property('subscribed', false);
+        expect(testSubscription15).to.have.property('subscribed', false);
+        expect(testSubscription16).to.have.property('subscribed', false);
+        expect(testSubscription17).to.have.property('subscribed', false);
+        expect(testSubscription18).to.have.property('subscribed', true);
+        expect(testSubscription19).to.have.property('subscribed', true);
+        expect(testSubscription20).to.have.property('subscribed', true);
+        expect(testSubscription21).to.have.property('subscribed', true);
+        expect(testSubscription22).to.have.property('subscribed', true);
+        expect(testSubscription23).to.have.property('subscribed', true);
+        expect(testSubscription24).to.have.property('subscribed', true);
+        expect(testSubscription25).to.have.property('subscribed', true);
+        expect(testSubscription26).to.have.property('subscribed', true);
+
+        subscriptionExecutionCount = 0;
+
+        pubsub.publish('testEvent0').publish('testEvent1').publish('testEvent2');
+
+        expect(subscriptionExecutionCount).to.equal(18);
+
+        expect(pubsub._bulkUnsubscribe('testEvent1')).to.equal(false);
+    });
+
+    it('should allow protected bulk unsubscription of multiple events', () => {
+        let subscriptionExecutionCount = 0;
+
+        const callbackFunction = () => {
+                subscriptionExecutionCount += 1;
+            },
+            pubsub = Pubsub(),
+            testSubscription0 = pubsub.before('testEvent0', callbackFunction),
+            testSubscription1 = pubsub.before('testEvent0', callbackFunction),
+            testSubscription2 = pubsub.before('testEvent0', callbackFunction),
+            testSubscription3 = pubsub.on('testEvent0', callbackFunction),
+            testSubscription4 = pubsub.on('testEvent0', callbackFunction),
+            testSubscription5 = pubsub.on('testEvent0', callbackFunction),
+            testSubscription6 = pubsub.after('testEvent0', callbackFunction),
+            testSubscription7 = pubsub.after('testEvent0', callbackFunction),
+            testSubscription8 = pubsub.after('testEvent0', callbackFunction),
+            testSubscription9 = pubsub.before('testEvent1', callbackFunction),
+            testSubscription10 = pubsub.before('testEvent1', callbackFunction),
+            testSubscription11 = pubsub.before('testEvent1', callbackFunction),
+            testSubscription12 = pubsub.on('testEvent1', callbackFunction),
+            testSubscription13 = pubsub.on('testEvent1', callbackFunction),
+            testSubscription14 = pubsub.on('testEvent1', callbackFunction),
+            testSubscription15 = pubsub.after('testEvent1', callbackFunction),
+            testSubscription16 = pubsub.after('testEvent1', callbackFunction),
+            testSubscription17 = pubsub.after('testEvent1', callbackFunction),
+            testSubscription18 = pubsub.before('testEvent2', callbackFunction),
+            testSubscription19 = pubsub.before('testEvent2', callbackFunction),
+            testSubscription20 = pubsub.before('testEvent2', callbackFunction),
+            testSubscription21 = pubsub.on('testEvent2', callbackFunction),
+            testSubscription22 = pubsub.on('testEvent2', callbackFunction),
+            testSubscription23 = pubsub.on('testEvent2', callbackFunction),
+            testSubscription24 = pubsub.after('testEvent2', callbackFunction),
+            testSubscription25 = pubsub.after('testEvent2', callbackFunction),
+            testSubscription26 = pubsub.after('testEvent2', callbackFunction);
+
+        expect(testSubscription0).to.have.property('subscribed', true);
+        expect(testSubscription1).to.have.property('subscribed', true);
+        expect(testSubscription2).to.have.property('subscribed', true);
+        expect(testSubscription3).to.have.property('subscribed', true);
+        expect(testSubscription4).to.have.property('subscribed', true);
+        expect(testSubscription5).to.have.property('subscribed', true);
+        expect(testSubscription6).to.have.property('subscribed', true);
+        expect(testSubscription7).to.have.property('subscribed', true);
+        expect(testSubscription8).to.have.property('subscribed', true);
+        expect(testSubscription9).to.have.property('subscribed', true);
+        expect(testSubscription10).to.have.property('subscribed', true);
+        expect(testSubscription11).to.have.property('subscribed', true);
+        expect(testSubscription12).to.have.property('subscribed', true);
+        expect(testSubscription13).to.have.property('subscribed', true);
+        expect(testSubscription14).to.have.property('subscribed', true);
+        expect(testSubscription15).to.have.property('subscribed', true);
+        expect(testSubscription16).to.have.property('subscribed', true);
+        expect(testSubscription17).to.have.property('subscribed', true);
+        expect(testSubscription18).to.have.property('subscribed', true);
+        expect(testSubscription19).to.have.property('subscribed', true);
+        expect(testSubscription20).to.have.property('subscribed', true);
+        expect(testSubscription21).to.have.property('subscribed', true);
+        expect(testSubscription22).to.have.property('subscribed', true);
+        expect(testSubscription23).to.have.property('subscribed', true);
+        expect(testSubscription24).to.have.property('subscribed', true);
+        expect(testSubscription25).to.have.property('subscribed', true);
+        expect(testSubscription26).to.have.property('subscribed', true);
+
+        pubsub.publish('testEvent0').publish('testEvent1').publish('testEvent2');
+
+        expect(subscriptionExecutionCount).to.equal(27);
+
+        expect(pubsub._bulkUnsubscribe([
+            'testEvent0',
+            'testEvent1'
+        ])).to.equal(true);
+
+        expect(testSubscription0).to.have.property('subscribed', false);
+        expect(testSubscription1).to.have.property('subscribed', false);
+        expect(testSubscription2).to.have.property('subscribed', false);
+        expect(testSubscription3).to.have.property('subscribed', false);
+        expect(testSubscription4).to.have.property('subscribed', false);
+        expect(testSubscription5).to.have.property('subscribed', false);
+        expect(testSubscription6).to.have.property('subscribed', false);
+        expect(testSubscription7).to.have.property('subscribed', false);
+        expect(testSubscription8).to.have.property('subscribed', false);
+        expect(testSubscription9).to.have.property('subscribed', false);
+        expect(testSubscription10).to.have.property('subscribed', false);
+        expect(testSubscription11).to.have.property('subscribed', false);
+        expect(testSubscription12).to.have.property('subscribed', false);
+        expect(testSubscription13).to.have.property('subscribed', false);
+        expect(testSubscription14).to.have.property('subscribed', false);
+        expect(testSubscription15).to.have.property('subscribed', false);
+        expect(testSubscription16).to.have.property('subscribed', false);
+        expect(testSubscription17).to.have.property('subscribed', false);
+        expect(testSubscription18).to.have.property('subscribed', true);
+        expect(testSubscription19).to.have.property('subscribed', true);
+        expect(testSubscription20).to.have.property('subscribed', true);
+        expect(testSubscription21).to.have.property('subscribed', true);
+        expect(testSubscription22).to.have.property('subscribed', true);
+        expect(testSubscription23).to.have.property('subscribed', true);
+        expect(testSubscription24).to.have.property('subscribed', true);
+        expect(testSubscription25).to.have.property('subscribed', true);
+        expect(testSubscription26).to.have.property('subscribed', true);
+
+        subscriptionExecutionCount = 0;
+
+        pubsub.publish('testEvent0').publish('testEvent1').publish('testEvent2');
+
+        expect(subscriptionExecutionCount).to.equal(9);
+
+        expect(pubsub._bulkUnsubscribe([
+            'testEvent0',
+            'testEvent1'
+        ])).to.equal(false);
+    });
+
+    it('should allow protected bulk unsubscription of an event at a specific stage', () => {
+        let subscriptionExecutionCount = 0;
+
+        const callbackFunction = () => {
+                subscriptionExecutionCount += 1;
+            },
+            pubsub = Pubsub(),
+            testSubscription0 = pubsub.before('testEvent0', callbackFunction),
+            testSubscription1 = pubsub.before('testEvent0', callbackFunction),
+            testSubscription2 = pubsub.before('testEvent0', callbackFunction),
+            testSubscription3 = pubsub.on('testEvent0', callbackFunction),
+            testSubscription4 = pubsub.on('testEvent0', callbackFunction),
+            testSubscription5 = pubsub.on('testEvent0', callbackFunction),
+            testSubscription6 = pubsub.after('testEvent0', callbackFunction),
+            testSubscription7 = pubsub.after('testEvent0', callbackFunction),
+            testSubscription8 = pubsub.after('testEvent0', callbackFunction),
+            testSubscription9 = pubsub.before('testEvent1', callbackFunction),
+            testSubscription10 = pubsub.before('testEvent1', callbackFunction),
+            testSubscription11 = pubsub.before('testEvent1', callbackFunction),
+            testSubscription12 = pubsub.on('testEvent1', callbackFunction),
+            testSubscription13 = pubsub.on('testEvent1', callbackFunction),
+            testSubscription14 = pubsub.on('testEvent1', callbackFunction),
+            testSubscription15 = pubsub.after('testEvent1', callbackFunction),
+            testSubscription16 = pubsub.after('testEvent1', callbackFunction),
+            testSubscription17 = pubsub.after('testEvent1', callbackFunction),
+            testSubscription18 = pubsub.before('testEvent2', callbackFunction),
+            testSubscription19 = pubsub.before('testEvent2', callbackFunction),
+            testSubscription20 = pubsub.before('testEvent2', callbackFunction),
+            testSubscription21 = pubsub.on('testEvent2', callbackFunction),
+            testSubscription22 = pubsub.on('testEvent2', callbackFunction),
+            testSubscription23 = pubsub.on('testEvent2', callbackFunction),
+            testSubscription24 = pubsub.after('testEvent2', callbackFunction),
+            testSubscription25 = pubsub.after('testEvent2', callbackFunction),
+            testSubscription26 = pubsub.after('testEvent2', callbackFunction);
+
+        expect(testSubscription0).to.have.property('subscribed', true);
+        expect(testSubscription1).to.have.property('subscribed', true);
+        expect(testSubscription2).to.have.property('subscribed', true);
+        expect(testSubscription3).to.have.property('subscribed', true);
+        expect(testSubscription4).to.have.property('subscribed', true);
+        expect(testSubscription5).to.have.property('subscribed', true);
+        expect(testSubscription6).to.have.property('subscribed', true);
+        expect(testSubscription7).to.have.property('subscribed', true);
+        expect(testSubscription8).to.have.property('subscribed', true);
+        expect(testSubscription9).to.have.property('subscribed', true);
+        expect(testSubscription10).to.have.property('subscribed', true);
+        expect(testSubscription11).to.have.property('subscribed', true);
+        expect(testSubscription12).to.have.property('subscribed', true);
+        expect(testSubscription13).to.have.property('subscribed', true);
+        expect(testSubscription14).to.have.property('subscribed', true);
+        expect(testSubscription15).to.have.property('subscribed', true);
+        expect(testSubscription16).to.have.property('subscribed', true);
+        expect(testSubscription17).to.have.property('subscribed', true);
+        expect(testSubscription18).to.have.property('subscribed', true);
+        expect(testSubscription19).to.have.property('subscribed', true);
+        expect(testSubscription20).to.have.property('subscribed', true);
+        expect(testSubscription21).to.have.property('subscribed', true);
+        expect(testSubscription22).to.have.property('subscribed', true);
+        expect(testSubscription23).to.have.property('subscribed', true);
+        expect(testSubscription24).to.have.property('subscribed', true);
+        expect(testSubscription25).to.have.property('subscribed', true);
+        expect(testSubscription26).to.have.property('subscribed', true);
+
+        pubsub.publish('testEvent0').publish('testEvent1').publish('testEvent2');
+
+        expect(subscriptionExecutionCount).to.equal(27);
+
+        expect(pubsub._bulkUnsubscribe('on', 'testEvent1')).to.equal(true);
+
+        expect(testSubscription0).to.have.property('subscribed', true);
+        expect(testSubscription1).to.have.property('subscribed', true);
+        expect(testSubscription2).to.have.property('subscribed', true);
+        expect(testSubscription3).to.have.property('subscribed', true);
+        expect(testSubscription4).to.have.property('subscribed', true);
+        expect(testSubscription5).to.have.property('subscribed', true);
+        expect(testSubscription6).to.have.property('subscribed', true);
+        expect(testSubscription7).to.have.property('subscribed', true);
+        expect(testSubscription8).to.have.property('subscribed', true);
+        expect(testSubscription9).to.have.property('subscribed', true);
+        expect(testSubscription10).to.have.property('subscribed', true);
+        expect(testSubscription11).to.have.property('subscribed', true);
+        expect(testSubscription12).to.have.property('subscribed', false);
+        expect(testSubscription13).to.have.property('subscribed', false);
+        expect(testSubscription14).to.have.property('subscribed', false);
+        expect(testSubscription15).to.have.property('subscribed', true);
+        expect(testSubscription16).to.have.property('subscribed', true);
+        expect(testSubscription17).to.have.property('subscribed', true);
+        expect(testSubscription18).to.have.property('subscribed', true);
+        expect(testSubscription19).to.have.property('subscribed', true);
+        expect(testSubscription20).to.have.property('subscribed', true);
+        expect(testSubscription21).to.have.property('subscribed', true);
+        expect(testSubscription22).to.have.property('subscribed', true);
+        expect(testSubscription23).to.have.property('subscribed', true);
+        expect(testSubscription24).to.have.property('subscribed', true);
+        expect(testSubscription25).to.have.property('subscribed', true);
+        expect(testSubscription26).to.have.property('subscribed', true);
+
+        subscriptionExecutionCount = 0;
+
+        pubsub.publish('testEvent0').publish('testEvent1').publish('testEvent2');
+
+        expect(subscriptionExecutionCount).to.equal(24);
+
+        expect(pubsub._bulkUnsubscribe('on', 'testEvent1')).to.equal(false);
+    });
+
+    it('should allow protected bulk unsubscription of an event at multiple stages', () => {
+        let subscriptionExecutionCount = 0;
+
+        const callbackFunction = () => {
+                subscriptionExecutionCount += 1;
+            },
+            pubsub = Pubsub(),
+            testSubscription0 = pubsub.before('testEvent0', callbackFunction),
+            testSubscription1 = pubsub.before('testEvent0', callbackFunction),
+            testSubscription2 = pubsub.before('testEvent0', callbackFunction),
+            testSubscription3 = pubsub.on('testEvent0', callbackFunction),
+            testSubscription4 = pubsub.on('testEvent0', callbackFunction),
+            testSubscription5 = pubsub.on('testEvent0', callbackFunction),
+            testSubscription6 = pubsub.after('testEvent0', callbackFunction),
+            testSubscription7 = pubsub.after('testEvent0', callbackFunction),
+            testSubscription8 = pubsub.after('testEvent0', callbackFunction),
+            testSubscription9 = pubsub.before('testEvent1', callbackFunction),
+            testSubscription10 = pubsub.before('testEvent1', callbackFunction),
+            testSubscription11 = pubsub.before('testEvent1', callbackFunction),
+            testSubscription12 = pubsub.on('testEvent1', callbackFunction),
+            testSubscription13 = pubsub.on('testEvent1', callbackFunction),
+            testSubscription14 = pubsub.on('testEvent1', callbackFunction),
+            testSubscription15 = pubsub.after('testEvent1', callbackFunction),
+            testSubscription16 = pubsub.after('testEvent1', callbackFunction),
+            testSubscription17 = pubsub.after('testEvent1', callbackFunction),
+            testSubscription18 = pubsub.before('testEvent2', callbackFunction),
+            testSubscription19 = pubsub.before('testEvent2', callbackFunction),
+            testSubscription20 = pubsub.before('testEvent2', callbackFunction),
+            testSubscription21 = pubsub.on('testEvent2', callbackFunction),
+            testSubscription22 = pubsub.on('testEvent2', callbackFunction),
+            testSubscription23 = pubsub.on('testEvent2', callbackFunction),
+            testSubscription24 = pubsub.after('testEvent2', callbackFunction),
+            testSubscription25 = pubsub.after('testEvent2', callbackFunction),
+            testSubscription26 = pubsub.after('testEvent2', callbackFunction);
+
+        expect(testSubscription0).to.have.property('subscribed', true);
+        expect(testSubscription1).to.have.property('subscribed', true);
+        expect(testSubscription2).to.have.property('subscribed', true);
+        expect(testSubscription3).to.have.property('subscribed', true);
+        expect(testSubscription4).to.have.property('subscribed', true);
+        expect(testSubscription5).to.have.property('subscribed', true);
+        expect(testSubscription6).to.have.property('subscribed', true);
+        expect(testSubscription7).to.have.property('subscribed', true);
+        expect(testSubscription8).to.have.property('subscribed', true);
+        expect(testSubscription9).to.have.property('subscribed', true);
+        expect(testSubscription10).to.have.property('subscribed', true);
+        expect(testSubscription11).to.have.property('subscribed', true);
+        expect(testSubscription12).to.have.property('subscribed', true);
+        expect(testSubscription13).to.have.property('subscribed', true);
+        expect(testSubscription14).to.have.property('subscribed', true);
+        expect(testSubscription15).to.have.property('subscribed', true);
+        expect(testSubscription16).to.have.property('subscribed', true);
+        expect(testSubscription17).to.have.property('subscribed', true);
+        expect(testSubscription18).to.have.property('subscribed', true);
+        expect(testSubscription19).to.have.property('subscribed', true);
+        expect(testSubscription20).to.have.property('subscribed', true);
+        expect(testSubscription21).to.have.property('subscribed', true);
+        expect(testSubscription22).to.have.property('subscribed', true);
+        expect(testSubscription23).to.have.property('subscribed', true);
+        expect(testSubscription24).to.have.property('subscribed', true);
+        expect(testSubscription25).to.have.property('subscribed', true);
+        expect(testSubscription26).to.have.property('subscribed', true);
+
+        pubsub.publish('testEvent0').publish('testEvent1').publish('testEvent2');
+
+        expect(subscriptionExecutionCount).to.equal(27);
+
+        expect(pubsub._bulkUnsubscribe([
+            'after',
+            'before'
+        ], 'testEvent1')).to.equal(true);
+
+        expect(testSubscription0).to.have.property('subscribed', true);
+        expect(testSubscription1).to.have.property('subscribed', true);
+        expect(testSubscription2).to.have.property('subscribed', true);
+        expect(testSubscription3).to.have.property('subscribed', true);
+        expect(testSubscription4).to.have.property('subscribed', true);
+        expect(testSubscription5).to.have.property('subscribed', true);
+        expect(testSubscription6).to.have.property('subscribed', true);
+        expect(testSubscription7).to.have.property('subscribed', true);
+        expect(testSubscription8).to.have.property('subscribed', true);
+        expect(testSubscription9).to.have.property('subscribed', false);
+        expect(testSubscription10).to.have.property('subscribed', false);
+        expect(testSubscription11).to.have.property('subscribed', false);
+        expect(testSubscription12).to.have.property('subscribed', true);
+        expect(testSubscription13).to.have.property('subscribed', true);
+        expect(testSubscription14).to.have.property('subscribed', true);
+        expect(testSubscription15).to.have.property('subscribed', false);
+        expect(testSubscription16).to.have.property('subscribed', false);
+        expect(testSubscription17).to.have.property('subscribed', false);
+        expect(testSubscription18).to.have.property('subscribed', true);
+        expect(testSubscription19).to.have.property('subscribed', true);
+        expect(testSubscription20).to.have.property('subscribed', true);
+        expect(testSubscription21).to.have.property('subscribed', true);
+        expect(testSubscription22).to.have.property('subscribed', true);
+        expect(testSubscription23).to.have.property('subscribed', true);
+        expect(testSubscription24).to.have.property('subscribed', true);
+        expect(testSubscription25).to.have.property('subscribed', true);
+        expect(testSubscription26).to.have.property('subscribed', true);
+
+        subscriptionExecutionCount = 0;
+
+        pubsub.publish('testEvent0').publish('testEvent1').publish('testEvent2');
+
+        expect(subscriptionExecutionCount).to.equal(21);
+
+        expect(pubsub._bulkUnsubscribe([
+            'after',
+            'before'
+        ], 'testEvent1')).to.equal(false);
+    });
+
+    it('should allow protected bulk unsubscription of multiple events at a specific stage', () => {
+        let subscriptionExecutionCount = 0;
+
+        const callbackFunction = () => {
+                subscriptionExecutionCount += 1;
+            },
+            pubsub = Pubsub(),
+            testSubscription0 = pubsub.before('testEvent0', callbackFunction),
+            testSubscription1 = pubsub.before('testEvent0', callbackFunction),
+            testSubscription2 = pubsub.before('testEvent0', callbackFunction),
+            testSubscription3 = pubsub.on('testEvent0', callbackFunction),
+            testSubscription4 = pubsub.on('testEvent0', callbackFunction),
+            testSubscription5 = pubsub.on('testEvent0', callbackFunction),
+            testSubscription6 = pubsub.after('testEvent0', callbackFunction),
+            testSubscription7 = pubsub.after('testEvent0', callbackFunction),
+            testSubscription8 = pubsub.after('testEvent0', callbackFunction),
+            testSubscription9 = pubsub.before('testEvent1', callbackFunction),
+            testSubscription10 = pubsub.before('testEvent1', callbackFunction),
+            testSubscription11 = pubsub.before('testEvent1', callbackFunction),
+            testSubscription12 = pubsub.on('testEvent1', callbackFunction),
+            testSubscription13 = pubsub.on('testEvent1', callbackFunction),
+            testSubscription14 = pubsub.on('testEvent1', callbackFunction),
+            testSubscription15 = pubsub.after('testEvent1', callbackFunction),
+            testSubscription16 = pubsub.after('testEvent1', callbackFunction),
+            testSubscription17 = pubsub.after('testEvent1', callbackFunction),
+            testSubscription18 = pubsub.before('testEvent2', callbackFunction),
+            testSubscription19 = pubsub.before('testEvent2', callbackFunction),
+            testSubscription20 = pubsub.before('testEvent2', callbackFunction),
+            testSubscription21 = pubsub.on('testEvent2', callbackFunction),
+            testSubscription22 = pubsub.on('testEvent2', callbackFunction),
+            testSubscription23 = pubsub.on('testEvent2', callbackFunction),
+            testSubscription24 = pubsub.after('testEvent2', callbackFunction),
+            testSubscription25 = pubsub.after('testEvent2', callbackFunction),
+            testSubscription26 = pubsub.after('testEvent2', callbackFunction);
+
+        expect(testSubscription0).to.have.property('subscribed', true);
+        expect(testSubscription1).to.have.property('subscribed', true);
+        expect(testSubscription2).to.have.property('subscribed', true);
+        expect(testSubscription3).to.have.property('subscribed', true);
+        expect(testSubscription4).to.have.property('subscribed', true);
+        expect(testSubscription5).to.have.property('subscribed', true);
+        expect(testSubscription6).to.have.property('subscribed', true);
+        expect(testSubscription7).to.have.property('subscribed', true);
+        expect(testSubscription8).to.have.property('subscribed', true);
+        expect(testSubscription9).to.have.property('subscribed', true);
+        expect(testSubscription10).to.have.property('subscribed', true);
+        expect(testSubscription11).to.have.property('subscribed', true);
+        expect(testSubscription12).to.have.property('subscribed', true);
+        expect(testSubscription13).to.have.property('subscribed', true);
+        expect(testSubscription14).to.have.property('subscribed', true);
+        expect(testSubscription15).to.have.property('subscribed', true);
+        expect(testSubscription16).to.have.property('subscribed', true);
+        expect(testSubscription17).to.have.property('subscribed', true);
+        expect(testSubscription18).to.have.property('subscribed', true);
+        expect(testSubscription19).to.have.property('subscribed', true);
+        expect(testSubscription20).to.have.property('subscribed', true);
+        expect(testSubscription21).to.have.property('subscribed', true);
+        expect(testSubscription22).to.have.property('subscribed', true);
+        expect(testSubscription23).to.have.property('subscribed', true);
+        expect(testSubscription24).to.have.property('subscribed', true);
+        expect(testSubscription25).to.have.property('subscribed', true);
+        expect(testSubscription26).to.have.property('subscribed', true);
+
+        pubsub.publish('testEvent0').publish('testEvent1').publish('testEvent2');
+
+        expect(subscriptionExecutionCount).to.equal(27);
+
+        expect(pubsub._bulkUnsubscribe('on', [
+            'testEvent0',
+            'testEvent2'
+        ])).to.equal(true);
+
+        expect(testSubscription0).to.have.property('subscribed', true);
+        expect(testSubscription1).to.have.property('subscribed', true);
+        expect(testSubscription2).to.have.property('subscribed', true);
+        expect(testSubscription3).to.have.property('subscribed', false);
+        expect(testSubscription4).to.have.property('subscribed', false);
+        expect(testSubscription5).to.have.property('subscribed', false);
+        expect(testSubscription6).to.have.property('subscribed', true);
+        expect(testSubscription7).to.have.property('subscribed', true);
+        expect(testSubscription8).to.have.property('subscribed', true);
+        expect(testSubscription9).to.have.property('subscribed', true);
+        expect(testSubscription10).to.have.property('subscribed', true);
+        expect(testSubscription11).to.have.property('subscribed', true);
+        expect(testSubscription12).to.have.property('subscribed', true);
+        expect(testSubscription13).to.have.property('subscribed', true);
+        expect(testSubscription14).to.have.property('subscribed', true);
+        expect(testSubscription15).to.have.property('subscribed', true);
+        expect(testSubscription16).to.have.property('subscribed', true);
+        expect(testSubscription17).to.have.property('subscribed', true);
+        expect(testSubscription18).to.have.property('subscribed', true);
+        expect(testSubscription19).to.have.property('subscribed', true);
+        expect(testSubscription20).to.have.property('subscribed', true);
+        expect(testSubscription21).to.have.property('subscribed', false);
+        expect(testSubscription22).to.have.property('subscribed', false);
+        expect(testSubscription23).to.have.property('subscribed', false);
+        expect(testSubscription24).to.have.property('subscribed', true);
+        expect(testSubscription25).to.have.property('subscribed', true);
+        expect(testSubscription26).to.have.property('subscribed', true);
+
+        subscriptionExecutionCount = 0;
+
+        pubsub.publish('testEvent0').publish('testEvent1').publish('testEvent2');
+
+        expect(subscriptionExecutionCount).to.equal(21);
+
+        expect(pubsub._bulkUnsubscribe('on', [
+            'testEvent0',
+            'testEvent2'
+        ])).to.equal(false);
+    });
+
+    it('should allow protected bulk unsubscription of multiple events at multiple stages', () => {
+        let subscriptionExecutionCount = 0;
+
+        const callbackFunction = () => {
+                subscriptionExecutionCount += 1;
+            },
+            pubsub = Pubsub(),
+            testSubscription0 = pubsub.before('testEvent0', callbackFunction),
+            testSubscription1 = pubsub.before('testEvent0', callbackFunction),
+            testSubscription2 = pubsub.before('testEvent0', callbackFunction),
+            testSubscription3 = pubsub.on('testEvent0', callbackFunction),
+            testSubscription4 = pubsub.on('testEvent0', callbackFunction),
+            testSubscription5 = pubsub.on('testEvent0', callbackFunction),
+            testSubscription6 = pubsub.after('testEvent0', callbackFunction),
+            testSubscription7 = pubsub.after('testEvent0', callbackFunction),
+            testSubscription8 = pubsub.after('testEvent0', callbackFunction),
+            testSubscription9 = pubsub.before('testEvent1', callbackFunction),
+            testSubscription10 = pubsub.before('testEvent1', callbackFunction),
+            testSubscription11 = pubsub.before('testEvent1', callbackFunction),
+            testSubscription12 = pubsub.on('testEvent1', callbackFunction),
+            testSubscription13 = pubsub.on('testEvent1', callbackFunction),
+            testSubscription14 = pubsub.on('testEvent1', callbackFunction),
+            testSubscription15 = pubsub.after('testEvent1', callbackFunction),
+            testSubscription16 = pubsub.after('testEvent1', callbackFunction),
+            testSubscription17 = pubsub.after('testEvent1', callbackFunction),
+            testSubscription18 = pubsub.before('testEvent2', callbackFunction),
+            testSubscription19 = pubsub.before('testEvent2', callbackFunction),
+            testSubscription20 = pubsub.before('testEvent2', callbackFunction),
+            testSubscription21 = pubsub.on('testEvent2', callbackFunction),
+            testSubscription22 = pubsub.on('testEvent2', callbackFunction),
+            testSubscription23 = pubsub.on('testEvent2', callbackFunction),
+            testSubscription24 = pubsub.after('testEvent2', callbackFunction),
+            testSubscription25 = pubsub.after('testEvent2', callbackFunction),
+            testSubscription26 = pubsub.after('testEvent2', callbackFunction);
+
+        expect(testSubscription0).to.have.property('subscribed', true);
+        expect(testSubscription1).to.have.property('subscribed', true);
+        expect(testSubscription2).to.have.property('subscribed', true);
+        expect(testSubscription3).to.have.property('subscribed', true);
+        expect(testSubscription4).to.have.property('subscribed', true);
+        expect(testSubscription5).to.have.property('subscribed', true);
+        expect(testSubscription6).to.have.property('subscribed', true);
+        expect(testSubscription7).to.have.property('subscribed', true);
+        expect(testSubscription8).to.have.property('subscribed', true);
+        expect(testSubscription9).to.have.property('subscribed', true);
+        expect(testSubscription10).to.have.property('subscribed', true);
+        expect(testSubscription11).to.have.property('subscribed', true);
+        expect(testSubscription12).to.have.property('subscribed', true);
+        expect(testSubscription13).to.have.property('subscribed', true);
+        expect(testSubscription14).to.have.property('subscribed', true);
+        expect(testSubscription15).to.have.property('subscribed', true);
+        expect(testSubscription16).to.have.property('subscribed', true);
+        expect(testSubscription17).to.have.property('subscribed', true);
+        expect(testSubscription18).to.have.property('subscribed', true);
+        expect(testSubscription19).to.have.property('subscribed', true);
+        expect(testSubscription20).to.have.property('subscribed', true);
+        expect(testSubscription21).to.have.property('subscribed', true);
+        expect(testSubscription22).to.have.property('subscribed', true);
+        expect(testSubscription23).to.have.property('subscribed', true);
+        expect(testSubscription24).to.have.property('subscribed', true);
+        expect(testSubscription25).to.have.property('subscribed', true);
+        expect(testSubscription26).to.have.property('subscribed', true);
+
+        pubsub.publish('testEvent0').publish('testEvent1').publish('testEvent2');
+
+        expect(subscriptionExecutionCount).to.equal(27);
+
+        expect(pubsub._bulkUnsubscribe([
+            'before',
+            'on'
+        ], [
+            'testEvent0',
+            'testEvent2'
+        ])).to.equal(true);
+
+        expect(testSubscription0).to.have.property('subscribed', false);
+        expect(testSubscription1).to.have.property('subscribed', false);
+        expect(testSubscription2).to.have.property('subscribed', false);
+        expect(testSubscription3).to.have.property('subscribed', false);
+        expect(testSubscription4).to.have.property('subscribed', false);
+        expect(testSubscription5).to.have.property('subscribed', false);
+        expect(testSubscription6).to.have.property('subscribed', true);
+        expect(testSubscription7).to.have.property('subscribed', true);
+        expect(testSubscription8).to.have.property('subscribed', true);
+        expect(testSubscription9).to.have.property('subscribed', true);
+        expect(testSubscription10).to.have.property('subscribed', true);
+        expect(testSubscription11).to.have.property('subscribed', true);
+        expect(testSubscription12).to.have.property('subscribed', true);
+        expect(testSubscription13).to.have.property('subscribed', true);
+        expect(testSubscription14).to.have.property('subscribed', true);
+        expect(testSubscription15).to.have.property('subscribed', true);
+        expect(testSubscription16).to.have.property('subscribed', true);
+        expect(testSubscription17).to.have.property('subscribed', true);
+        expect(testSubscription18).to.have.property('subscribed', false);
+        expect(testSubscription19).to.have.property('subscribed', false);
+        expect(testSubscription20).to.have.property('subscribed', false);
+        expect(testSubscription21).to.have.property('subscribed', false);
+        expect(testSubscription22).to.have.property('subscribed', false);
+        expect(testSubscription23).to.have.property('subscribed', false);
+        expect(testSubscription24).to.have.property('subscribed', true);
+        expect(testSubscription25).to.have.property('subscribed', true);
+        expect(testSubscription26).to.have.property('subscribed', true);
+
+        subscriptionExecutionCount = 0;
+
+        pubsub.publish('testEvent0').publish('testEvent1').publish('testEvent2');
+
+        expect(subscriptionExecutionCount).to.equal(15);
+
+        expect(pubsub._bulkUnsubscribe([
+            'before',
+            'on'
+        ], [
+            'testEvent0',
+            'testEvent2'
+        ])).to.equal(false);
+    });
+
+    it('should allow protected bulk unsubscription with specific configuration', () => {
+        let subscriptionExecutionCount = 0;
+
+        const callbackFunction = () => {
+                subscriptionExecutionCount += 1;
+            },
+            pubsub = Pubsub(),
+            testSubscription0 = pubsub.before('testEvent0', callbackFunction),
+            testSubscription1 = pubsub.before('testEvent0', callbackFunction),
+            testSubscription2 = pubsub.before('testEvent0', callbackFunction),
+            testSubscription3 = pubsub.on('testEvent0', callbackFunction),
+            testSubscription4 = pubsub.on('testEvent0', callbackFunction),
+            testSubscription5 = pubsub.on('testEvent0', callbackFunction),
+            testSubscription6 = pubsub.after('testEvent0', callbackFunction),
+            testSubscription7 = pubsub.after('testEvent0', callbackFunction),
+            testSubscription8 = pubsub.after('testEvent0', callbackFunction),
+            testSubscription9 = pubsub.before('testEvent1', callbackFunction),
+            testSubscription10 = pubsub.before('testEvent1', callbackFunction),
+            testSubscription11 = pubsub.before('testEvent1', callbackFunction),
+            testSubscription12 = pubsub.on('testEvent1', callbackFunction),
+            testSubscription13 = pubsub.on('testEvent1', callbackFunction),
+            testSubscription14 = pubsub.on('testEvent1', callbackFunction),
+            testSubscription15 = pubsub.after('testEvent1', callbackFunction),
+            testSubscription16 = pubsub.after('testEvent1', callbackFunction),
+            testSubscription17 = pubsub.after('testEvent1', callbackFunction),
+            testSubscription18 = pubsub.before('testEvent2', callbackFunction),
+            testSubscription19 = pubsub.before('testEvent2', callbackFunction),
+            testSubscription20 = pubsub.before('testEvent2', callbackFunction),
+            testSubscription21 = pubsub.on('testEvent2', callbackFunction),
+            testSubscription22 = pubsub.on('testEvent2', callbackFunction),
+            testSubscription23 = pubsub.on('testEvent2', callbackFunction),
+            testSubscription24 = pubsub.after('testEvent2', callbackFunction),
+            testSubscription25 = pubsub.after('testEvent2', callbackFunction),
+            testSubscription26 = pubsub.after('testEvent2', callbackFunction);
+
+        expect(testSubscription0).to.have.property('subscribed', true);
+        expect(testSubscription1).to.have.property('subscribed', true);
+        expect(testSubscription2).to.have.property('subscribed', true);
+        expect(testSubscription3).to.have.property('subscribed', true);
+        expect(testSubscription4).to.have.property('subscribed', true);
+        expect(testSubscription5).to.have.property('subscribed', true);
+        expect(testSubscription6).to.have.property('subscribed', true);
+        expect(testSubscription7).to.have.property('subscribed', true);
+        expect(testSubscription8).to.have.property('subscribed', true);
+        expect(testSubscription9).to.have.property('subscribed', true);
+        expect(testSubscription10).to.have.property('subscribed', true);
+        expect(testSubscription11).to.have.property('subscribed', true);
+        expect(testSubscription12).to.have.property('subscribed', true);
+        expect(testSubscription13).to.have.property('subscribed', true);
+        expect(testSubscription14).to.have.property('subscribed', true);
+        expect(testSubscription15).to.have.property('subscribed', true);
+        expect(testSubscription16).to.have.property('subscribed', true);
+        expect(testSubscription17).to.have.property('subscribed', true);
+        expect(testSubscription18).to.have.property('subscribed', true);
+        expect(testSubscription19).to.have.property('subscribed', true);
+        expect(testSubscription20).to.have.property('subscribed', true);
+        expect(testSubscription21).to.have.property('subscribed', true);
+        expect(testSubscription22).to.have.property('subscribed', true);
+        expect(testSubscription23).to.have.property('subscribed', true);
+        expect(testSubscription24).to.have.property('subscribed', true);
+        expect(testSubscription25).to.have.property('subscribed', true);
+        expect(testSubscription26).to.have.property('subscribed', true);
+
+        pubsub.publish('testEvent0').publish('testEvent1').publish('testEvent2');
+
+        expect(subscriptionExecutionCount).to.equal(27);
+
+        expect(pubsub._bulkUnsubscribe([
+            {
+                eventName: 'testEvent0',
+                stageName: 'before'
+            },
+            'testEvent1',
+            {
+                eventName: 'testEvent2',
+                stageName: 'after'
+            }
+        ])).to.equal(true);
+
+        expect(testSubscription0).to.have.property('subscribed', false);
+        expect(testSubscription1).to.have.property('subscribed', false);
+        expect(testSubscription2).to.have.property('subscribed', false);
+        expect(testSubscription3).to.have.property('subscribed', true);
+        expect(testSubscription4).to.have.property('subscribed', true);
+        expect(testSubscription5).to.have.property('subscribed', true);
+        expect(testSubscription6).to.have.property('subscribed', true);
+        expect(testSubscription7).to.have.property('subscribed', true);
+        expect(testSubscription8).to.have.property('subscribed', true);
+        expect(testSubscription9).to.have.property('subscribed', false);
+        expect(testSubscription10).to.have.property('subscribed', false);
+        expect(testSubscription11).to.have.property('subscribed', false);
+        expect(testSubscription12).to.have.property('subscribed', false);
+        expect(testSubscription13).to.have.property('subscribed', false);
+        expect(testSubscription14).to.have.property('subscribed', false);
+        expect(testSubscription15).to.have.property('subscribed', false);
+        expect(testSubscription16).to.have.property('subscribed', false);
+        expect(testSubscription17).to.have.property('subscribed', false);
+        expect(testSubscription18).to.have.property('subscribed', true);
+        expect(testSubscription19).to.have.property('subscribed', true);
+        expect(testSubscription20).to.have.property('subscribed', true);
+        expect(testSubscription21).to.have.property('subscribed', true);
+        expect(testSubscription22).to.have.property('subscribed', true);
+        expect(testSubscription23).to.have.property('subscribed', true);
+        expect(testSubscription24).to.have.property('subscribed', false);
+        expect(testSubscription25).to.have.property('subscribed', false);
+        expect(testSubscription26).to.have.property('subscribed', false);
+
+        subscriptionExecutionCount = 0;
+
+        pubsub.publish('testEvent0').publish('testEvent1').publish('testEvent2');
+
+        expect(subscriptionExecutionCount).to.equal(12);
+
+        expect(pubsub._bulkUnsubscribe([
+            {
+                eventName: 'testEvent0',
+                stageName: 'before'
+            },
+            'testEvent1',
+            {
+                eventName: 'testEvent2',
+                stageName: 'after'
+            }
+        ])).to.equal(false);
+    });
+
+    it('should handle protected bulk unsubscription of undefined events', () => {
+        const pubsub = Pubsub();
+
+        expect(pubsub._bulkUnsubscribe('unknownEvent')).to.equal(false);
+        expect(pubsub._bulkUnsubscribe('on', 'unknownEvent')).to.equal(false);
+    });
+
     it('should not allow duplicate subscriptions when allowDuplicateSubscription is false', () => {
         let subscriptionExecutionCount = 0;
 
