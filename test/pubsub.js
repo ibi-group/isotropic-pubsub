@@ -1911,11 +1911,30 @@ describe('pubsub', () => {
                     }]
                 },
                 stageName: 'on'
-            }]);
+            }]),
+            testSubscription3 = pubsub.bulkSubscribe({
+                config: [
+                    () => {
+                        subscriptionsExecuted.push('on 3 a');
+                    },
+                    () => {
+                        subscriptionsExecuted.push('on 3 b');
+                    },
+                    () => {
+                        subscriptionsExecuted.push('on 3 c');
+                    }
+                ],
+                eventName: [
+                    'anotherEvent',
+                    'testEvent'
+                ],
+                stageName: 'on'
+            });
 
         expect(testSubscription0).to.have.property('subscribed', true);
         expect(testSubscription1).to.have.property('subscribed', true);
         expect(testSubscription2).to.have.property('subscribed', true);
+        expect(testSubscription3).to.have.property('subscribed', true);
 
         pubsub.publish('testEvent').publish('anotherEvent').publish('testEvent');
 
@@ -1929,18 +1948,30 @@ describe('pubsub', () => {
             'before 2',
             'on 1',
             'on 2',
+            'on 3 a',
+            'on 3 b',
+            'on 3 c',
             'after 0',
             'after 1',
             'after 2',
             'on 0',
+            'on 3 a',
+            'on 3 b',
+            'on 3 c',
             'after 2',
             'before 0',
             'before 2',
             'on 2',
+            'on 3 a',
+            'on 3 b',
+            'on 3 c',
             'after 0',
             'after 1',
             'before 0',
             'before 2',
+            'on 3 a',
+            'on 3 b',
+            'on 3 c',
             'after 0'
         ]);
     });
@@ -2006,11 +2037,30 @@ describe('pubsub', () => {
                     }]
                 },
                 stageName: 'on'
-            }]);
+            }]),
+            testSubscription3 = pubsub._bulkSubscribe({
+                config: [
+                    () => {
+                        subscriptionsExecuted.push('on 3 a');
+                    },
+                    () => {
+                        subscriptionsExecuted.push('on 3 b');
+                    },
+                    () => {
+                        subscriptionsExecuted.push('on 3 c');
+                    }
+                ],
+                eventName: [
+                    'anotherEvent',
+                    'testEvent'
+                ],
+                stageName: 'on'
+            });
 
         expect(testSubscription0).to.have.property('subscribed', true);
         expect(testSubscription1).to.have.property('subscribed', true);
         expect(testSubscription2).to.have.property('subscribed', true);
+        expect(testSubscription3).to.have.property('subscribed', true);
 
         pubsub.publish('testEvent').publish('anotherEvent').publish('testEvent');
 
@@ -2024,18 +2074,30 @@ describe('pubsub', () => {
             'before 2',
             'on 1',
             'on 2',
+            'on 3 a',
+            'on 3 b',
+            'on 3 c',
             'after 0',
             'after 1',
             'after 2',
             'on 0',
+            'on 3 a',
+            'on 3 b',
+            'on 3 c',
             'after 2',
             'before 0',
             'before 2',
             'on 2',
+            'on 3 a',
+            'on 3 b',
+            'on 3 c',
             'after 0',
             'after 1',
             'before 0',
             'before 2',
+            'on 3 a',
+            'on 3 b',
+            'on 3 c',
             'after 0'
         ]);
     });
