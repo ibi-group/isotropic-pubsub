@@ -143,7 +143,107 @@ const _protectedDefineEventMethod = function ({
                     }
                 });
         },
+        bulkUnsubscribe (stageName, eventName) {
+            let unsubscribed = false;
+
+            if (typeof eventName === 'undefined') {
+                if (typeof stageName === 'undefined') {
+                    for (const state of Dict.values(this._eventState)) {
+                        for (const subscriptions of Dict.values(state.subscriptions)) {
+                            for (const subscription of subscriptions.values()) {
+                                if (subscription.unsubscribe({
+                                    publicUnsubscription: true
+                                })) {
+                                    unsubscribed = true;
+                                }
+                            }
+                        }
+                    }
+                } else {
+                    if (!Array.isArray(stageName)) {
+                        stageName = [
+                            stageName
+                        ];
+                    }
+
+                    stageName.forEach(config => {
+                        let eventName,
+                            stageName;
+
+                        switch (typeof config) {
+                            case 'string':
+                            case 'symbol':
+                                eventName = config;
+                                break;
+                            default:
+                                eventName = config.eventName;
+                                stageName = config.stageName;
+                        }
+
+                        const state = this._eventState[eventName];
+
+                        if (state) {
+                            for (const subscriptions of stageName ?
+                                /* eslint-disable indent */
+                                [
+                                    state.subscriptions[stageName] || new Map()
+                                ] :
+                                /* eslint-enable indent */
+                                Dict.values(state.subscriptions)) {
+                                for (const subscription of subscriptions.values()) {
+                                    if (subscription.unsubscribe({
+                                        publicUnsubscription: true
+                                    })) {
+                                        unsubscribed = true;
+                                    }
+                                }
+                            }
+                        }
+                    });
+                }
+            } else {
+                if (!Array.isArray(eventName)) {
+                    eventName = [
+                        eventName
+                    ];
+                }
+
+                if (!Array.isArray(stageName)) {
+                    stageName = [
+                        stageName
+                    ];
+                }
+
+                eventName.forEach(eventName => {
+                    const state = this._eventState[eventName];
+
+                    if (state) {
+                        stageName.forEach(stageName => {
+                            const subscriptions = state.subscriptions[stageName];
+
+                            if (subscriptions) {
+                                for (const subscription of subscriptions.values()) {
+                                    if (subscription.unsubscribe({
+                                        publicUnsubscription: true
+                                    })) {
+                                        unsubscribed = true;
+                                    }
+                                }
+                            }
+                        });
+                    }
+                });
+            }
+
+            return unsubscribed;
+        },
         defineEvent: _publicDefineEventMethod,
+        destroy () {
+            return this._publish('destroy');
+        },
+        get destroyed () {
+            return this._destroyed;
+        },
         publish (eventName, data) {
             this._getEvent(eventName).publish({
                 data,
@@ -272,20 +372,106 @@ const _protectedDefineEventMethod = function ({
                     }
                 });
         },
+        _bulkUnsubscribe (stageName, eventName) {
+            let unsubscribed = false;
+
+            if (typeof eventName === 'undefined') {
+                if (typeof stageName === 'undefined') {
+                    for (const state of Dict.values(this._eventState)) {
+                        for (const subscriptions of Dict.values(state.subscriptions)) {
+                            for (const subscription of subscriptions.values()) {
+                                if (subscription.unsubscribe()) {
+                                    unsubscribed = true;
+                                }
+                            }
+                        }
+                    }
+                } else {
+                    if (!Array.isArray(stageName)) {
+                        stageName = [
+                            stageName
+                        ];
+                    }
+
+                    stageName.forEach(config => {
+                        let eventName,
+                            stageName;
+
+                        switch (typeof config) {
+                            case 'string':
+                            case 'symbol':
+                                eventName = config;
+                                break;
+                            default:
+                                eventName = config.eventName;
+                                stageName = config.stageName;
+                        }
+
+                        const state = this._eventState[eventName];
+
+                        if (state) {
+                            for (const subscriptions of stageName ?
+                                /* eslint-disable indent */
+                                [
+                                    state.subscriptions[stageName] || new Map()
+                                ] :
+                                /* eslint-enable indent */
+                                Dict.values(state.subscriptions)) {
+                                for (const subscription of subscriptions.values()) {
+                                    if (subscription.unsubscribe()) {
+                                        unsubscribed = true;
+                                    }
+                                }
+                            }
+                        }
+                    });
+                }
+            } else {
+                if (!Array.isArray(eventName)) {
+                    eventName = [
+                        eventName
+                    ];
+                }
+
+                if (!Array.isArray(stageName)) {
+                    stageName = [
+                        stageName
+                    ];
+                }
+
+                eventName.forEach(eventName => {
+                    const state = this._eventState[eventName];
+
+                    if (state) {
+                        stageName.forEach(stageName => {
+                            const subscriptions = state.subscriptions[stageName];
+
+                            if (subscriptions) {
+                                for (const subscription of subscriptions.values()) {
+                                    if (subscription.unsubscribe()) {
+                                        unsubscribed = true;
+                                    }
+                                }
+                            }
+                        });
+                    }
+                });
+            }
+
+            return unsubscribed;
+        },
+        _defineEvent: _protectedDefineEventMethod,
+        _destroy () {
+            this._destroyed = true;
+
+            this._distributors = void null;
+
+            this._events = void null;
+
+            this._eventState = void null;
+        },
         get _Dispatcher () {
             return this.constructor._Dispatcher;
-        },
-        _publish (eventName, data) {
-            this._getEvent(eventName).publish({
-                data,
-                eventName,
-                getDistributionPath: () => this._getDistributionPath(eventName),
-                host: this,
-                publisher: this,
-                state: this._getEventState(eventName)
-            });
-
-            return this;
         },
         _getDistributionPath (eventName) {
             const distributionPath = new Map([[
@@ -321,6 +507,8 @@ const _protectedDefineEventMethod = function ({
 
             Reflect.apply(_PropertyChainer.prototype._init, this, args);
 
+            this._destroyed = false;
+
             this._distributors = null;
 
             this._events = Object.create(this.constructor._events);
@@ -333,7 +521,6 @@ const _protectedDefineEventMethod = function ({
 
             return this;
         },
-        _defineEvent: _protectedDefineEventMethod,
         _normalizeBulkSubscribeConfig (bulkSubscribeConfig, config = bulkSubscribeConfig.config) {
             if (bulkSubscribeConfig.once) {
                 if (typeof config === 'object') {
@@ -349,6 +536,18 @@ const _protectedDefineEventMethod = function ({
             }
 
             return config;
+        },
+        _publish (eventName, data) {
+            this._getEvent(eventName).publish({
+                data,
+                eventName,
+                getDistributionPath: () => this._getDistributionPath(eventName),
+                host: this,
+                publisher: this,
+                state: this._getEventState(eventName)
+            });
+
+            return this;
         },
         _subscribe (stageName, eventName, config) {
             return this._getEvent(eventName).subscribe(Object.assign(
@@ -423,18 +622,25 @@ const _protectedDefineEventMethod = function ({
                 }
             });
         },
+        _defineEvent: _protectedDefineEventMethod,
         _Dispatcher,
         _events: new Dict({
-            [_defaultSymbol]: {}
+            [_defaultSymbol]: {},
+            destroy: {
+                allowPublicPublish: false,
+                completeOnce: true,
+                defaultFunction: '_destroy',
+                Dispatcher: _Dispatcher
+            }
         }),
         _init (...args) {
             Reflect.apply(_PropertyChainer._init, this, args);
 
-            if (this._events) {
+            if (this.hasOwnProperty('_events')) {
                 this.defineEvent(this._events);
             }
 
-            if (this._subscriptionMethods) {
+            if (this.hasOwnProperty('_subscriptionMethods')) {
                 this._addSubscriptionMethods(this._subscriptionMethods);
             }
 
@@ -443,7 +649,6 @@ const _protectedDefineEventMethod = function ({
         _propertyChains: new Set([
             '_events'
         ]),
-        _defineEvent: _protectedDefineEventMethod,
         _subscriptionMethods: [
             'after',
             'before',
