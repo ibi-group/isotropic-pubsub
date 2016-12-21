@@ -72,7 +72,7 @@
     "scripts": {
         "build": "BABEL_ENV=build babel js -d lib",
         "lint": "eslint js test",
-        "posttest": "[ -z \"$npm_config_coverage\" ] || babel-istanbul check-coverage --branches 85 --functions 95 --lines 95 --statements 95",
+        "posttest": "[ -z \"$npm_config_coverage\" ] || babel-istanbul check-coverage --branches 90 --functions 100 --lines 99 --statements 99",
         "prepare": "npm run build",
         "prepublishOnly": "npm run securityCheck && npm test --coverage",
         "pretest": "npm run lint",
