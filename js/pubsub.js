@@ -640,7 +640,7 @@ const _protectedDefineEventMethod = function ({
                 this.defineEvent(this._events);
             }
 
-            if (this._subscriptionMethods) {
+            if (this.hasOwnProperty('_subscriptionMethods')) {
                 this._addSubscriptionMethods(this._subscriptionMethods);
             }
 
