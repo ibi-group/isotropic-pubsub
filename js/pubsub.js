@@ -635,7 +635,7 @@ const _protectedDefineEventMethod = function ({
         _init (...args) {
             Reflect.apply(_PropertyChainer._init, this, args);
 
-            if (this._events) {
+            if (this.hasOwnProperty('_events')) {
                 this.defineEvent(this._events);
             }
 
