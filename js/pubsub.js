@@ -238,6 +238,12 @@ const _protectedDefineEventMethod = function ({
             return unsubscribed;
         },
         defineEvent: _publicDefineEventMethod,
+        destroy () {
+            return this._publish('destroy');
+        },
+        get destroyed () {
+            return this._destroyed;
+        },
         publish (eventName, data) {
             this._getEvent(eventName).publish({
                 data,
@@ -454,6 +460,15 @@ const _protectedDefineEventMethod = function ({
 
             return unsubscribed;
         },
+        _destroy () {
+            this._destroyed = true;
+
+            this._distributors = void null;
+
+            this._events = void null;
+
+            this._eventState = void null;
+        },
         get _Dispatcher () {
             return this.constructor._Dispatcher;
         },
@@ -502,6 +517,8 @@ const _protectedDefineEventMethod = function ({
             } = {}] = args;
 
             Reflect.apply(_PropertyChainer.prototype._init, this, args);
+
+            this._destroyed = false;
 
             this._distributors = null;
 
@@ -607,7 +624,13 @@ const _protectedDefineEventMethod = function ({
         },
         _Dispatcher,
         _events: new Dict({
-            [_defaultSymbol]: {}
+            [_defaultSymbol]: {},
+            destroy: {
+                allowPublicPublish: false,
+                completeOnce: true,
+                defaultFunction: '_destroy',
+                Dispatcher: _Dispatcher
+            }
         }),
         _init (...args) {
             Reflect.apply(_PropertyChainer._init, this, args);

@@ -6756,6 +6756,79 @@ describe('pubsub', () => {
         pubsub.publish('testEvent');
     });
 
+    it('should be destroyable', () => {
+        let subscriptionsExecuted = [];
+
+        const pubsub = Pubsub(),
+            testSubscription0 = pubsub.onceOn('destroy', event => {
+                subscriptionsExecuted.push(0);
+                event.preventDefault();
+            }),
+            testSubscription1 = pubsub.on('destroy', () => {
+                subscriptionsExecuted.push(1);
+            }),
+            testSubscription2 = pubsub.after('destroy', () => {
+                subscriptionsExecuted.push(2);
+            }),
+            testSubscription3 = pubsub.on('anotherEvent', () => {
+                subscriptionsExecuted.push(3);
+            });
+
+        expect(pubsub).to.have.property('destroyed', false);
+        expect(testSubscription0).to.have.property('subscribed', true);
+        expect(testSubscription1).to.have.property('subscribed', true);
+        expect(testSubscription2).to.have.property('subscribed', true);
+        expect(testSubscription3).to.have.property('subscribed', true);
+
+        expect(() => {
+            pubsub.destroyed = true;
+        }).to.throw(TypeError);
+
+        expect(pubsub).to.have.property('destroyed', false);
+
+        pubsub.publish('anotherEvent').publish('destroy');
+
+        expect(pubsub).to.have.property('destroyed', false);
+        expect(subscriptionsExecuted).to.deep.equal([
+            3
+        ]);
+
+        subscriptionsExecuted = [];
+
+        pubsub.publish('anotherEvent').destroy();
+
+        expect(pubsub).to.have.property('destroyed', false);
+        expect(subscriptionsExecuted).to.deep.equal([
+            3,
+            0,
+            1
+        ]);
+
+        subscriptionsExecuted = [];
+
+        pubsub.publish('anotherEvent').destroy();
+
+        expect(pubsub).to.have.property('destroyed', true);
+        expect(subscriptionsExecuted).to.deep.equal([
+            3,
+            1,
+            2
+        ]);
+
+        subscriptionsExecuted = [];
+
+        expect(() => {
+            pubsub.publish('anotherEvent');
+        }).to.throw(TypeError);
+
+        expect(() => {
+            pubsub.destroy();
+        }).to.throw(TypeError);
+
+        expect(pubsub).to.have.property('destroyed', true);
+        expect(subscriptionsExecuted).to.deep.equal([]);
+    });
+
     it('should work as a mixin', () => {
         const PubsubA = make([
                 Pubsub
