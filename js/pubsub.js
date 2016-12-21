@@ -460,6 +460,7 @@ const _protectedDefineEventMethod = function ({
 
             return unsubscribed;
         },
+        _defineEvent: _protectedDefineEventMethod,
         _destroy () {
             this._destroyed = true;
 
@@ -471,18 +472,6 @@ const _protectedDefineEventMethod = function ({
         },
         get _Dispatcher () {
             return this.constructor._Dispatcher;
-        },
-        _publish (eventName, data) {
-            this._getEvent(eventName).publish({
-                data,
-                eventName,
-                getDistributionPath: () => this._getDistributionPath(eventName),
-                host: this,
-                publisher: this,
-                state: this._getEventState(eventName)
-            });
-
-            return this;
         },
         _getDistributionPath (eventName) {
             const distributionPath = new Map([[
@@ -532,7 +521,6 @@ const _protectedDefineEventMethod = function ({
 
             return this;
         },
-        _defineEvent: _protectedDefineEventMethod,
         _normalizeBulkSubscribeConfig (bulkSubscribeConfig, config = bulkSubscribeConfig.config) {
             if (bulkSubscribeConfig.once) {
                 if (typeof config === 'object') {
@@ -548,6 +536,18 @@ const _protectedDefineEventMethod = function ({
             }
 
             return config;
+        },
+        _publish (eventName, data) {
+            this._getEvent(eventName).publish({
+                data,
+                eventName,
+                getDistributionPath: () => this._getDistributionPath(eventName),
+                host: this,
+                publisher: this,
+                state: this._getEventState(eventName)
+            });
+
+            return this;
         },
         _subscribe (stageName, eventName, config) {
             return this._getEvent(eventName).subscribe(Object.assign(
@@ -622,6 +622,7 @@ const _protectedDefineEventMethod = function ({
                 }
             });
         },
+        _defineEvent: _protectedDefineEventMethod,
         _Dispatcher,
         _events: new Dict({
             [_defaultSymbol]: {},
@@ -648,7 +649,6 @@ const _protectedDefineEventMethod = function ({
         _propertyChains: new Set([
             '_events'
         ]),
-        _defineEvent: _protectedDefineEventMethod,
         _subscriptionMethods: [
             'after',
             'before',
