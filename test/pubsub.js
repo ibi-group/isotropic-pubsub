@@ -6761,17 +6761,29 @@ describe('pubsub', () => {
 
         const pubsub = Pubsub(),
             testSubscription0 = pubsub.onceOn('destroy', event => {
-                subscriptionsExecuted.push(0);
+                expect(pubsub).to.have.property('destroyed', false);
+                subscriptionsExecuted.push('onceOnDestroy');
                 event.preventDefault();
             }),
             testSubscription1 = pubsub.on('destroy', () => {
-                subscriptionsExecuted.push(1);
+                expect(pubsub).to.have.property('destroyed', false);
+                subscriptionsExecuted.push('onDestroy');
             }),
             testSubscription2 = pubsub.after('destroy', () => {
-                subscriptionsExecuted.push(2);
+                expect(pubsub).to.have.property('destroyed', true);
+                subscriptionsExecuted.push('afterDestroy');
             }),
-            testSubscription3 = pubsub.on('anotherEvent', () => {
-                subscriptionsExecuted.push(3);
+            testSubscription3 = pubsub.after('destroyComplete', () => {
+                expect(pubsub).to.have.property('destroyed', true);
+                subscriptionsExecuted.push('afterDestroyComplete');
+            }),
+            testSubscription4 = pubsub.on('destroyComplete', () => {
+                expect(pubsub).to.have.property('destroyed', true);
+                subscriptionsExecuted.push('onDestroyComplete');
+            }),
+            testSubscription5 = pubsub.on('anotherEvent', () => {
+                expect(pubsub).to.have.property('destroyed', false);
+                subscriptionsExecuted.push('onAnotherEvent');
             });
 
         expect(pubsub).to.have.property('destroyed', false);
@@ -6779,6 +6791,8 @@ describe('pubsub', () => {
         expect(testSubscription1).to.have.property('subscribed', true);
         expect(testSubscription2).to.have.property('subscribed', true);
         expect(testSubscription3).to.have.property('subscribed', true);
+        expect(testSubscription4).to.have.property('subscribed', true);
+        expect(testSubscription5).to.have.property('subscribed', true);
 
         expect(() => {
             pubsub.destroyed = true;
@@ -6790,7 +6804,7 @@ describe('pubsub', () => {
 
         expect(pubsub).to.have.property('destroyed', false);
         expect(subscriptionsExecuted).to.deep.equal([
-            3
+            'onAnotherEvent'
         ]);
 
         subscriptionsExecuted = [];
@@ -6799,10 +6813,11 @@ describe('pubsub', () => {
 
         expect(pubsub).to.have.property('destroyed', false);
         expect(subscriptionsExecuted).to.deep.equal([
-            3,
-            0,
-            1
+            'onAnotherEvent',
+            'onceOnDestroy',
+            'onDestroy'
         ]);
+        expect(testSubscription0).to.have.property('subscribed', false);
 
         subscriptionsExecuted = [];
 
@@ -6810,10 +6825,16 @@ describe('pubsub', () => {
 
         expect(pubsub).to.have.property('destroyed', true);
         expect(subscriptionsExecuted).to.deep.equal([
-            3,
-            1,
-            2
+            'onAnotherEvent',
+            'onDestroy',
+            'onDestroyComplete',
+            'afterDestroyComplete'
         ]);
+        expect(testSubscription1).to.have.property('subscribed', false);
+        expect(testSubscription2).to.have.property('subscribed', false);
+        expect(testSubscription3).to.have.property('subscribed', false);
+        expect(testSubscription4).to.have.property('subscribed', false);
+        expect(testSubscription5).to.have.property('subscribed', false);
 
         subscriptionsExecuted = [];
 

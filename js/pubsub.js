@@ -464,6 +464,10 @@ const _protectedDefineEventMethod = function ({
         _destroy () {
             this._destroyed = true;
 
+            this._publish('destroyComplete');
+
+            this._bulkUnsubscribe();
+
             this._distributors = void null;
 
             this._events = void null;
@@ -631,6 +635,11 @@ const _protectedDefineEventMethod = function ({
                 completeOnce: true,
                 defaultFunction: '_destroy',
                 Dispatcher: _Dispatcher
+            },
+            destroyComplete: {
+                allowPublicPublish: false,
+                defaultFunction: '_destroyComplete',
+                publishOnce: true
             }
         }),
         _init (...args) {
