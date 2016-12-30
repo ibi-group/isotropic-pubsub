@@ -6873,7 +6873,9 @@ describe('pubsub', () => {
     });
 
     it('should work as a mixin', () => {
-        const PubsubA = make([
+        const subscriptionsExecuted = [],
+
+            PubsubA = make([
                 Pubsub
             ], {
                 _init (...args) {
@@ -6905,6 +6907,9 @@ describe('pubsub', () => {
                 }
             }),
             PubsubC = make(PubsubB, {
+                _destroy (string) {
+                    subscriptionsExecuted.push(string);
+                },
                 _init (...args) {
                     return Reflect.apply(PubsubB.prototype._init, this, args);
                 }
@@ -6922,8 +6927,7 @@ describe('pubsub', () => {
                     }
                 }
             }),
-            pubsub = PubsubC(),
-            subscriptionsExecuted = [];
+            pubsub = PubsubC();
 
         pubsub.on('testEventA', event => {
             expect(event).to.have.property('data').that.deep.equals({
@@ -6946,15 +6950,23 @@ describe('pubsub', () => {
             subscriptionsExecuted.push('c');
         });
 
+        pubsub.on('testEventD', () => {
+            subscriptionsExecuted.push('d');
+        });
+
         pubsub
             .publish('testEventA')
             .publish('testEventB')
-            .publish('testEventC');
+            .publish('testEventC')
+            .publish('testEventD')
+            .destroy('e');
 
         expect(subscriptionsExecuted).to.deep.equal([
             'a',
             'b',
-            'c'
+            'c',
+            'd',
+            'e'
         ]);
     });
 });
