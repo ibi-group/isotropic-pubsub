@@ -6800,6 +6800,26 @@ describe('pubsub', () => {
 
         expect(pubsub).to.have.property('destroyed', false);
 
+        pubsub._destroy = function (...args) {
+            expect(args).to.deep.equal([
+                'a',
+                'b',
+                'c'
+            ]);
+            subscriptionsExecuted.push('defaultDestroy');
+            Reflect.apply(Pubsub.prototype._destroy, this, args);
+        };
+
+        pubsub._destroyComplete = function (...args) {
+            expect(args).to.deep.equal([
+                'a',
+                'b',
+                'c'
+            ]);
+            subscriptionsExecuted.push('defaultDestroyComplete');
+            Reflect.apply(Pubsub.prototype._destroyComplete, this, args);
+        };
+
         pubsub.publish('anotherEvent').publish('destroy');
 
         expect(pubsub).to.have.property('destroyed', false);
@@ -6809,7 +6829,7 @@ describe('pubsub', () => {
 
         subscriptionsExecuted = [];
 
-        pubsub.publish('anotherEvent').destroy();
+        pubsub.publish('anotherEvent').destroy('a', 'b', 'c');
 
         expect(pubsub).to.have.property('destroyed', false);
         expect(subscriptionsExecuted).to.deep.equal([
@@ -6821,13 +6841,15 @@ describe('pubsub', () => {
 
         subscriptionsExecuted = [];
 
-        pubsub.publish('anotherEvent').destroy();
+        pubsub.publish('anotherEvent').destroy('a', 'b', 'c');
 
         expect(pubsub).to.have.property('destroyed', true);
         expect(subscriptionsExecuted).to.deep.equal([
             'onAnotherEvent',
             'onDestroy',
+            'defaultDestroy',
             'onDestroyComplete',
+            'defaultDestroyComplete',
             'afterDestroyComplete'
         ]);
         expect(testSubscription1).to.have.property('subscribed', false);
@@ -6843,7 +6865,7 @@ describe('pubsub', () => {
         }).to.throw(TypeError);
 
         expect(() => {
-            pubsub.destroy();
+            pubsub.destroy('a', 'b', 'c');
         }).to.throw(TypeError);
 
         expect(pubsub).to.have.property('destroyed', true);

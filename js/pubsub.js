@@ -238,8 +238,10 @@ const _protectedDefineEventMethod = function ({
             return unsubscribed;
         },
         defineEvent: _publicDefineEventMethod,
-        destroy () {
-            return this._publish('destroy');
+        destroy (...args) {
+            return this._publish('destroy', {
+                args
+            });
         },
         get destroyed () {
             return this._destroyed;
@@ -461,10 +463,12 @@ const _protectedDefineEventMethod = function ({
             return unsubscribed;
         },
         _defineEvent: _protectedDefineEventMethod,
-        _destroy () {
+        _destroy (...args) {
             this._destroyed = true;
 
-            this._publish('destroyComplete');
+            this._publish('destroyComplete', {
+                args
+            });
 
             this._bulkUnsubscribe();
 
@@ -474,8 +478,25 @@ const _protectedDefineEventMethod = function ({
 
             this._eventState = void null;
         },
+        _destroyComplete () {
+            // empty method
+        },
         get _Dispatcher () {
             return this.constructor._Dispatcher;
+        },
+        _eventDestroy ({
+            data: {
+                args
+            }
+        }) {
+            this._destroy(...args);
+        },
+        _eventDestroyComplete ({
+            data: {
+                args
+            }
+        }) {
+            this._destroyComplete(...args);
         },
         _getDistributionPath (eventName) {
             const distributionPath = new Map([[
@@ -633,12 +654,13 @@ const _protectedDefineEventMethod = function ({
             destroy: {
                 allowPublicPublish: false,
                 completeOnce: true,
-                defaultFunction: '_destroy',
+                defaultFunction: '_eventDestroy',
                 Dispatcher: _Dispatcher
             },
             destroyComplete: {
                 allowPublicPublish: false,
-                defaultFunction: '_destroyComplete',
+                defaultFunction: '_eventDestroyComplete',
+                Dispatcher: _Dispatcher,
                 publishOnce: true
             }
         }),
