@@ -1844,6 +1844,102 @@ describe('pubsub', () => {
         ]);
     });
 
+    it('should not affect a distributor\'s event state', () => {
+        const methodsExecuted = [],
+            subscriptionsExecuted = [],
+
+            A = make([
+                Pubsub
+            ], {
+                a () {
+                    methodsExecuted.push('a');
+                }
+            }, {
+                _events: {
+                    testEvent: {
+                        defaultFunction: 'a',
+                        publishOnce: true
+                    }
+                }
+            }),
+            B = make([
+                Pubsub
+            ], {
+                b () {
+                    methodsExecuted.push('b');
+                }
+            }, {
+                _events: {
+                    testEvent: {
+                        defaultFunction: 'b',
+                        publishOnce: true
+                    }
+                }
+            }),
+            a = A(),
+            b = B();
+
+        b.addDistributor(a);
+
+        a.on('testEvent', () => {
+            subscriptionsExecuted.push('a');
+        });
+
+        b.on('testEvent', () => {
+            subscriptionsExecuted.push('b');
+        });
+
+        b.publish('testEvent');
+
+        expect(methodsExecuted).to.deep.equal([
+            'b'
+        ]);
+
+        expect(subscriptionsExecuted).to.deep.equal([
+            'b',
+            'a'
+        ]);
+
+        a.publish('testEvent');
+
+        expect(methodsExecuted).to.deep.equal([
+            'b',
+            'a'
+        ]);
+
+        expect(subscriptionsExecuted).to.deep.equal([
+            'b',
+            'a',
+            'a'
+        ]);
+
+        b.publish('testEvent');
+
+        expect(methodsExecuted).to.deep.equal([
+            'b',
+            'a'
+        ]);
+
+        expect(subscriptionsExecuted).to.deep.equal([
+            'b',
+            'a',
+            'a'
+        ]);
+
+        a.publish('testEvent');
+
+        expect(methodsExecuted).to.deep.equal([
+            'b',
+            'a'
+        ]);
+
+        expect(subscriptionsExecuted).to.deep.equal([
+            'b',
+            'a',
+            'a'
+        ]);
+    });
+
     it('should remove non-existant distributors with no error', () => {
         const distributor = Pubsub(),
             pubsub = Pubsub();
