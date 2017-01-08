@@ -17,9 +17,11 @@ const _protectedDefineEventMethod = function ({
         config = {},
         eventName
     }) {
-        this._events[eventName] = (config.Dispatcher || this._Dispatcher)(Object.assign({}, config, {
-            name: eventName
-        }));
+        this._events[eventName] = typeof config.newState === 'function' && typeof config.publish === 'function' && typeof config.subscribe === 'function' ?
+            config :
+            (config.Dispatcher || this._Dispatcher)(Object.assign({}, config, {
+                name: eventName
+            }));
 
         return this;
     },

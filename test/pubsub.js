@@ -5,7 +5,8 @@ import {
 
 import Pubsub, {
     defaultSymbol,
-    Dispatcher
+    Dispatcher,
+    Subscription
 } from '../js/pubsub.js';
 
 import {
@@ -5362,6 +5363,86 @@ describe('pubsub', () => {
         ]);
     });
 
+    it('should accept a Dispatcher instance as an event config', () => {
+        const pubsub = Pubsub(),
+            subscriptionsExecuted = [];
+
+        pubsub.defineEvent('testEvent', Dispatcher({
+            name: 'testEvent',
+            publishOnce: true
+        }));
+
+        pubsub.on('testEvent', () => {
+            subscriptionsExecuted.push('on');
+        });
+
+        pubsub.publish('testEvent');
+
+        expect(subscriptionsExecuted).to.deep.equal([
+            'on'
+        ]);
+
+        pubsub.publish('testEvent');
+
+        expect(subscriptionsExecuted).to.deep.equal([
+            'on'
+        ]);
+    });
+
+    it('should accept a custom dispatcher as an event config', () => {
+        const methodsExecuted = [],
+            pubsub = Pubsub(),
+            subscriptionsExecuted = [];
+
+        pubsub.defineEvent('testEvent', {
+            newState () {
+                methodsExecuted.push('newState');
+                return {
+                    subscriptions: {}
+                };
+            },
+            publish () {
+                methodsExecuted.push('publish');
+            },
+            subscribe () {
+                methodsExecuted.push('subscribe');
+                return Subscription();
+            }
+        });
+
+        expect(methodsExecuted).to.deep.equal([]);
+
+        pubsub.on('testEvent', () => {
+            subscriptionsExecuted.push('on');
+        });
+
+        expect(methodsExecuted).to.deep.equal([
+            'newState',
+            'subscribe'
+        ]);
+
+        pubsub.publish('testEvent');
+
+        expect(methodsExecuted).to.deep.equal([
+            'newState',
+            'subscribe',
+            'publish'
+        ]);
+
+        expect(subscriptionsExecuted).to.deep.equal([]);
+
+        pubsub.publish('testEvent');
+
+        expect(methodsExecuted).to.deep.equal([
+            'newState',
+            'subscribe',
+            'publish',
+            'publish'
+        ]);
+
+        expect(subscriptionsExecuted).to.deep.equal([]);
+    });
+
     it('should allow static event definitions', () => {
         const pubsub0 = Pubsub(),
             pubsub1 = Pubsub();
@@ -6907,6 +6988,108 @@ describe('pubsub', () => {
                 }
             }),
             PubsubC = make(PubsubB, {
+                _destroy (string) {
+                    subscriptionsExecuted.push(string);
+                },
+                _init (...args) {
+                    return Reflect.apply(PubsubB.prototype._init, this, args);
+                }
+            }, {
+                _events: {
+                    testEventA: {
+                        data: {
+                            c: 'c'
+                        }
+                    },
+                    testEventC: {
+                        data: {
+                            c: 'c'
+                        }
+                    }
+                }
+            }),
+            pubsub = PubsubC();
+
+        pubsub.on('testEventA', event => {
+            expect(event).to.have.property('data').that.deep.equals({
+                c: 'c'
+            });
+            subscriptionsExecuted.push('a');
+        });
+
+        pubsub.on('testEventB', event => {
+            expect(event).to.have.property('data').that.deep.equals({
+                b: 'b'
+            });
+            subscriptionsExecuted.push('b');
+        });
+
+        pubsub.on('testEventC', event => {
+            expect(event).to.have.property('data').that.deep.equals({
+                c: 'c'
+            });
+            subscriptionsExecuted.push('c');
+        });
+
+        pubsub.on('testEventD', () => {
+            subscriptionsExecuted.push('d');
+        });
+
+        pubsub
+            .publish('testEventA')
+            .publish('testEventB')
+            .publish('testEventC')
+            .publish('testEventD')
+            .destroy('e');
+
+        expect(subscriptionsExecuted).to.deep.equal([
+            'a',
+            'b',
+            'c',
+            'd',
+            'e'
+        ]);
+    });
+
+    it('should work as a mixin\'s mixin', () => {
+        const subscriptionsExecuted = [],
+
+            PubsubA = make([
+                Pubsub
+            ], {
+                _init (...args) {
+                    return Reflect.apply(Pubsub.prototype._init, this, args);
+                }
+            }, {
+                _events: {
+                    testEventA: {
+                        data: {
+                            a: 'a'
+                        }
+                    }
+                },
+                _init (...args) {
+                    return Reflect.apply(Pubsub._init, this, args);
+                }
+            }),
+            PubsubB = make([
+                PubsubA
+            ], {
+                _init (...args) {
+                    return Reflect.apply(PubsubA.prototype._init, this, args);
+                }
+            }, {
+                _events: {
+                    testEventB: {
+                        data: {
+                            b: 'b'
+                        }
+                    }
+                }
+            }),
+            PubsubC = make([
+                PubsubB
+            ], {
                 _destroy (string) {
                     subscriptionsExecuted.push(string);
                 },
