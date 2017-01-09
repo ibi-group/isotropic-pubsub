@@ -5,7 +5,8 @@ import {
 
 import Pubsub, {
     defaultSymbol,
-    Dispatcher
+    Dispatcher,
+    Subscription
 } from '../js/pubsub.js';
 
 import {
@@ -1840,6 +1841,102 @@ describe('pubsub', () => {
             'distributor2 after 0',
             'distributor2 after 1',
             'distributor2 after 2'
+        ]);
+    });
+
+    it('should not affect a distributor\'s event state', () => {
+        const methodsExecuted = [],
+            subscriptionsExecuted = [],
+
+            A = make([
+                Pubsub
+            ], {
+                a () {
+                    methodsExecuted.push('a');
+                }
+            }, {
+                _events: {
+                    testEvent: {
+                        defaultFunction: 'a',
+                        publishOnce: true
+                    }
+                }
+            }),
+            B = make([
+                Pubsub
+            ], {
+                b () {
+                    methodsExecuted.push('b');
+                }
+            }, {
+                _events: {
+                    testEvent: {
+                        defaultFunction: 'b',
+                        publishOnce: true
+                    }
+                }
+            }),
+            a = A(),
+            b = B();
+
+        b.addDistributor(a);
+
+        a.on('testEvent', () => {
+            subscriptionsExecuted.push('a');
+        });
+
+        b.on('testEvent', () => {
+            subscriptionsExecuted.push('b');
+        });
+
+        b.publish('testEvent');
+
+        expect(methodsExecuted).to.deep.equal([
+            'b'
+        ]);
+
+        expect(subscriptionsExecuted).to.deep.equal([
+            'b',
+            'a'
+        ]);
+
+        a.publish('testEvent');
+
+        expect(methodsExecuted).to.deep.equal([
+            'b',
+            'a'
+        ]);
+
+        expect(subscriptionsExecuted).to.deep.equal([
+            'b',
+            'a',
+            'a'
+        ]);
+
+        b.publish('testEvent');
+
+        expect(methodsExecuted).to.deep.equal([
+            'b',
+            'a'
+        ]);
+
+        expect(subscriptionsExecuted).to.deep.equal([
+            'b',
+            'a',
+            'a'
+        ]);
+
+        a.publish('testEvent');
+
+        expect(methodsExecuted).to.deep.equal([
+            'b',
+            'a'
+        ]);
+
+        expect(subscriptionsExecuted).to.deep.equal([
+            'b',
+            'a',
+            'a'
         ]);
     });
 
@@ -5362,6 +5459,86 @@ describe('pubsub', () => {
         ]);
     });
 
+    it('should accept a Dispatcher instance as an event config', () => {
+        const pubsub = Pubsub(),
+            subscriptionsExecuted = [];
+
+        pubsub.defineEvent('testEvent', Dispatcher({
+            name: 'testEvent',
+            publishOnce: true
+        }));
+
+        pubsub.on('testEvent', () => {
+            subscriptionsExecuted.push('on');
+        });
+
+        pubsub.publish('testEvent');
+
+        expect(subscriptionsExecuted).to.deep.equal([
+            'on'
+        ]);
+
+        pubsub.publish('testEvent');
+
+        expect(subscriptionsExecuted).to.deep.equal([
+            'on'
+        ]);
+    });
+
+    it('should accept a custom dispatcher as an event config', () => {
+        const methodsExecuted = [],
+            pubsub = Pubsub(),
+            subscriptionsExecuted = [];
+
+        pubsub.defineEvent('testEvent', {
+            newState () {
+                methodsExecuted.push('newState');
+                return {
+                    subscriptions: {}
+                };
+            },
+            publish () {
+                methodsExecuted.push('publish');
+            },
+            subscribe () {
+                methodsExecuted.push('subscribe');
+                return Subscription();
+            }
+        });
+
+        expect(methodsExecuted).to.deep.equal([]);
+
+        pubsub.on('testEvent', () => {
+            subscriptionsExecuted.push('on');
+        });
+
+        expect(methodsExecuted).to.deep.equal([
+            'newState',
+            'subscribe'
+        ]);
+
+        pubsub.publish('testEvent');
+
+        expect(methodsExecuted).to.deep.equal([
+            'newState',
+            'subscribe',
+            'publish'
+        ]);
+
+        expect(subscriptionsExecuted).to.deep.equal([]);
+
+        pubsub.publish('testEvent');
+
+        expect(methodsExecuted).to.deep.equal([
+            'newState',
+            'subscribe',
+            'publish',
+            'publish'
+        ]);
+
+        expect(subscriptionsExecuted).to.deep.equal([]);
+    });
+
     it('should allow static event definitions', () => {
         const pubsub0 = Pubsub(),
             pubsub1 = Pubsub();
@@ -6761,17 +6938,29 @@ describe('pubsub', () => {
 
         const pubsub = Pubsub(),
             testSubscription0 = pubsub.onceOn('destroy', event => {
-                subscriptionsExecuted.push(0);
+                expect(pubsub).to.have.property('destroyed', false);
+                subscriptionsExecuted.push('onceOnDestroy');
                 event.preventDefault();
             }),
             testSubscription1 = pubsub.on('destroy', () => {
-                subscriptionsExecuted.push(1);
+                expect(pubsub).to.have.property('destroyed', false);
+                subscriptionsExecuted.push('onDestroy');
             }),
             testSubscription2 = pubsub.after('destroy', () => {
-                subscriptionsExecuted.push(2);
+                expect(pubsub).to.have.property('destroyed', true);
+                subscriptionsExecuted.push('afterDestroy');
             }),
-            testSubscription3 = pubsub.on('anotherEvent', () => {
-                subscriptionsExecuted.push(3);
+            testSubscription3 = pubsub.after('destroyComplete', () => {
+                expect(pubsub).to.have.property('destroyed', true);
+                subscriptionsExecuted.push('afterDestroyComplete');
+            }),
+            testSubscription4 = pubsub.on('destroyComplete', () => {
+                expect(pubsub).to.have.property('destroyed', true);
+                subscriptionsExecuted.push('onDestroyComplete');
+            }),
+            testSubscription5 = pubsub.on('anotherEvent', () => {
+                expect(pubsub).to.have.property('destroyed', false);
+                subscriptionsExecuted.push('onAnotherEvent');
             });
 
         expect(pubsub).to.have.property('destroyed', false);
@@ -6779,6 +6968,8 @@ describe('pubsub', () => {
         expect(testSubscription1).to.have.property('subscribed', true);
         expect(testSubscription2).to.have.property('subscribed', true);
         expect(testSubscription3).to.have.property('subscribed', true);
+        expect(testSubscription4).to.have.property('subscribed', true);
+        expect(testSubscription5).to.have.property('subscribed', true);
 
         expect(() => {
             pubsub.destroyed = true;
@@ -6786,34 +6977,63 @@ describe('pubsub', () => {
 
         expect(pubsub).to.have.property('destroyed', false);
 
+        pubsub._destroy = function (...args) {
+            expect(args).to.deep.equal([
+                'a',
+                'b',
+                'c'
+            ]);
+            subscriptionsExecuted.push('defaultDestroy');
+            Reflect.apply(Pubsub.prototype._destroy, this, args);
+        };
+
+        pubsub._destroyComplete = function (...args) {
+            expect(args).to.deep.equal([
+                'a',
+                'b',
+                'c'
+            ]);
+            subscriptionsExecuted.push('defaultDestroyComplete');
+            Reflect.apply(Pubsub.prototype._destroyComplete, this, args);
+        };
+
         pubsub.publish('anotherEvent').publish('destroy');
 
         expect(pubsub).to.have.property('destroyed', false);
         expect(subscriptionsExecuted).to.deep.equal([
-            3
+            'onAnotherEvent'
         ]);
 
         subscriptionsExecuted = [];
 
-        pubsub.publish('anotherEvent').destroy();
+        pubsub.publish('anotherEvent').destroy('a', 'b', 'c');
 
         expect(pubsub).to.have.property('destroyed', false);
         expect(subscriptionsExecuted).to.deep.equal([
-            3,
-            0,
-            1
+            'onAnotherEvent',
+            'onceOnDestroy',
+            'onDestroy'
         ]);
+        expect(testSubscription0).to.have.property('subscribed', false);
 
         subscriptionsExecuted = [];
 
-        pubsub.publish('anotherEvent').destroy();
+        pubsub.publish('anotherEvent').destroy('a', 'b', 'c');
 
         expect(pubsub).to.have.property('destroyed', true);
         expect(subscriptionsExecuted).to.deep.equal([
-            3,
-            1,
-            2
+            'onAnotherEvent',
+            'onDestroy',
+            'defaultDestroy',
+            'onDestroyComplete',
+            'defaultDestroyComplete',
+            'afterDestroyComplete'
         ]);
+        expect(testSubscription1).to.have.property('subscribed', false);
+        expect(testSubscription2).to.have.property('subscribed', false);
+        expect(testSubscription3).to.have.property('subscribed', false);
+        expect(testSubscription4).to.have.property('subscribed', false);
+        expect(testSubscription5).to.have.property('subscribed', false);
 
         subscriptionsExecuted = [];
 
@@ -6822,7 +7042,7 @@ describe('pubsub', () => {
         }).to.throw(TypeError);
 
         expect(() => {
-            pubsub.destroy();
+            pubsub.destroy('a', 'b', 'c');
         }).to.throw(TypeError);
 
         expect(pubsub).to.have.property('destroyed', true);
@@ -6830,7 +7050,9 @@ describe('pubsub', () => {
     });
 
     it('should work as a mixin', () => {
-        const PubsubA = make([
+        const subscriptionsExecuted = [],
+
+            PubsubA = make([
                 Pubsub
             ], {
                 _init (...args) {
@@ -6862,6 +7084,9 @@ describe('pubsub', () => {
                 }
             }),
             PubsubC = make(PubsubB, {
+                _destroy (string) {
+                    subscriptionsExecuted.push(string);
+                },
                 _init (...args) {
                     return Reflect.apply(PubsubB.prototype._init, this, args);
                 }
@@ -6879,8 +7104,7 @@ describe('pubsub', () => {
                     }
                 }
             }),
-            pubsub = PubsubC(),
-            subscriptionsExecuted = [];
+            pubsub = PubsubC();
 
         pubsub.on('testEventA', event => {
             expect(event).to.have.property('data').that.deep.equals({
@@ -6903,15 +7127,125 @@ describe('pubsub', () => {
             subscriptionsExecuted.push('c');
         });
 
+        pubsub.on('testEventD', () => {
+            subscriptionsExecuted.push('d');
+        });
+
         pubsub
             .publish('testEventA')
             .publish('testEventB')
-            .publish('testEventC');
+            .publish('testEventC')
+            .publish('testEventD')
+            .destroy('e');
 
         expect(subscriptionsExecuted).to.deep.equal([
             'a',
             'b',
-            'c'
+            'c',
+            'd',
+            'e'
+        ]);
+    });
+
+    it('should work as a mixin\'s mixin', () => {
+        const subscriptionsExecuted = [],
+
+            PubsubA = make([
+                Pubsub
+            ], {
+                _init (...args) {
+                    return Reflect.apply(Pubsub.prototype._init, this, args);
+                }
+            }, {
+                _events: {
+                    testEventA: {
+                        data: {
+                            a: 'a'
+                        }
+                    }
+                },
+                _init (...args) {
+                    return Reflect.apply(Pubsub._init, this, args);
+                }
+            }),
+            PubsubB = make([
+                PubsubA
+            ], {
+                _init (...args) {
+                    return Reflect.apply(PubsubA.prototype._init, this, args);
+                }
+            }, {
+                _events: {
+                    testEventB: {
+                        data: {
+                            b: 'b'
+                        }
+                    }
+                }
+            }),
+            PubsubC = make([
+                PubsubB
+            ], {
+                _destroy (string) {
+                    subscriptionsExecuted.push(string);
+                },
+                _init (...args) {
+                    return Reflect.apply(PubsubB.prototype._init, this, args);
+                }
+            }, {
+                _events: {
+                    testEventA: {
+                        data: {
+                            c: 'c'
+                        }
+                    },
+                    testEventC: {
+                        data: {
+                            c: 'c'
+                        }
+                    }
+                }
+            }),
+            pubsub = PubsubC();
+
+        pubsub.on('testEventA', event => {
+            expect(event).to.have.property('data').that.deep.equals({
+                c: 'c'
+            });
+            subscriptionsExecuted.push('a');
+        });
+
+        pubsub.on('testEventB', event => {
+            expect(event).to.have.property('data').that.deep.equals({
+                b: 'b'
+            });
+            subscriptionsExecuted.push('b');
+        });
+
+        pubsub.on('testEventC', event => {
+            expect(event).to.have.property('data').that.deep.equals({
+                c: 'c'
+            });
+            subscriptionsExecuted.push('c');
+        });
+
+        pubsub.on('testEventD', () => {
+            subscriptionsExecuted.push('d');
+        });
+
+        pubsub
+            .publish('testEventA')
+            .publish('testEventB')
+            .publish('testEventC')
+            .publish('testEventD')
+            .destroy('e');
+
+        expect(subscriptionsExecuted).to.deep.equal([
+            'a',
+            'b',
+            'c',
+            'd',
+            'e'
         ]);
     });
 });
