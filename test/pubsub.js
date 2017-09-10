@@ -1,39 +1,27 @@
-import {
-    describe,
-    it
-} from 'mocha';
+import _Pubsub, * as _pubsub from '../js/pubsub.js';
+import _chai from 'chai';
+import _make from 'isotropic-make';
+import _mocha from 'mocha';
 
-import Pubsub, {
-    defaultSymbol,
-    Dispatcher,
-    Subscription
-} from '../js/pubsub.js';
+_mocha.describe('pubsub', () => {
+    _mocha.it('should construct pubsub objects', () => {
+        _chai.expect(_Pubsub).to.be.a('function');
 
-import {
-    expect
-} from 'chai';
+        const pubsub = new _Pubsub();
 
-import make from 'isotropic-make';
-
-describe('pubsub', () => {
-    it('should construct pubsub objects', () => {
-        expect(Pubsub).to.be.a('function');
-
-        const pubsub = new Pubsub();
-
-        expect(pubsub).to.be.an.instanceOf(Pubsub);
+        _chai.expect(pubsub).to.be.an.instanceOf(_Pubsub);
     });
 
-    it('should be a pubsub object factory', () => {
-        expect(Pubsub).to.be.a('function');
+    _mocha.it('should be a pubsub object factory', () => {
+        _chai.expect(_Pubsub).to.be.a('function');
 
-        const pubsub = Pubsub();
+        const pubsub = _Pubsub();
 
-        expect(pubsub).to.be.an.instanceOf(Pubsub);
+        _chai.expect(pubsub).to.be.an.instanceOf(_Pubsub);
     });
 
-    it('should execute staged subscribers when an event is published', () => {
-        const pubsub = Pubsub(),
+    _mocha.it('should execute staged subscribers when an event is published', () => {
+        const pubsub = _Pubsub(),
             subscriptionsExecuted = [];
 
         pubsub.subscribe('after', 'testEvent', {
@@ -89,7 +77,7 @@ describe('pubsub', () => {
 
         pubsub.publish('testEvent');
 
-        expect(subscriptionsExecuted).to.deep.equal([
+        _chai.expect(subscriptionsExecuted).to.deep.equal([
             'before 0',
             'before 1',
             'before 2',
@@ -103,7 +91,7 @@ describe('pubsub', () => {
 
         pubsub.publish('testEvent');
 
-        expect(subscriptionsExecuted).to.deep.equal([
+        _chai.expect(subscriptionsExecuted).to.deep.equal([
             'before 0',
             'before 1',
             'before 2',
@@ -123,7 +111,7 @@ describe('pubsub', () => {
 
         pubsub.publish('testEvent');
 
-        expect(subscriptionsExecuted).to.deep.equal([
+        _chai.expect(subscriptionsExecuted).to.deep.equal([
             'before 0',
             'before 1',
             'before 2',
@@ -148,8 +136,8 @@ describe('pubsub', () => {
         ]);
     });
 
-    it('should execute staged subscribers when an event is published with any combination of public or protected publish or subscribe', () => {
-        const pubsub = Pubsub(),
+    _mocha.it('should execute staged subscribers when an event is published with any combination of public or protected publish or subscribe', () => {
+        const pubsub = _Pubsub(),
             subscriptionsExecuted = [];
 
         pubsub._subscribe('after', 'testEvent', {
@@ -256,7 +244,7 @@ describe('pubsub', () => {
 
         pubsub._publish('testEvent');
 
-        expect(subscriptionsExecuted).to.deep.equal([
+        _chai.expect(subscriptionsExecuted).to.deep.equal([
             'protected before 0',
             'protected before 1',
             'protected before 2',
@@ -279,7 +267,7 @@ describe('pubsub', () => {
 
         pubsub.publish('testEvent');
 
-        expect(subscriptionsExecuted).to.deep.equal([
+        _chai.expect(subscriptionsExecuted).to.deep.equal([
             'protected before 0',
             'protected before 1',
             'protected before 2',
@@ -314,7 +302,7 @@ describe('pubsub', () => {
 
         pubsub._publish('testEvent');
 
-        expect(subscriptionsExecuted).to.deep.equal([
+        _chai.expect(subscriptionsExecuted).to.deep.equal([
             'protected before 0',
             'protected before 1',
             'protected before 2',
@@ -360,8 +348,8 @@ describe('pubsub', () => {
         ]);
     });
 
-    it('should provide protected stage subscription shortcut methods', () => {
-        const pubsub = Pubsub(),
+    _mocha.it('should provide protected stage subscription shortcut methods', () => {
+        const pubsub = _Pubsub(),
             subscriptionsExecuted = [];
 
         pubsub._after('testEvent', () => {
@@ -402,7 +390,7 @@ describe('pubsub', () => {
 
         pubsub.publish('testEvent');
 
-        expect(subscriptionsExecuted).to.deep.equal([
+        _chai.expect(subscriptionsExecuted).to.deep.equal([
             'before 0',
             'before 1',
             'before 2',
@@ -416,7 +404,7 @@ describe('pubsub', () => {
 
         pubsub.publish('testEvent');
 
-        expect(subscriptionsExecuted).to.deep.equal([
+        _chai.expect(subscriptionsExecuted).to.deep.equal([
             'before 0',
             'before 1',
             'before 2',
@@ -436,7 +424,7 @@ describe('pubsub', () => {
 
         pubsub.publish('testEvent');
 
-        expect(subscriptionsExecuted).to.deep.equal([
+        _chai.expect(subscriptionsExecuted).to.deep.equal([
             'before 0',
             'before 1',
             'before 2',
@@ -461,8 +449,8 @@ describe('pubsub', () => {
         ]);
     });
 
-    it('should provide stage subscription shortcut methods', () => {
-        const pubsub = Pubsub(),
+    _mocha.it('should provide stage subscription shortcut methods', () => {
+        const pubsub = _Pubsub(),
             subscriptionsExecuted = [];
 
         pubsub.after('testEvent', () => {
@@ -503,7 +491,7 @@ describe('pubsub', () => {
 
         pubsub.publish('testEvent');
 
-        expect(subscriptionsExecuted).to.deep.equal([
+        _chai.expect(subscriptionsExecuted).to.deep.equal([
             'before 0',
             'before 1',
             'before 2',
@@ -517,7 +505,7 @@ describe('pubsub', () => {
 
         pubsub.publish('testEvent');
 
-        expect(subscriptionsExecuted).to.deep.equal([
+        _chai.expect(subscriptionsExecuted).to.deep.equal([
             'before 0',
             'before 1',
             'before 2',
@@ -537,7 +525,7 @@ describe('pubsub', () => {
 
         pubsub.publish('testEvent');
 
-        expect(subscriptionsExecuted).to.deep.equal([
+        _chai.expect(subscriptionsExecuted).to.deep.equal([
             'before 0',
             'before 1',
             'before 2',
@@ -562,8 +550,8 @@ describe('pubsub', () => {
         ]);
     });
 
-    it('should not execute unsubscribed subscribers', () => {
-        const pubsub = Pubsub(),
+    _mocha.it('should not execute unsubscribed subscribers', () => {
+        const pubsub = _Pubsub(),
             subscriptionsExecuted = [],
             testSubscription = pubsub.on('testEvent', () => {
                 subscriptionsExecuted.push('a');
@@ -571,181 +559,181 @@ describe('pubsub', () => {
 
         pubsub.on('testEvent', event => {
             subscriptionsExecuted.push('b');
-            expect(event.unsubscribe()).to.be.true;
+            _chai.expect(event.unsubscribe()).to.be.true;
         });
 
         pubsub.publish('testEvent');
 
-        expect(subscriptionsExecuted).to.deep.equal([
+        _chai.expect(subscriptionsExecuted).to.deep.equal([
             'a',
             'b'
         ]);
 
-        expect(testSubscription.unsubscribe()).to.be.true;
+        _chai.expect(testSubscription.unsubscribe()).to.be.true;
 
         pubsub.publish('testEvent');
 
-        expect(subscriptionsExecuted).to.deep.equal([
+        _chai.expect(subscriptionsExecuted).to.deep.equal([
             'a',
             'b'
         ]);
     });
 
-    it('should allow multiple unsubscription with no error', () => {
-        const pubsub = Pubsub(),
+    _mocha.it('should allow multiple unsubscription with no error', () => {
+        const pubsub = _Pubsub(),
             testSubscription = pubsub.on('testEvent', () => void null);
 
-        expect(testSubscription.unsubscribe()).to.be.true;
-        expect(testSubscription.unsubscribe()).to.be.true;
+        _chai.expect(testSubscription.unsubscribe()).to.be.true;
+        _chai.expect(testSubscription.unsubscribe()).to.be.true;
     });
 
-    it('should acknowledge an event is complete after the default stage', () => {
-        const pubsub = Pubsub(),
+    _mocha.it('should acknowledge an event is complete after the default stage', () => {
+        const pubsub = _Pubsub(),
             subscriptionsExecuted = [];
 
         pubsub.after('testEvent', event => {
-            expect(event.completed).to.be.true;
+            _chai.expect(event.completed).to.be.true;
             subscriptionsExecuted.push('after');
         });
 
         pubsub.before('testEvent', event => {
-            expect(event.completed).not.to.be.true;
+            _chai.expect(event.completed).not.to.be.true;
             subscriptionsExecuted.push('before');
         });
 
         pubsub.on('testEvent', event => {
-            expect(event.completed).not.to.be.true;
+            _chai.expect(event.completed).not.to.be.true;
             subscriptionsExecuted.push('on');
         });
 
         pubsub.publish('testEvent');
 
-        expect(subscriptionsExecuted).to.deep.equal([
+        _chai.expect(subscriptionsExecuted).to.deep.equal([
             'before',
             'on',
             'after'
         ]);
     });
 
-    it('should pass event data to subscribers', () => {
+    _mocha.it('should pass event data to subscribers', () => {
         const data = {
                 a: 'a',
                 b: 'b',
                 c: 'c'
             },
-            pubsub = Pubsub(),
+            pubsub = _Pubsub(),
             subscriptionsExecuted = [];
 
         pubsub.after('testEvent', event => {
-            expect(event.data).to.equal(data);
+            _chai.expect(event.data).to.equal(data);
             subscriptionsExecuted.push('after');
         });
 
         pubsub.before('testEvent', event => {
-            expect(event.data).to.equal(data);
+            _chai.expect(event.data).to.equal(data);
             subscriptionsExecuted.push('before');
         });
 
         pubsub.on('testEvent', event => {
-            expect(event.data).to.equal(data);
+            _chai.expect(event.data).to.equal(data);
             subscriptionsExecuted.push('on');
         });
 
         pubsub.publish('testEvent', data);
 
-        expect(subscriptionsExecuted).to.deep.equal([
+        _chai.expect(subscriptionsExecuted).to.deep.equal([
             'before',
             'on',
             'after'
         ]);
     });
 
-    it('should pass event name to subscribers', () => {
-        const pubsub = Pubsub(),
+    _mocha.it('should pass event name to subscribers', () => {
+        const pubsub = _Pubsub(),
             subscriptionsExecuted = [];
 
         pubsub.after('testEvent', event => {
-            expect(event).to.have.property('name', 'testEvent');
+            _chai.expect(event).to.have.property('name', 'testEvent');
             subscriptionsExecuted.push('after');
         });
 
         pubsub.before('testEvent', event => {
-            expect(event).to.have.property('name', 'testEvent');
+            _chai.expect(event).to.have.property('name', 'testEvent');
             subscriptionsExecuted.push('before');
         });
 
         pubsub.on('testEvent', event => {
-            expect(event).to.have.property('name', 'testEvent');
+            _chai.expect(event).to.have.property('name', 'testEvent');
             subscriptionsExecuted.push('on');
         });
 
         pubsub.publish('testEvent');
 
-        expect(subscriptionsExecuted).to.deep.equal([
+        _chai.expect(subscriptionsExecuted).to.deep.equal([
             'before',
             'on',
             'after'
         ]);
     });
 
-    it('should pass event publisher to subscribers', () => {
-        const pubsub = Pubsub(),
+    _mocha.it('should pass event publisher to subscribers', () => {
+        const pubsub = _Pubsub(),
             subscriptionsExecuted = [];
 
         pubsub.after('testEvent', event => {
-            expect(event).to.have.property('publisher', pubsub);
+            _chai.expect(event).to.have.property('publisher', pubsub);
             subscriptionsExecuted.push('after');
         });
 
         pubsub.before('testEvent', event => {
-            expect(event).to.have.property('publisher', pubsub);
+            _chai.expect(event).to.have.property('publisher', pubsub);
             subscriptionsExecuted.push('before');
         });
 
         pubsub.on('testEvent', event => {
-            expect(event).to.have.property('publisher', pubsub);
+            _chai.expect(event).to.have.property('publisher', pubsub);
             subscriptionsExecuted.push('on');
         });
 
         pubsub.publish('testEvent');
 
-        expect(subscriptionsExecuted).to.deep.equal([
+        _chai.expect(subscriptionsExecuted).to.deep.equal([
             'before',
             'on',
             'after'
         ]);
     });
 
-    it('should pass stage name to subscribers', () => {
-        const pubsub = Pubsub(),
+    _mocha.it('should pass stage name to subscribers', () => {
+        const pubsub = _Pubsub(),
             subscriptionsExecuted = [];
 
         pubsub.after('testEvent', event => {
-            expect(event).to.have.property('stageName', 'after');
+            _chai.expect(event).to.have.property('stageName', 'after');
             subscriptionsExecuted.push('after');
         });
 
         pubsub.before('testEvent', event => {
-            expect(event).to.have.property('stageName', 'before');
+            _chai.expect(event).to.have.property('stageName', 'before');
             subscriptionsExecuted.push('before');
         });
 
         pubsub.on('testEvent', event => {
-            expect(event).to.have.property('stageName', 'on');
+            _chai.expect(event).to.have.property('stageName', 'on');
             subscriptionsExecuted.push('on');
         });
 
         pubsub.publish('testEvent');
 
-        expect(subscriptionsExecuted).to.deep.equal([
+        _chai.expect(subscriptionsExecuted).to.deep.equal([
             'before',
             'on',
             'after'
         ]);
     });
 
-    it('should prevent preventable events', () => {
-        const pubsub = Pubsub(),
+    _mocha.it('should prevent preventable events', () => {
+        const pubsub = _Pubsub(),
             subscriptionsExecuted = [];
 
         pubsub.after('testEvent', () => {
@@ -754,25 +742,25 @@ describe('pubsub', () => {
 
         pubsub.before('testEvent', event => {
             event.preventDefault();
-            expect(event.defaultIsPrevented()).to.be.true;
+            _chai.expect(event.defaultIsPrevented()).to.be.true;
             subscriptionsExecuted.push('before');
         });
 
         pubsub.on('testEvent', event => {
-            expect(event.defaultIsPrevented()).to.be.true;
+            _chai.expect(event.defaultIsPrevented()).to.be.true;
             subscriptionsExecuted.push('on');
         });
 
         pubsub.publish('testEvent');
 
-        expect(subscriptionsExecuted).to.deep.equal([
+        _chai.expect(subscriptionsExecuted).to.deep.equal([
             'before',
             'on'
         ]);
     });
 
-    it('should allow multiple prevention with no error', () => {
-        const pubsub = Pubsub(),
+    _mocha.it('should allow multiple prevention with no error', () => {
+        const pubsub = _Pubsub(),
             subscriptionsExecuted = [];
 
         pubsub.after('testEvent', () => {
@@ -781,26 +769,26 @@ describe('pubsub', () => {
 
         pubsub.before('testEvent', event => {
             event.preventDefault();
-            expect(event.defaultIsPrevented()).to.be.true;
+            _chai.expect(event.defaultIsPrevented()).to.be.true;
             subscriptionsExecuted.push('before');
         });
 
         pubsub.on('testEvent', event => {
             event.preventDefault();
-            expect(event.defaultIsPrevented()).to.be.true;
+            _chai.expect(event.defaultIsPrevented()).to.be.true;
             subscriptionsExecuted.push('on');
         });
 
         pubsub.publish('testEvent');
 
-        expect(subscriptionsExecuted).to.deep.equal([
+        _chai.expect(subscriptionsExecuted).to.deep.equal([
             'before',
             'on'
         ]);
     });
 
-    it('should prevent preventable event stages', () => {
-        const pubsub = Pubsub(),
+    _mocha.it('should prevent preventable event stages', () => {
+        const pubsub = _Pubsub(),
             subscriptionsExecuted = [];
 
         pubsub.after('testEvent', () => {
@@ -809,7 +797,7 @@ describe('pubsub', () => {
 
         pubsub.before('testEvent', event => {
             event.prevent('on');
-            expect(event.isPrevented('on')).to.be.true;
+            _chai.expect(event.isPrevented('on')).to.be.true;
             subscriptionsExecuted.push('before');
         });
 
@@ -819,22 +807,22 @@ describe('pubsub', () => {
 
         pubsub.publish('testEvent');
 
-        expect(subscriptionsExecuted).to.deep.equal([
+        _chai.expect(subscriptionsExecuted).to.deep.equal([
             'before'
         ]);
     });
 
-    it('should distribute events to distributors', () => {
-        const distributor0 = Pubsub(),
-            distributor0a = Pubsub(),
-            distributor0b = Pubsub(),
-            distributor1 = Pubsub(),
-            distributor1a = Pubsub(),
-            distributor1b = Pubsub(),
-            distributor2 = Pubsub(),
-            distributor2a = Pubsub(),
-            distributor2b = Pubsub(),
-            publisher = Pubsub(),
+    _mocha.it('should distribute events to distributors', () => {
+        const distributor0 = _Pubsub(),
+            distributor0a = _Pubsub(),
+            distributor0b = _Pubsub(),
+            distributor1 = _Pubsub(),
+            distributor1a = _Pubsub(),
+            distributor1b = _Pubsub(),
+            distributor2 = _Pubsub(),
+            distributor2a = _Pubsub(),
+            distributor2b = _Pubsub(),
+            publisher = _Pubsub(),
             subscriptionsExecuted = [];
 
         publisher.addDistributor([
@@ -890,63 +878,63 @@ describe('pubsub', () => {
             pubsub
         ]) => {
             pubsub.after('testEvent', event => {
-                expect(event).to.have.property('distributor', pubsub);
-                expect(event).to.have.property('publisher', publisher);
+                _chai.expect(event).to.have.property('distributor', pubsub);
+                _chai.expect(event).to.have.property('publisher', publisher);
                 subscriptionsExecuted.push(`${name} after 0`);
             });
 
             pubsub.after('testEvent', event => {
-                expect(event).to.have.property('distributor', pubsub);
-                expect(event).to.have.property('publisher', publisher);
+                _chai.expect(event).to.have.property('distributor', pubsub);
+                _chai.expect(event).to.have.property('publisher', publisher);
                 subscriptionsExecuted.push(`${name} after 1`);
             });
 
             pubsub.after('testEvent', event => {
-                expect(event).to.have.property('distributor', pubsub);
-                expect(event).to.have.property('publisher', publisher);
+                _chai.expect(event).to.have.property('distributor', pubsub);
+                _chai.expect(event).to.have.property('publisher', publisher);
                 subscriptionsExecuted.push(`${name} after 2`);
             });
 
             pubsub.before('testEvent', event => {
-                expect(event).to.have.property('distributor', pubsub);
-                expect(event).to.have.property('publisher', publisher);
+                _chai.expect(event).to.have.property('distributor', pubsub);
+                _chai.expect(event).to.have.property('publisher', publisher);
                 subscriptionsExecuted.push(`${name} before 0`);
             });
 
             pubsub.before('testEvent', event => {
-                expect(event).to.have.property('distributor', pubsub);
-                expect(event).to.have.property('publisher', publisher);
+                _chai.expect(event).to.have.property('distributor', pubsub);
+                _chai.expect(event).to.have.property('publisher', publisher);
                 subscriptionsExecuted.push(`${name} before 1`);
             });
 
             pubsub.before('testEvent', event => {
-                expect(event).to.have.property('distributor', pubsub);
-                expect(event).to.have.property('publisher', publisher);
+                _chai.expect(event).to.have.property('distributor', pubsub);
+                _chai.expect(event).to.have.property('publisher', publisher);
                 subscriptionsExecuted.push(`${name} before 2`);
             });
 
             pubsub.on('testEvent', event => {
-                expect(event).to.have.property('distributor', pubsub);
-                expect(event).to.have.property('publisher', publisher);
+                _chai.expect(event).to.have.property('distributor', pubsub);
+                _chai.expect(event).to.have.property('publisher', publisher);
                 subscriptionsExecuted.push(`${name} on 0`);
             });
 
             pubsub.on('testEvent', event => {
-                expect(event).to.have.property('distributor', pubsub);
-                expect(event).to.have.property('publisher', publisher);
+                _chai.expect(event).to.have.property('distributor', pubsub);
+                _chai.expect(event).to.have.property('publisher', publisher);
                 subscriptionsExecuted.push(`${name} on 1`);
             });
 
             pubsub.on('testEvent', event => {
-                expect(event).to.have.property('distributor', pubsub);
-                expect(event).to.have.property('publisher', publisher);
+                _chai.expect(event).to.have.property('distributor', pubsub);
+                _chai.expect(event).to.have.property('publisher', publisher);
                 subscriptionsExecuted.push(`${name} on 2`);
             });
         });
 
         publisher.publish('testEvent');
 
-        expect(subscriptionsExecuted).to.deep.equal([
+        _chai.expect(subscriptionsExecuted).to.deep.equal([
             'publisher before 0',
             'publisher before 1',
             'publisher before 2',
@@ -1040,17 +1028,17 @@ describe('pubsub', () => {
         ]);
     });
 
-    it('should not execute further stages if the event is stopped', () => {
-        const distributor0 = Pubsub(),
-            distributor0a = Pubsub(),
-            distributor0b = Pubsub(),
-            distributor1 = Pubsub(),
-            distributor1a = Pubsub(),
-            distributor1b = Pubsub(),
-            distributor2 = Pubsub(),
-            distributor2a = Pubsub(),
-            distributor2b = Pubsub(),
-            publisher = Pubsub(),
+    _mocha.it('should not execute further stages if the event is stopped', () => {
+        const distributor0 = _Pubsub(),
+            distributor0a = _Pubsub(),
+            distributor0b = _Pubsub(),
+            distributor1 = _Pubsub(),
+            distributor1a = _Pubsub(),
+            distributor1b = _Pubsub(),
+            distributor2 = _Pubsub(),
+            distributor2a = _Pubsub(),
+            distributor2b = _Pubsub(),
+            publisher = _Pubsub(),
             subscriptionsExecuted = [];
 
         publisher.addDistributor([
@@ -1106,65 +1094,65 @@ describe('pubsub', () => {
             pubsub
         ]) => {
             pubsub.after('testEvent', event => {
-                expect(event).to.have.property('distributor', pubsub);
-                expect(event).to.have.property('publisher', publisher);
+                _chai.expect(event).to.have.property('distributor', pubsub);
+                _chai.expect(event).to.have.property('publisher', publisher);
                 subscriptionsExecuted.push(`${name} after 0`);
             });
 
             pubsub.after('testEvent', event => {
-                expect(event).to.have.property('distributor', pubsub);
-                expect(event).to.have.property('publisher', publisher);
+                _chai.expect(event).to.have.property('distributor', pubsub);
+                _chai.expect(event).to.have.property('publisher', publisher);
                 subscriptionsExecuted.push(`${name} after 1`);
             });
 
             pubsub.after('testEvent', event => {
-                expect(event).to.have.property('distributor', pubsub);
-                expect(event).to.have.property('publisher', publisher);
+                _chai.expect(event).to.have.property('distributor', pubsub);
+                _chai.expect(event).to.have.property('publisher', publisher);
                 subscriptionsExecuted.push(`${name} after 2`);
             });
 
             pubsub.before('testEvent', event => {
-                expect(event).to.have.property('distributor', pubsub);
-                expect(event).to.have.property('publisher', publisher);
+                _chai.expect(event).to.have.property('distributor', pubsub);
+                _chai.expect(event).to.have.property('publisher', publisher);
                 event.stopEvent();
-                expect(event.eventStopped).to.be.true;
+                _chai.expect(event.eventStopped).to.be.true;
                 subscriptionsExecuted.push(`${name} before 0`);
             });
 
             pubsub.before('testEvent', event => {
-                expect(event).to.have.property('distributor', pubsub);
-                expect(event).to.have.property('publisher', publisher);
+                _chai.expect(event).to.have.property('distributor', pubsub);
+                _chai.expect(event).to.have.property('publisher', publisher);
                 subscriptionsExecuted.push(`${name} before 1`);
             });
 
             pubsub.before('testEvent', event => {
-                expect(event).to.have.property('distributor', pubsub);
-                expect(event).to.have.property('publisher', publisher);
+                _chai.expect(event).to.have.property('distributor', pubsub);
+                _chai.expect(event).to.have.property('publisher', publisher);
                 subscriptionsExecuted.push(`${name} before 2`);
             });
 
             pubsub.on('testEvent', event => {
-                expect(event).to.have.property('distributor', pubsub);
-                expect(event).to.have.property('publisher', publisher);
+                _chai.expect(event).to.have.property('distributor', pubsub);
+                _chai.expect(event).to.have.property('publisher', publisher);
                 subscriptionsExecuted.push(`${name} on 0`);
             });
 
             pubsub.on('testEvent', event => {
-                expect(event).to.have.property('distributor', pubsub);
-                expect(event).to.have.property('publisher', publisher);
+                _chai.expect(event).to.have.property('distributor', pubsub);
+                _chai.expect(event).to.have.property('publisher', publisher);
                 subscriptionsExecuted.push(`${name} on 1`);
             });
 
             pubsub.on('testEvent', event => {
-                expect(event).to.have.property('distributor', pubsub);
-                expect(event).to.have.property('publisher', publisher);
+                _chai.expect(event).to.have.property('distributor', pubsub);
+                _chai.expect(event).to.have.property('publisher', publisher);
                 subscriptionsExecuted.push(`${name} on 2`);
             });
         });
 
         publisher.publish('testEvent');
 
-        expect(subscriptionsExecuted).to.deep.equal([
+        _chai.expect(subscriptionsExecuted).to.deep.equal([
             'publisher before 0',
             'publisher before 1',
             'publisher before 2',
@@ -1198,17 +1186,17 @@ describe('pubsub', () => {
         ]);
     });
 
-    it('should not distribute events to distributors when distribution is stopped within a given stage', () => {
-        const distributor0 = Pubsub(),
-            distributor0a = Pubsub(),
-            distributor0b = Pubsub(),
-            distributor1 = Pubsub(),
-            distributor1a = Pubsub(),
-            distributor1b = Pubsub(),
-            distributor2 = Pubsub(),
-            distributor2a = Pubsub(),
-            distributor2b = Pubsub(),
-            publisher = Pubsub(),
+    _mocha.it('should not distribute events to distributors when distribution is stopped within a given stage', () => {
+        const distributor0 = _Pubsub(),
+            distributor0a = _Pubsub(),
+            distributor0b = _Pubsub(),
+            distributor1 = _Pubsub(),
+            distributor1a = _Pubsub(),
+            distributor1b = _Pubsub(),
+            distributor2 = _Pubsub(),
+            distributor2a = _Pubsub(),
+            distributor2b = _Pubsub(),
+            publisher = _Pubsub(),
             subscriptionsExecuted = [];
 
         publisher.addDistributor([
@@ -1264,65 +1252,65 @@ describe('pubsub', () => {
             pubsub
         ]) => {
             pubsub.after('testEvent', event => {
-                expect(event).to.have.property('distributor', pubsub);
-                expect(event).to.have.property('publisher', publisher);
+                _chai.expect(event).to.have.property('distributor', pubsub);
+                _chai.expect(event).to.have.property('publisher', publisher);
                 subscriptionsExecuted.push(`${name} after 0`);
             });
 
             pubsub.after('testEvent', event => {
-                expect(event).to.have.property('distributor', pubsub);
-                expect(event).to.have.property('publisher', publisher);
+                _chai.expect(event).to.have.property('distributor', pubsub);
+                _chai.expect(event).to.have.property('publisher', publisher);
                 subscriptionsExecuted.push(`${name} after 1`);
             });
 
             pubsub.after('testEvent', event => {
-                expect(event).to.have.property('distributor', pubsub);
-                expect(event).to.have.property('publisher', publisher);
+                _chai.expect(event).to.have.property('distributor', pubsub);
+                _chai.expect(event).to.have.property('publisher', publisher);
                 subscriptionsExecuted.push(`${name} after 2`);
             });
 
             pubsub.before('testEvent', event => {
-                expect(event).to.have.property('distributor', pubsub);
-                expect(event).to.have.property('publisher', publisher);
+                _chai.expect(event).to.have.property('distributor', pubsub);
+                _chai.expect(event).to.have.property('publisher', publisher);
                 event.stopDistribution();
-                expect(event.distributionStopped).to.be.true;
+                _chai.expect(event.distributionStopped).to.be.true;
                 subscriptionsExecuted.push(`${name} before 0`);
             });
 
             pubsub.before('testEvent', event => {
-                expect(event).to.have.property('distributor', pubsub);
-                expect(event).to.have.property('publisher', publisher);
+                _chai.expect(event).to.have.property('distributor', pubsub);
+                _chai.expect(event).to.have.property('publisher', publisher);
                 subscriptionsExecuted.push(`${name} before 1`);
             });
 
             pubsub.before('testEvent', event => {
-                expect(event).to.have.property('distributor', pubsub);
-                expect(event).to.have.property('publisher', publisher);
+                _chai.expect(event).to.have.property('distributor', pubsub);
+                _chai.expect(event).to.have.property('publisher', publisher);
                 subscriptionsExecuted.push(`${name} before 2`);
             });
 
             pubsub.on('testEvent', event => {
-                expect(event).to.have.property('distributor', pubsub);
-                expect(event).to.have.property('publisher', publisher);
+                _chai.expect(event).to.have.property('distributor', pubsub);
+                _chai.expect(event).to.have.property('publisher', publisher);
                 subscriptionsExecuted.push(`${name} on 0`);
             });
 
             pubsub.on('testEvent', event => {
-                expect(event).to.have.property('distributor', pubsub);
-                expect(event).to.have.property('publisher', publisher);
+                _chai.expect(event).to.have.property('distributor', pubsub);
+                _chai.expect(event).to.have.property('publisher', publisher);
                 subscriptionsExecuted.push(`${name} on 1`);
             });
 
             pubsub.on('testEvent', event => {
-                expect(event).to.have.property('distributor', pubsub);
-                expect(event).to.have.property('publisher', publisher);
+                _chai.expect(event).to.have.property('distributor', pubsub);
+                _chai.expect(event).to.have.property('publisher', publisher);
                 subscriptionsExecuted.push(`${name} on 2`);
             });
         });
 
         publisher.publish('testEvent');
 
-        expect(subscriptionsExecuted).to.deep.equal([
+        _chai.expect(subscriptionsExecuted).to.deep.equal([
             'publisher before 0',
             'publisher before 1',
             'publisher before 2',
@@ -1389,17 +1377,17 @@ describe('pubsub', () => {
         ]);
     });
 
-    it('should not execute further subscribers when dispatch is stopped within a given stage', () => {
-        const distributor0 = Pubsub(),
-            distributor0a = Pubsub(),
-            distributor0b = Pubsub(),
-            distributor1 = Pubsub(),
-            distributor1a = Pubsub(),
-            distributor1b = Pubsub(),
-            distributor2 = Pubsub(),
-            distributor2a = Pubsub(),
-            distributor2b = Pubsub(),
-            publisher = Pubsub(),
+    _mocha.it('should not execute further subscribers when dispatch is stopped within a given stage', () => {
+        const distributor0 = _Pubsub(),
+            distributor0a = _Pubsub(),
+            distributor0b = _Pubsub(),
+            distributor1 = _Pubsub(),
+            distributor1a = _Pubsub(),
+            distributor1b = _Pubsub(),
+            distributor2 = _Pubsub(),
+            distributor2a = _Pubsub(),
+            distributor2b = _Pubsub(),
+            publisher = _Pubsub(),
             subscriptionsExecuted = [];
 
         publisher.addDistributor([
@@ -1455,65 +1443,65 @@ describe('pubsub', () => {
             pubsub
         ]) => {
             pubsub.after('testEvent', event => {
-                expect(event).to.have.property('distributor', pubsub);
-                expect(event).to.have.property('publisher', publisher);
+                _chai.expect(event).to.have.property('distributor', pubsub);
+                _chai.expect(event).to.have.property('publisher', publisher);
                 subscriptionsExecuted.push(`${name} after 0`);
             });
 
             pubsub.after('testEvent', event => {
-                expect(event).to.have.property('distributor', pubsub);
-                expect(event).to.have.property('publisher', publisher);
+                _chai.expect(event).to.have.property('distributor', pubsub);
+                _chai.expect(event).to.have.property('publisher', publisher);
                 subscriptionsExecuted.push(`${name} after 1`);
             });
 
             pubsub.after('testEvent', event => {
-                expect(event).to.have.property('distributor', pubsub);
-                expect(event).to.have.property('publisher', publisher);
+                _chai.expect(event).to.have.property('distributor', pubsub);
+                _chai.expect(event).to.have.property('publisher', publisher);
                 subscriptionsExecuted.push(`${name} after 2`);
             });
 
             pubsub.before('testEvent', event => {
-                expect(event).to.have.property('distributor', pubsub);
-                expect(event).to.have.property('publisher', publisher);
+                _chai.expect(event).to.have.property('distributor', pubsub);
+                _chai.expect(event).to.have.property('publisher', publisher);
                 event.stopDispatch();
-                expect(event.dispatchStopped).to.be.true;
+                _chai.expect(event.dispatchStopped).to.be.true;
                 subscriptionsExecuted.push(`${name} before 0`);
             });
 
             pubsub.before('testEvent', event => {
-                expect(event).to.have.property('distributor', pubsub);
-                expect(event).to.have.property('publisher', publisher);
+                _chai.expect(event).to.have.property('distributor', pubsub);
+                _chai.expect(event).to.have.property('publisher', publisher);
                 subscriptionsExecuted.push(`${name} before 1`);
             });
 
             pubsub.before('testEvent', event => {
-                expect(event).to.have.property('distributor', pubsub);
-                expect(event).to.have.property('publisher', publisher);
+                _chai.expect(event).to.have.property('distributor', pubsub);
+                _chai.expect(event).to.have.property('publisher', publisher);
                 subscriptionsExecuted.push(`${name} before 2`);
             });
 
             pubsub.on('testEvent', event => {
-                expect(event).to.have.property('distributor', pubsub);
-                expect(event).to.have.property('publisher', publisher);
+                _chai.expect(event).to.have.property('distributor', pubsub);
+                _chai.expect(event).to.have.property('publisher', publisher);
                 subscriptionsExecuted.push(`${name} on 0`);
             });
 
             pubsub.on('testEvent', event => {
-                expect(event).to.have.property('distributor', pubsub);
-                expect(event).to.have.property('publisher', publisher);
+                _chai.expect(event).to.have.property('distributor', pubsub);
+                _chai.expect(event).to.have.property('publisher', publisher);
                 subscriptionsExecuted.push(`${name} on 1`);
             });
 
             pubsub.on('testEvent', event => {
-                expect(event).to.have.property('distributor', pubsub);
-                expect(event).to.have.property('publisher', publisher);
+                _chai.expect(event).to.have.property('distributor', pubsub);
+                _chai.expect(event).to.have.property('publisher', publisher);
                 subscriptionsExecuted.push(`${name} on 2`);
             });
         });
 
         publisher.publish('testEvent');
 
-        expect(subscriptionsExecuted).to.deep.equal([
+        _chai.expect(subscriptionsExecuted).to.deep.equal([
             'publisher before 0',
             'distributor0 before 0',
             'distributor1 before 0',
@@ -1587,17 +1575,17 @@ describe('pubsub', () => {
         ]);
     });
 
-    it('should not distribute events to distributors after they have been removed', () => {
-        const distributor0 = Pubsub(),
-            distributor0a = Pubsub(),
-            distributor0b = Pubsub(),
-            distributor1 = Pubsub(),
-            distributor1a = Pubsub(),
-            distributor1b = Pubsub(),
-            distributor2 = Pubsub(),
-            distributor2a = Pubsub(),
-            distributor2b = Pubsub(),
-            publisher = Pubsub(),
+    _mocha.it('should not distribute events to distributors after they have been removed', () => {
+        const distributor0 = _Pubsub(),
+            distributor0a = _Pubsub(),
+            distributor0b = _Pubsub(),
+            distributor1 = _Pubsub(),
+            distributor1a = _Pubsub(),
+            distributor1b = _Pubsub(),
+            distributor2 = _Pubsub(),
+            distributor2a = _Pubsub(),
+            distributor2b = _Pubsub(),
+            publisher = _Pubsub(),
             subscriptionsExecuted = [];
 
         publisher.addDistributor([
@@ -1653,56 +1641,56 @@ describe('pubsub', () => {
             pubsub
         ]) => {
             pubsub.after('testEvent', event => {
-                expect(event).to.have.property('distributor', pubsub);
-                expect(event).to.have.property('publisher', publisher);
+                _chai.expect(event).to.have.property('distributor', pubsub);
+                _chai.expect(event).to.have.property('publisher', publisher);
                 subscriptionsExecuted.push(`${name} after 0`);
             });
 
             pubsub.after('testEvent', event => {
-                expect(event).to.have.property('distributor', pubsub);
-                expect(event).to.have.property('publisher', publisher);
+                _chai.expect(event).to.have.property('distributor', pubsub);
+                _chai.expect(event).to.have.property('publisher', publisher);
                 subscriptionsExecuted.push(`${name} after 1`);
             });
 
             pubsub.after('testEvent', event => {
-                expect(event).to.have.property('distributor', pubsub);
-                expect(event).to.have.property('publisher', publisher);
+                _chai.expect(event).to.have.property('distributor', pubsub);
+                _chai.expect(event).to.have.property('publisher', publisher);
                 subscriptionsExecuted.push(`${name} after 2`);
             });
 
             pubsub.before('testEvent', event => {
-                expect(event).to.have.property('distributor', pubsub);
-                expect(event).to.have.property('publisher', publisher);
+                _chai.expect(event).to.have.property('distributor', pubsub);
+                _chai.expect(event).to.have.property('publisher', publisher);
                 subscriptionsExecuted.push(`${name} before 0`);
             });
 
             pubsub.before('testEvent', event => {
-                expect(event).to.have.property('distributor', pubsub);
-                expect(event).to.have.property('publisher', publisher);
+                _chai.expect(event).to.have.property('distributor', pubsub);
+                _chai.expect(event).to.have.property('publisher', publisher);
                 subscriptionsExecuted.push(`${name} before 1`);
             });
 
             pubsub.before('testEvent', event => {
-                expect(event).to.have.property('distributor', pubsub);
-                expect(event).to.have.property('publisher', publisher);
+                _chai.expect(event).to.have.property('distributor', pubsub);
+                _chai.expect(event).to.have.property('publisher', publisher);
                 subscriptionsExecuted.push(`${name} before 2`);
             });
 
             pubsub.on('testEvent', event => {
-                expect(event).to.have.property('distributor', pubsub);
-                expect(event).to.have.property('publisher', publisher);
+                _chai.expect(event).to.have.property('distributor', pubsub);
+                _chai.expect(event).to.have.property('publisher', publisher);
                 subscriptionsExecuted.push(`${name} on 0`);
             });
 
             pubsub.on('testEvent', event => {
-                expect(event).to.have.property('distributor', pubsub);
-                expect(event).to.have.property('publisher', publisher);
+                _chai.expect(event).to.have.property('distributor', pubsub);
+                _chai.expect(event).to.have.property('publisher', publisher);
                 subscriptionsExecuted.push(`${name} on 1`);
             });
 
             pubsub.on('testEvent', event => {
-                expect(event).to.have.property('distributor', pubsub);
-                expect(event).to.have.property('publisher', publisher);
+                _chai.expect(event).to.have.property('distributor', pubsub);
+                _chai.expect(event).to.have.property('publisher', publisher);
                 subscriptionsExecuted.push(`${name} on 2`);
             });
         });
@@ -1723,7 +1711,7 @@ describe('pubsub', () => {
 
         publisher.publish('testEvent');
 
-        expect(subscriptionsExecuted).to.deep.equal([
+        _chai.expect(subscriptionsExecuted).to.deep.equal([
             'publisher before 0',
             'publisher before 1',
             'publisher before 2',
@@ -1844,12 +1832,12 @@ describe('pubsub', () => {
         ]);
     });
 
-    it('should not affect a distributor\'s event state', () => {
+    _mocha.it('should not affect a distributor\'s event state', () => {
         const methodsExecuted = [],
             subscriptionsExecuted = [],
 
-            A = make([
-                Pubsub
+            A = _make([
+                _Pubsub
             ], {
                 a () {
                     methodsExecuted.push('a');
@@ -1862,8 +1850,8 @@ describe('pubsub', () => {
                     }
                 }
             }),
-            B = make([
-                Pubsub
+            B = _make([
+                _Pubsub
             ], {
                 b () {
                     methodsExecuted.push('b');
@@ -1891,23 +1879,23 @@ describe('pubsub', () => {
 
         b.publish('testEvent');
 
-        expect(methodsExecuted).to.deep.equal([
+        _chai.expect(methodsExecuted).to.deep.equal([
             'b'
         ]);
 
-        expect(subscriptionsExecuted).to.deep.equal([
+        _chai.expect(subscriptionsExecuted).to.deep.equal([
             'b',
             'a'
         ]);
 
         a.publish('testEvent');
 
-        expect(methodsExecuted).to.deep.equal([
+        _chai.expect(methodsExecuted).to.deep.equal([
             'b',
             'a'
         ]);
 
-        expect(subscriptionsExecuted).to.deep.equal([
+        _chai.expect(subscriptionsExecuted).to.deep.equal([
             'b',
             'a',
             'a'
@@ -1915,12 +1903,12 @@ describe('pubsub', () => {
 
         b.publish('testEvent');
 
-        expect(methodsExecuted).to.deep.equal([
+        _chai.expect(methodsExecuted).to.deep.equal([
             'b',
             'a'
         ]);
 
-        expect(subscriptionsExecuted).to.deep.equal([
+        _chai.expect(subscriptionsExecuted).to.deep.equal([
             'b',
             'a',
             'a'
@@ -1928,27 +1916,27 @@ describe('pubsub', () => {
 
         a.publish('testEvent');
 
-        expect(methodsExecuted).to.deep.equal([
+        _chai.expect(methodsExecuted).to.deep.equal([
             'b',
             'a'
         ]);
 
-        expect(subscriptionsExecuted).to.deep.equal([
+        _chai.expect(subscriptionsExecuted).to.deep.equal([
             'b',
             'a',
             'a'
         ]);
     });
 
-    it('should remove non-existant distributors with no error', () => {
-        const distributor = Pubsub(),
-            pubsub = Pubsub();
+    _mocha.it('should remove non-existant distributors with no error', () => {
+        const distributor = _Pubsub(),
+            pubsub = _Pubsub();
 
         pubsub.removeDistributor(distributor);
     });
 
-    it('should accept bulk subscription', () => {
-        const pubsub = Pubsub(),
+    _mocha.it('should accept bulk subscription', () => {
+        const pubsub = _Pubsub(),
             subscriptionsExecuted = [],
             testSubscription0 = pubsub.bulkSubscribe({
                 config: {
@@ -2028,10 +2016,10 @@ describe('pubsub', () => {
                 stageName: 'on'
             });
 
-        expect(testSubscription0).to.have.property('subscribed', true);
-        expect(testSubscription1).to.have.property('subscribed', true);
-        expect(testSubscription2).to.have.property('subscribed', true);
-        expect(testSubscription3).to.have.property('subscribed', true);
+        _chai.expect(testSubscription0).to.have.property('subscribed', true);
+        _chai.expect(testSubscription1).to.have.property('subscribed', true);
+        _chai.expect(testSubscription2).to.have.property('subscribed', true);
+        _chai.expect(testSubscription3).to.have.property('subscribed', true);
 
         pubsub.publish('testEvent').publish('anotherEvent').publish('testEvent');
 
@@ -2039,7 +2027,7 @@ describe('pubsub', () => {
 
         pubsub.publish('testEvent');
 
-        expect(subscriptionsExecuted).to.deep.equal([
+        _chai.expect(subscriptionsExecuted).to.deep.equal([
             'before 0',
             'before 1',
             'before 2',
@@ -2073,8 +2061,8 @@ describe('pubsub', () => {
         ]);
     });
 
-    it('should accept protected bulk subscription', () => {
-        const pubsub = Pubsub(),
+    _mocha.it('should accept protected bulk subscription', () => {
+        const pubsub = _Pubsub(),
             subscriptionsExecuted = [],
             testSubscription0 = pubsub._bulkSubscribe({
                 config: {
@@ -2154,10 +2142,10 @@ describe('pubsub', () => {
                 stageName: 'on'
             });
 
-        expect(testSubscription0).to.have.property('subscribed', true);
-        expect(testSubscription1).to.have.property('subscribed', true);
-        expect(testSubscription2).to.have.property('subscribed', true);
-        expect(testSubscription3).to.have.property('subscribed', true);
+        _chai.expect(testSubscription0).to.have.property('subscribed', true);
+        _chai.expect(testSubscription1).to.have.property('subscribed', true);
+        _chai.expect(testSubscription2).to.have.property('subscribed', true);
+        _chai.expect(testSubscription3).to.have.property('subscribed', true);
 
         pubsub.publish('testEvent').publish('anotherEvent').publish('testEvent');
 
@@ -2165,7 +2153,7 @@ describe('pubsub', () => {
 
         pubsub.publish('testEvent');
 
-        expect(subscriptionsExecuted).to.deep.equal([
+        _chai.expect(subscriptionsExecuted).to.deep.equal([
             'before 0',
             'before 1',
             'before 2',
@@ -2199,13 +2187,13 @@ describe('pubsub', () => {
         ]);
     });
 
-    it('should allow bulk unsubscription of all subscriptions', () => {
+    _mocha.it('should allow bulk unsubscription of all subscriptions', () => {
         let subscriptionExecutionCount = 0;
 
         const callbackFunction = () => {
                 subscriptionExecutionCount += 1;
             },
-            pubsub = Pubsub(),
+            pubsub = _Pubsub(),
             testSubscription0 = pubsub.before('testEvent0', callbackFunction),
             testSubscription1 = pubsub.before('testEvent0', callbackFunction),
             testSubscription2 = pubsub.before('testEvent0', callbackFunction),
@@ -2234,84 +2222,84 @@ describe('pubsub', () => {
             testSubscription25 = pubsub.after('testEvent2', callbackFunction),
             testSubscription26 = pubsub.after('testEvent2', callbackFunction);
 
-        expect(testSubscription0).to.have.property('subscribed', true);
-        expect(testSubscription1).to.have.property('subscribed', true);
-        expect(testSubscription2).to.have.property('subscribed', true);
-        expect(testSubscription3).to.have.property('subscribed', true);
-        expect(testSubscription4).to.have.property('subscribed', true);
-        expect(testSubscription5).to.have.property('subscribed', true);
-        expect(testSubscription6).to.have.property('subscribed', true);
-        expect(testSubscription7).to.have.property('subscribed', true);
-        expect(testSubscription8).to.have.property('subscribed', true);
-        expect(testSubscription9).to.have.property('subscribed', true);
-        expect(testSubscription10).to.have.property('subscribed', true);
-        expect(testSubscription11).to.have.property('subscribed', true);
-        expect(testSubscription12).to.have.property('subscribed', true);
-        expect(testSubscription13).to.have.property('subscribed', true);
-        expect(testSubscription14).to.have.property('subscribed', true);
-        expect(testSubscription15).to.have.property('subscribed', true);
-        expect(testSubscription16).to.have.property('subscribed', true);
-        expect(testSubscription17).to.have.property('subscribed', true);
-        expect(testSubscription18).to.have.property('subscribed', true);
-        expect(testSubscription19).to.have.property('subscribed', true);
-        expect(testSubscription20).to.have.property('subscribed', true);
-        expect(testSubscription21).to.have.property('subscribed', true);
-        expect(testSubscription22).to.have.property('subscribed', true);
-        expect(testSubscription23).to.have.property('subscribed', true);
-        expect(testSubscription24).to.have.property('subscribed', true);
-        expect(testSubscription25).to.have.property('subscribed', true);
-        expect(testSubscription26).to.have.property('subscribed', true);
+        _chai.expect(testSubscription0).to.have.property('subscribed', true);
+        _chai.expect(testSubscription1).to.have.property('subscribed', true);
+        _chai.expect(testSubscription2).to.have.property('subscribed', true);
+        _chai.expect(testSubscription3).to.have.property('subscribed', true);
+        _chai.expect(testSubscription4).to.have.property('subscribed', true);
+        _chai.expect(testSubscription5).to.have.property('subscribed', true);
+        _chai.expect(testSubscription6).to.have.property('subscribed', true);
+        _chai.expect(testSubscription7).to.have.property('subscribed', true);
+        _chai.expect(testSubscription8).to.have.property('subscribed', true);
+        _chai.expect(testSubscription9).to.have.property('subscribed', true);
+        _chai.expect(testSubscription10).to.have.property('subscribed', true);
+        _chai.expect(testSubscription11).to.have.property('subscribed', true);
+        _chai.expect(testSubscription12).to.have.property('subscribed', true);
+        _chai.expect(testSubscription13).to.have.property('subscribed', true);
+        _chai.expect(testSubscription14).to.have.property('subscribed', true);
+        _chai.expect(testSubscription15).to.have.property('subscribed', true);
+        _chai.expect(testSubscription16).to.have.property('subscribed', true);
+        _chai.expect(testSubscription17).to.have.property('subscribed', true);
+        _chai.expect(testSubscription18).to.have.property('subscribed', true);
+        _chai.expect(testSubscription19).to.have.property('subscribed', true);
+        _chai.expect(testSubscription20).to.have.property('subscribed', true);
+        _chai.expect(testSubscription21).to.have.property('subscribed', true);
+        _chai.expect(testSubscription22).to.have.property('subscribed', true);
+        _chai.expect(testSubscription23).to.have.property('subscribed', true);
+        _chai.expect(testSubscription24).to.have.property('subscribed', true);
+        _chai.expect(testSubscription25).to.have.property('subscribed', true);
+        _chai.expect(testSubscription26).to.have.property('subscribed', true);
 
         pubsub.publish('testEvent0').publish('testEvent1').publish('testEvent2');
 
-        expect(subscriptionExecutionCount).to.equal(27);
+        _chai.expect(subscriptionExecutionCount).to.equal(27);
 
-        expect(pubsub.bulkUnsubscribe()).to.equal(true);
+        _chai.expect(pubsub.bulkUnsubscribe()).to.equal(true);
 
-        expect(testSubscription0).to.have.property('subscribed', false);
-        expect(testSubscription1).to.have.property('subscribed', false);
-        expect(testSubscription2).to.have.property('subscribed', false);
-        expect(testSubscription3).to.have.property('subscribed', false);
-        expect(testSubscription4).to.have.property('subscribed', false);
-        expect(testSubscription5).to.have.property('subscribed', false);
-        expect(testSubscription6).to.have.property('subscribed', false);
-        expect(testSubscription7).to.have.property('subscribed', false);
-        expect(testSubscription8).to.have.property('subscribed', false);
-        expect(testSubscription9).to.have.property('subscribed', false);
-        expect(testSubscription10).to.have.property('subscribed', false);
-        expect(testSubscription11).to.have.property('subscribed', false);
-        expect(testSubscription12).to.have.property('subscribed', false);
-        expect(testSubscription13).to.have.property('subscribed', false);
-        expect(testSubscription14).to.have.property('subscribed', false);
-        expect(testSubscription15).to.have.property('subscribed', false);
-        expect(testSubscription16).to.have.property('subscribed', false);
-        expect(testSubscription17).to.have.property('subscribed', false);
-        expect(testSubscription18).to.have.property('subscribed', false);
-        expect(testSubscription19).to.have.property('subscribed', false);
-        expect(testSubscription20).to.have.property('subscribed', false);
-        expect(testSubscription21).to.have.property('subscribed', false);
-        expect(testSubscription22).to.have.property('subscribed', false);
-        expect(testSubscription23).to.have.property('subscribed', false);
-        expect(testSubscription24).to.have.property('subscribed', false);
-        expect(testSubscription25).to.have.property('subscribed', false);
-        expect(testSubscription26).to.have.property('subscribed', false);
+        _chai.expect(testSubscription0).to.have.property('subscribed', false);
+        _chai.expect(testSubscription1).to.have.property('subscribed', false);
+        _chai.expect(testSubscription2).to.have.property('subscribed', false);
+        _chai.expect(testSubscription3).to.have.property('subscribed', false);
+        _chai.expect(testSubscription4).to.have.property('subscribed', false);
+        _chai.expect(testSubscription5).to.have.property('subscribed', false);
+        _chai.expect(testSubscription6).to.have.property('subscribed', false);
+        _chai.expect(testSubscription7).to.have.property('subscribed', false);
+        _chai.expect(testSubscription8).to.have.property('subscribed', false);
+        _chai.expect(testSubscription9).to.have.property('subscribed', false);
+        _chai.expect(testSubscription10).to.have.property('subscribed', false);
+        _chai.expect(testSubscription11).to.have.property('subscribed', false);
+        _chai.expect(testSubscription12).to.have.property('subscribed', false);
+        _chai.expect(testSubscription13).to.have.property('subscribed', false);
+        _chai.expect(testSubscription14).to.have.property('subscribed', false);
+        _chai.expect(testSubscription15).to.have.property('subscribed', false);
+        _chai.expect(testSubscription16).to.have.property('subscribed', false);
+        _chai.expect(testSubscription17).to.have.property('subscribed', false);
+        _chai.expect(testSubscription18).to.have.property('subscribed', false);
+        _chai.expect(testSubscription19).to.have.property('subscribed', false);
+        _chai.expect(testSubscription20).to.have.property('subscribed', false);
+        _chai.expect(testSubscription21).to.have.property('subscribed', false);
+        _chai.expect(testSubscription22).to.have.property('subscribed', false);
+        _chai.expect(testSubscription23).to.have.property('subscribed', false);
+        _chai.expect(testSubscription24).to.have.property('subscribed', false);
+        _chai.expect(testSubscription25).to.have.property('subscribed', false);
+        _chai.expect(testSubscription26).to.have.property('subscribed', false);
 
         subscriptionExecutionCount = 0;
 
         pubsub.publish('testEvent0').publish('testEvent1').publish('testEvent2');
 
-        expect(subscriptionExecutionCount).to.equal(0);
+        _chai.expect(subscriptionExecutionCount).to.equal(0);
 
-        expect(pubsub.bulkUnsubscribe()).to.equal(false);
+        _chai.expect(pubsub.bulkUnsubscribe()).to.equal(false);
     });
 
-    it('should allow bulk unsubscription of an event', () => {
+    _mocha.it('should allow bulk unsubscription of an event', () => {
         let subscriptionExecutionCount = 0;
 
         const callbackFunction = () => {
                 subscriptionExecutionCount += 1;
             },
-            pubsub = Pubsub(),
+            pubsub = _Pubsub(),
             testSubscription0 = pubsub.before('testEvent0', callbackFunction),
             testSubscription1 = pubsub.before('testEvent0', callbackFunction),
             testSubscription2 = pubsub.before('testEvent0', callbackFunction),
@@ -2340,84 +2328,84 @@ describe('pubsub', () => {
             testSubscription25 = pubsub.after('testEvent2', callbackFunction),
             testSubscription26 = pubsub.after('testEvent2', callbackFunction);
 
-        expect(testSubscription0).to.have.property('subscribed', true);
-        expect(testSubscription1).to.have.property('subscribed', true);
-        expect(testSubscription2).to.have.property('subscribed', true);
-        expect(testSubscription3).to.have.property('subscribed', true);
-        expect(testSubscription4).to.have.property('subscribed', true);
-        expect(testSubscription5).to.have.property('subscribed', true);
-        expect(testSubscription6).to.have.property('subscribed', true);
-        expect(testSubscription7).to.have.property('subscribed', true);
-        expect(testSubscription8).to.have.property('subscribed', true);
-        expect(testSubscription9).to.have.property('subscribed', true);
-        expect(testSubscription10).to.have.property('subscribed', true);
-        expect(testSubscription11).to.have.property('subscribed', true);
-        expect(testSubscription12).to.have.property('subscribed', true);
-        expect(testSubscription13).to.have.property('subscribed', true);
-        expect(testSubscription14).to.have.property('subscribed', true);
-        expect(testSubscription15).to.have.property('subscribed', true);
-        expect(testSubscription16).to.have.property('subscribed', true);
-        expect(testSubscription17).to.have.property('subscribed', true);
-        expect(testSubscription18).to.have.property('subscribed', true);
-        expect(testSubscription19).to.have.property('subscribed', true);
-        expect(testSubscription20).to.have.property('subscribed', true);
-        expect(testSubscription21).to.have.property('subscribed', true);
-        expect(testSubscription22).to.have.property('subscribed', true);
-        expect(testSubscription23).to.have.property('subscribed', true);
-        expect(testSubscription24).to.have.property('subscribed', true);
-        expect(testSubscription25).to.have.property('subscribed', true);
-        expect(testSubscription26).to.have.property('subscribed', true);
+        _chai.expect(testSubscription0).to.have.property('subscribed', true);
+        _chai.expect(testSubscription1).to.have.property('subscribed', true);
+        _chai.expect(testSubscription2).to.have.property('subscribed', true);
+        _chai.expect(testSubscription3).to.have.property('subscribed', true);
+        _chai.expect(testSubscription4).to.have.property('subscribed', true);
+        _chai.expect(testSubscription5).to.have.property('subscribed', true);
+        _chai.expect(testSubscription6).to.have.property('subscribed', true);
+        _chai.expect(testSubscription7).to.have.property('subscribed', true);
+        _chai.expect(testSubscription8).to.have.property('subscribed', true);
+        _chai.expect(testSubscription9).to.have.property('subscribed', true);
+        _chai.expect(testSubscription10).to.have.property('subscribed', true);
+        _chai.expect(testSubscription11).to.have.property('subscribed', true);
+        _chai.expect(testSubscription12).to.have.property('subscribed', true);
+        _chai.expect(testSubscription13).to.have.property('subscribed', true);
+        _chai.expect(testSubscription14).to.have.property('subscribed', true);
+        _chai.expect(testSubscription15).to.have.property('subscribed', true);
+        _chai.expect(testSubscription16).to.have.property('subscribed', true);
+        _chai.expect(testSubscription17).to.have.property('subscribed', true);
+        _chai.expect(testSubscription18).to.have.property('subscribed', true);
+        _chai.expect(testSubscription19).to.have.property('subscribed', true);
+        _chai.expect(testSubscription20).to.have.property('subscribed', true);
+        _chai.expect(testSubscription21).to.have.property('subscribed', true);
+        _chai.expect(testSubscription22).to.have.property('subscribed', true);
+        _chai.expect(testSubscription23).to.have.property('subscribed', true);
+        _chai.expect(testSubscription24).to.have.property('subscribed', true);
+        _chai.expect(testSubscription25).to.have.property('subscribed', true);
+        _chai.expect(testSubscription26).to.have.property('subscribed', true);
 
         pubsub.publish('testEvent0').publish('testEvent1').publish('testEvent2');
 
-        expect(subscriptionExecutionCount).to.equal(27);
+        _chai.expect(subscriptionExecutionCount).to.equal(27);
 
-        expect(pubsub.bulkUnsubscribe('testEvent1')).to.equal(true);
+        _chai.expect(pubsub.bulkUnsubscribe('testEvent1')).to.equal(true);
 
-        expect(testSubscription0).to.have.property('subscribed', true);
-        expect(testSubscription1).to.have.property('subscribed', true);
-        expect(testSubscription2).to.have.property('subscribed', true);
-        expect(testSubscription3).to.have.property('subscribed', true);
-        expect(testSubscription4).to.have.property('subscribed', true);
-        expect(testSubscription5).to.have.property('subscribed', true);
-        expect(testSubscription6).to.have.property('subscribed', true);
-        expect(testSubscription7).to.have.property('subscribed', true);
-        expect(testSubscription8).to.have.property('subscribed', true);
-        expect(testSubscription9).to.have.property('subscribed', false);
-        expect(testSubscription10).to.have.property('subscribed', false);
-        expect(testSubscription11).to.have.property('subscribed', false);
-        expect(testSubscription12).to.have.property('subscribed', false);
-        expect(testSubscription13).to.have.property('subscribed', false);
-        expect(testSubscription14).to.have.property('subscribed', false);
-        expect(testSubscription15).to.have.property('subscribed', false);
-        expect(testSubscription16).to.have.property('subscribed', false);
-        expect(testSubscription17).to.have.property('subscribed', false);
-        expect(testSubscription18).to.have.property('subscribed', true);
-        expect(testSubscription19).to.have.property('subscribed', true);
-        expect(testSubscription20).to.have.property('subscribed', true);
-        expect(testSubscription21).to.have.property('subscribed', true);
-        expect(testSubscription22).to.have.property('subscribed', true);
-        expect(testSubscription23).to.have.property('subscribed', true);
-        expect(testSubscription24).to.have.property('subscribed', true);
-        expect(testSubscription25).to.have.property('subscribed', true);
-        expect(testSubscription26).to.have.property('subscribed', true);
+        _chai.expect(testSubscription0).to.have.property('subscribed', true);
+        _chai.expect(testSubscription1).to.have.property('subscribed', true);
+        _chai.expect(testSubscription2).to.have.property('subscribed', true);
+        _chai.expect(testSubscription3).to.have.property('subscribed', true);
+        _chai.expect(testSubscription4).to.have.property('subscribed', true);
+        _chai.expect(testSubscription5).to.have.property('subscribed', true);
+        _chai.expect(testSubscription6).to.have.property('subscribed', true);
+        _chai.expect(testSubscription7).to.have.property('subscribed', true);
+        _chai.expect(testSubscription8).to.have.property('subscribed', true);
+        _chai.expect(testSubscription9).to.have.property('subscribed', false);
+        _chai.expect(testSubscription10).to.have.property('subscribed', false);
+        _chai.expect(testSubscription11).to.have.property('subscribed', false);
+        _chai.expect(testSubscription12).to.have.property('subscribed', false);
+        _chai.expect(testSubscription13).to.have.property('subscribed', false);
+        _chai.expect(testSubscription14).to.have.property('subscribed', false);
+        _chai.expect(testSubscription15).to.have.property('subscribed', false);
+        _chai.expect(testSubscription16).to.have.property('subscribed', false);
+        _chai.expect(testSubscription17).to.have.property('subscribed', false);
+        _chai.expect(testSubscription18).to.have.property('subscribed', true);
+        _chai.expect(testSubscription19).to.have.property('subscribed', true);
+        _chai.expect(testSubscription20).to.have.property('subscribed', true);
+        _chai.expect(testSubscription21).to.have.property('subscribed', true);
+        _chai.expect(testSubscription22).to.have.property('subscribed', true);
+        _chai.expect(testSubscription23).to.have.property('subscribed', true);
+        _chai.expect(testSubscription24).to.have.property('subscribed', true);
+        _chai.expect(testSubscription25).to.have.property('subscribed', true);
+        _chai.expect(testSubscription26).to.have.property('subscribed', true);
 
         subscriptionExecutionCount = 0;
 
         pubsub.publish('testEvent0').publish('testEvent1').publish('testEvent2');
 
-        expect(subscriptionExecutionCount).to.equal(18);
+        _chai.expect(subscriptionExecutionCount).to.equal(18);
 
-        expect(pubsub.bulkUnsubscribe('testEvent1')).to.equal(false);
+        _chai.expect(pubsub.bulkUnsubscribe('testEvent1')).to.equal(false);
     });
 
-    it('should allow bulk unsubscription of multiple events', () => {
+    _mocha.it('should allow bulk unsubscription of multiple events', () => {
         let subscriptionExecutionCount = 0;
 
         const callbackFunction = () => {
                 subscriptionExecutionCount += 1;
             },
-            pubsub = Pubsub(),
+            pubsub = _Pubsub(),
             testSubscription0 = pubsub.before('testEvent0', callbackFunction),
             testSubscription1 = pubsub.before('testEvent0', callbackFunction),
             testSubscription2 = pubsub.before('testEvent0', callbackFunction),
@@ -2446,90 +2434,90 @@ describe('pubsub', () => {
             testSubscription25 = pubsub.after('testEvent2', callbackFunction),
             testSubscription26 = pubsub.after('testEvent2', callbackFunction);
 
-        expect(testSubscription0).to.have.property('subscribed', true);
-        expect(testSubscription1).to.have.property('subscribed', true);
-        expect(testSubscription2).to.have.property('subscribed', true);
-        expect(testSubscription3).to.have.property('subscribed', true);
-        expect(testSubscription4).to.have.property('subscribed', true);
-        expect(testSubscription5).to.have.property('subscribed', true);
-        expect(testSubscription6).to.have.property('subscribed', true);
-        expect(testSubscription7).to.have.property('subscribed', true);
-        expect(testSubscription8).to.have.property('subscribed', true);
-        expect(testSubscription9).to.have.property('subscribed', true);
-        expect(testSubscription10).to.have.property('subscribed', true);
-        expect(testSubscription11).to.have.property('subscribed', true);
-        expect(testSubscription12).to.have.property('subscribed', true);
-        expect(testSubscription13).to.have.property('subscribed', true);
-        expect(testSubscription14).to.have.property('subscribed', true);
-        expect(testSubscription15).to.have.property('subscribed', true);
-        expect(testSubscription16).to.have.property('subscribed', true);
-        expect(testSubscription17).to.have.property('subscribed', true);
-        expect(testSubscription18).to.have.property('subscribed', true);
-        expect(testSubscription19).to.have.property('subscribed', true);
-        expect(testSubscription20).to.have.property('subscribed', true);
-        expect(testSubscription21).to.have.property('subscribed', true);
-        expect(testSubscription22).to.have.property('subscribed', true);
-        expect(testSubscription23).to.have.property('subscribed', true);
-        expect(testSubscription24).to.have.property('subscribed', true);
-        expect(testSubscription25).to.have.property('subscribed', true);
-        expect(testSubscription26).to.have.property('subscribed', true);
+        _chai.expect(testSubscription0).to.have.property('subscribed', true);
+        _chai.expect(testSubscription1).to.have.property('subscribed', true);
+        _chai.expect(testSubscription2).to.have.property('subscribed', true);
+        _chai.expect(testSubscription3).to.have.property('subscribed', true);
+        _chai.expect(testSubscription4).to.have.property('subscribed', true);
+        _chai.expect(testSubscription5).to.have.property('subscribed', true);
+        _chai.expect(testSubscription6).to.have.property('subscribed', true);
+        _chai.expect(testSubscription7).to.have.property('subscribed', true);
+        _chai.expect(testSubscription8).to.have.property('subscribed', true);
+        _chai.expect(testSubscription9).to.have.property('subscribed', true);
+        _chai.expect(testSubscription10).to.have.property('subscribed', true);
+        _chai.expect(testSubscription11).to.have.property('subscribed', true);
+        _chai.expect(testSubscription12).to.have.property('subscribed', true);
+        _chai.expect(testSubscription13).to.have.property('subscribed', true);
+        _chai.expect(testSubscription14).to.have.property('subscribed', true);
+        _chai.expect(testSubscription15).to.have.property('subscribed', true);
+        _chai.expect(testSubscription16).to.have.property('subscribed', true);
+        _chai.expect(testSubscription17).to.have.property('subscribed', true);
+        _chai.expect(testSubscription18).to.have.property('subscribed', true);
+        _chai.expect(testSubscription19).to.have.property('subscribed', true);
+        _chai.expect(testSubscription20).to.have.property('subscribed', true);
+        _chai.expect(testSubscription21).to.have.property('subscribed', true);
+        _chai.expect(testSubscription22).to.have.property('subscribed', true);
+        _chai.expect(testSubscription23).to.have.property('subscribed', true);
+        _chai.expect(testSubscription24).to.have.property('subscribed', true);
+        _chai.expect(testSubscription25).to.have.property('subscribed', true);
+        _chai.expect(testSubscription26).to.have.property('subscribed', true);
 
         pubsub.publish('testEvent0').publish('testEvent1').publish('testEvent2');
 
-        expect(subscriptionExecutionCount).to.equal(27);
+        _chai.expect(subscriptionExecutionCount).to.equal(27);
 
-        expect(pubsub.bulkUnsubscribe([
+        _chai.expect(pubsub.bulkUnsubscribe([
             'testEvent0',
             'testEvent1'
         ])).to.equal(true);
 
-        expect(testSubscription0).to.have.property('subscribed', false);
-        expect(testSubscription1).to.have.property('subscribed', false);
-        expect(testSubscription2).to.have.property('subscribed', false);
-        expect(testSubscription3).to.have.property('subscribed', false);
-        expect(testSubscription4).to.have.property('subscribed', false);
-        expect(testSubscription5).to.have.property('subscribed', false);
-        expect(testSubscription6).to.have.property('subscribed', false);
-        expect(testSubscription7).to.have.property('subscribed', false);
-        expect(testSubscription8).to.have.property('subscribed', false);
-        expect(testSubscription9).to.have.property('subscribed', false);
-        expect(testSubscription10).to.have.property('subscribed', false);
-        expect(testSubscription11).to.have.property('subscribed', false);
-        expect(testSubscription12).to.have.property('subscribed', false);
-        expect(testSubscription13).to.have.property('subscribed', false);
-        expect(testSubscription14).to.have.property('subscribed', false);
-        expect(testSubscription15).to.have.property('subscribed', false);
-        expect(testSubscription16).to.have.property('subscribed', false);
-        expect(testSubscription17).to.have.property('subscribed', false);
-        expect(testSubscription18).to.have.property('subscribed', true);
-        expect(testSubscription19).to.have.property('subscribed', true);
-        expect(testSubscription20).to.have.property('subscribed', true);
-        expect(testSubscription21).to.have.property('subscribed', true);
-        expect(testSubscription22).to.have.property('subscribed', true);
-        expect(testSubscription23).to.have.property('subscribed', true);
-        expect(testSubscription24).to.have.property('subscribed', true);
-        expect(testSubscription25).to.have.property('subscribed', true);
-        expect(testSubscription26).to.have.property('subscribed', true);
+        _chai.expect(testSubscription0).to.have.property('subscribed', false);
+        _chai.expect(testSubscription1).to.have.property('subscribed', false);
+        _chai.expect(testSubscription2).to.have.property('subscribed', false);
+        _chai.expect(testSubscription3).to.have.property('subscribed', false);
+        _chai.expect(testSubscription4).to.have.property('subscribed', false);
+        _chai.expect(testSubscription5).to.have.property('subscribed', false);
+        _chai.expect(testSubscription6).to.have.property('subscribed', false);
+        _chai.expect(testSubscription7).to.have.property('subscribed', false);
+        _chai.expect(testSubscription8).to.have.property('subscribed', false);
+        _chai.expect(testSubscription9).to.have.property('subscribed', false);
+        _chai.expect(testSubscription10).to.have.property('subscribed', false);
+        _chai.expect(testSubscription11).to.have.property('subscribed', false);
+        _chai.expect(testSubscription12).to.have.property('subscribed', false);
+        _chai.expect(testSubscription13).to.have.property('subscribed', false);
+        _chai.expect(testSubscription14).to.have.property('subscribed', false);
+        _chai.expect(testSubscription15).to.have.property('subscribed', false);
+        _chai.expect(testSubscription16).to.have.property('subscribed', false);
+        _chai.expect(testSubscription17).to.have.property('subscribed', false);
+        _chai.expect(testSubscription18).to.have.property('subscribed', true);
+        _chai.expect(testSubscription19).to.have.property('subscribed', true);
+        _chai.expect(testSubscription20).to.have.property('subscribed', true);
+        _chai.expect(testSubscription21).to.have.property('subscribed', true);
+        _chai.expect(testSubscription22).to.have.property('subscribed', true);
+        _chai.expect(testSubscription23).to.have.property('subscribed', true);
+        _chai.expect(testSubscription24).to.have.property('subscribed', true);
+        _chai.expect(testSubscription25).to.have.property('subscribed', true);
+        _chai.expect(testSubscription26).to.have.property('subscribed', true);
 
         subscriptionExecutionCount = 0;
 
         pubsub.publish('testEvent0').publish('testEvent1').publish('testEvent2');
 
-        expect(subscriptionExecutionCount).to.equal(9);
+        _chai.expect(subscriptionExecutionCount).to.equal(9);
 
-        expect(pubsub.bulkUnsubscribe([
+        _chai.expect(pubsub.bulkUnsubscribe([
             'testEvent0',
             'testEvent1'
         ])).to.equal(false);
     });
 
-    it('should allow bulk unsubscription of an event at a specific stage', () => {
+    _mocha.it('should allow bulk unsubscription of an event at a specific stage', () => {
         let subscriptionExecutionCount = 0;
 
         const callbackFunction = () => {
                 subscriptionExecutionCount += 1;
             },
-            pubsub = Pubsub(),
+            pubsub = _Pubsub(),
             testSubscription0 = pubsub.before('testEvent0', callbackFunction),
             testSubscription1 = pubsub.before('testEvent0', callbackFunction),
             testSubscription2 = pubsub.before('testEvent0', callbackFunction),
@@ -2558,84 +2546,84 @@ describe('pubsub', () => {
             testSubscription25 = pubsub.after('testEvent2', callbackFunction),
             testSubscription26 = pubsub.after('testEvent2', callbackFunction);
 
-        expect(testSubscription0).to.have.property('subscribed', true);
-        expect(testSubscription1).to.have.property('subscribed', true);
-        expect(testSubscription2).to.have.property('subscribed', true);
-        expect(testSubscription3).to.have.property('subscribed', true);
-        expect(testSubscription4).to.have.property('subscribed', true);
-        expect(testSubscription5).to.have.property('subscribed', true);
-        expect(testSubscription6).to.have.property('subscribed', true);
-        expect(testSubscription7).to.have.property('subscribed', true);
-        expect(testSubscription8).to.have.property('subscribed', true);
-        expect(testSubscription9).to.have.property('subscribed', true);
-        expect(testSubscription10).to.have.property('subscribed', true);
-        expect(testSubscription11).to.have.property('subscribed', true);
-        expect(testSubscription12).to.have.property('subscribed', true);
-        expect(testSubscription13).to.have.property('subscribed', true);
-        expect(testSubscription14).to.have.property('subscribed', true);
-        expect(testSubscription15).to.have.property('subscribed', true);
-        expect(testSubscription16).to.have.property('subscribed', true);
-        expect(testSubscription17).to.have.property('subscribed', true);
-        expect(testSubscription18).to.have.property('subscribed', true);
-        expect(testSubscription19).to.have.property('subscribed', true);
-        expect(testSubscription20).to.have.property('subscribed', true);
-        expect(testSubscription21).to.have.property('subscribed', true);
-        expect(testSubscription22).to.have.property('subscribed', true);
-        expect(testSubscription23).to.have.property('subscribed', true);
-        expect(testSubscription24).to.have.property('subscribed', true);
-        expect(testSubscription25).to.have.property('subscribed', true);
-        expect(testSubscription26).to.have.property('subscribed', true);
+        _chai.expect(testSubscription0).to.have.property('subscribed', true);
+        _chai.expect(testSubscription1).to.have.property('subscribed', true);
+        _chai.expect(testSubscription2).to.have.property('subscribed', true);
+        _chai.expect(testSubscription3).to.have.property('subscribed', true);
+        _chai.expect(testSubscription4).to.have.property('subscribed', true);
+        _chai.expect(testSubscription5).to.have.property('subscribed', true);
+        _chai.expect(testSubscription6).to.have.property('subscribed', true);
+        _chai.expect(testSubscription7).to.have.property('subscribed', true);
+        _chai.expect(testSubscription8).to.have.property('subscribed', true);
+        _chai.expect(testSubscription9).to.have.property('subscribed', true);
+        _chai.expect(testSubscription10).to.have.property('subscribed', true);
+        _chai.expect(testSubscription11).to.have.property('subscribed', true);
+        _chai.expect(testSubscription12).to.have.property('subscribed', true);
+        _chai.expect(testSubscription13).to.have.property('subscribed', true);
+        _chai.expect(testSubscription14).to.have.property('subscribed', true);
+        _chai.expect(testSubscription15).to.have.property('subscribed', true);
+        _chai.expect(testSubscription16).to.have.property('subscribed', true);
+        _chai.expect(testSubscription17).to.have.property('subscribed', true);
+        _chai.expect(testSubscription18).to.have.property('subscribed', true);
+        _chai.expect(testSubscription19).to.have.property('subscribed', true);
+        _chai.expect(testSubscription20).to.have.property('subscribed', true);
+        _chai.expect(testSubscription21).to.have.property('subscribed', true);
+        _chai.expect(testSubscription22).to.have.property('subscribed', true);
+        _chai.expect(testSubscription23).to.have.property('subscribed', true);
+        _chai.expect(testSubscription24).to.have.property('subscribed', true);
+        _chai.expect(testSubscription25).to.have.property('subscribed', true);
+        _chai.expect(testSubscription26).to.have.property('subscribed', true);
 
         pubsub.publish('testEvent0').publish('testEvent1').publish('testEvent2');
 
-        expect(subscriptionExecutionCount).to.equal(27);
+        _chai.expect(subscriptionExecutionCount).to.equal(27);
 
-        expect(pubsub.bulkUnsubscribe('on', 'testEvent1')).to.equal(true);
+        _chai.expect(pubsub.bulkUnsubscribe('on', 'testEvent1')).to.equal(true);
 
-        expect(testSubscription0).to.have.property('subscribed', true);
-        expect(testSubscription1).to.have.property('subscribed', true);
-        expect(testSubscription2).to.have.property('subscribed', true);
-        expect(testSubscription3).to.have.property('subscribed', true);
-        expect(testSubscription4).to.have.property('subscribed', true);
-        expect(testSubscription5).to.have.property('subscribed', true);
-        expect(testSubscription6).to.have.property('subscribed', true);
-        expect(testSubscription7).to.have.property('subscribed', true);
-        expect(testSubscription8).to.have.property('subscribed', true);
-        expect(testSubscription9).to.have.property('subscribed', true);
-        expect(testSubscription10).to.have.property('subscribed', true);
-        expect(testSubscription11).to.have.property('subscribed', true);
-        expect(testSubscription12).to.have.property('subscribed', false);
-        expect(testSubscription13).to.have.property('subscribed', false);
-        expect(testSubscription14).to.have.property('subscribed', false);
-        expect(testSubscription15).to.have.property('subscribed', true);
-        expect(testSubscription16).to.have.property('subscribed', true);
-        expect(testSubscription17).to.have.property('subscribed', true);
-        expect(testSubscription18).to.have.property('subscribed', true);
-        expect(testSubscription19).to.have.property('subscribed', true);
-        expect(testSubscription20).to.have.property('subscribed', true);
-        expect(testSubscription21).to.have.property('subscribed', true);
-        expect(testSubscription22).to.have.property('subscribed', true);
-        expect(testSubscription23).to.have.property('subscribed', true);
-        expect(testSubscription24).to.have.property('subscribed', true);
-        expect(testSubscription25).to.have.property('subscribed', true);
-        expect(testSubscription26).to.have.property('subscribed', true);
+        _chai.expect(testSubscription0).to.have.property('subscribed', true);
+        _chai.expect(testSubscription1).to.have.property('subscribed', true);
+        _chai.expect(testSubscription2).to.have.property('subscribed', true);
+        _chai.expect(testSubscription3).to.have.property('subscribed', true);
+        _chai.expect(testSubscription4).to.have.property('subscribed', true);
+        _chai.expect(testSubscription5).to.have.property('subscribed', true);
+        _chai.expect(testSubscription6).to.have.property('subscribed', true);
+        _chai.expect(testSubscription7).to.have.property('subscribed', true);
+        _chai.expect(testSubscription8).to.have.property('subscribed', true);
+        _chai.expect(testSubscription9).to.have.property('subscribed', true);
+        _chai.expect(testSubscription10).to.have.property('subscribed', true);
+        _chai.expect(testSubscription11).to.have.property('subscribed', true);
+        _chai.expect(testSubscription12).to.have.property('subscribed', false);
+        _chai.expect(testSubscription13).to.have.property('subscribed', false);
+        _chai.expect(testSubscription14).to.have.property('subscribed', false);
+        _chai.expect(testSubscription15).to.have.property('subscribed', true);
+        _chai.expect(testSubscription16).to.have.property('subscribed', true);
+        _chai.expect(testSubscription17).to.have.property('subscribed', true);
+        _chai.expect(testSubscription18).to.have.property('subscribed', true);
+        _chai.expect(testSubscription19).to.have.property('subscribed', true);
+        _chai.expect(testSubscription20).to.have.property('subscribed', true);
+        _chai.expect(testSubscription21).to.have.property('subscribed', true);
+        _chai.expect(testSubscription22).to.have.property('subscribed', true);
+        _chai.expect(testSubscription23).to.have.property('subscribed', true);
+        _chai.expect(testSubscription24).to.have.property('subscribed', true);
+        _chai.expect(testSubscription25).to.have.property('subscribed', true);
+        _chai.expect(testSubscription26).to.have.property('subscribed', true);
 
         subscriptionExecutionCount = 0;
 
         pubsub.publish('testEvent0').publish('testEvent1').publish('testEvent2');
 
-        expect(subscriptionExecutionCount).to.equal(24);
+        _chai.expect(subscriptionExecutionCount).to.equal(24);
 
-        expect(pubsub.bulkUnsubscribe('on', 'testEvent1')).to.equal(false);
+        _chai.expect(pubsub.bulkUnsubscribe('on', 'testEvent1')).to.equal(false);
     });
 
-    it('should allow bulk unsubscription of an event at multiple stages', () => {
+    _mocha.it('should allow bulk unsubscription of an event at multiple stages', () => {
         let subscriptionExecutionCount = 0;
 
         const callbackFunction = () => {
                 subscriptionExecutionCount += 1;
             },
-            pubsub = Pubsub(),
+            pubsub = _Pubsub(),
             testSubscription0 = pubsub.before('testEvent0', callbackFunction),
             testSubscription1 = pubsub.before('testEvent0', callbackFunction),
             testSubscription2 = pubsub.before('testEvent0', callbackFunction),
@@ -2664,90 +2652,90 @@ describe('pubsub', () => {
             testSubscription25 = pubsub.after('testEvent2', callbackFunction),
             testSubscription26 = pubsub.after('testEvent2', callbackFunction);
 
-        expect(testSubscription0).to.have.property('subscribed', true);
-        expect(testSubscription1).to.have.property('subscribed', true);
-        expect(testSubscription2).to.have.property('subscribed', true);
-        expect(testSubscription3).to.have.property('subscribed', true);
-        expect(testSubscription4).to.have.property('subscribed', true);
-        expect(testSubscription5).to.have.property('subscribed', true);
-        expect(testSubscription6).to.have.property('subscribed', true);
-        expect(testSubscription7).to.have.property('subscribed', true);
-        expect(testSubscription8).to.have.property('subscribed', true);
-        expect(testSubscription9).to.have.property('subscribed', true);
-        expect(testSubscription10).to.have.property('subscribed', true);
-        expect(testSubscription11).to.have.property('subscribed', true);
-        expect(testSubscription12).to.have.property('subscribed', true);
-        expect(testSubscription13).to.have.property('subscribed', true);
-        expect(testSubscription14).to.have.property('subscribed', true);
-        expect(testSubscription15).to.have.property('subscribed', true);
-        expect(testSubscription16).to.have.property('subscribed', true);
-        expect(testSubscription17).to.have.property('subscribed', true);
-        expect(testSubscription18).to.have.property('subscribed', true);
-        expect(testSubscription19).to.have.property('subscribed', true);
-        expect(testSubscription20).to.have.property('subscribed', true);
-        expect(testSubscription21).to.have.property('subscribed', true);
-        expect(testSubscription22).to.have.property('subscribed', true);
-        expect(testSubscription23).to.have.property('subscribed', true);
-        expect(testSubscription24).to.have.property('subscribed', true);
-        expect(testSubscription25).to.have.property('subscribed', true);
-        expect(testSubscription26).to.have.property('subscribed', true);
+        _chai.expect(testSubscription0).to.have.property('subscribed', true);
+        _chai.expect(testSubscription1).to.have.property('subscribed', true);
+        _chai.expect(testSubscription2).to.have.property('subscribed', true);
+        _chai.expect(testSubscription3).to.have.property('subscribed', true);
+        _chai.expect(testSubscription4).to.have.property('subscribed', true);
+        _chai.expect(testSubscription5).to.have.property('subscribed', true);
+        _chai.expect(testSubscription6).to.have.property('subscribed', true);
+        _chai.expect(testSubscription7).to.have.property('subscribed', true);
+        _chai.expect(testSubscription8).to.have.property('subscribed', true);
+        _chai.expect(testSubscription9).to.have.property('subscribed', true);
+        _chai.expect(testSubscription10).to.have.property('subscribed', true);
+        _chai.expect(testSubscription11).to.have.property('subscribed', true);
+        _chai.expect(testSubscription12).to.have.property('subscribed', true);
+        _chai.expect(testSubscription13).to.have.property('subscribed', true);
+        _chai.expect(testSubscription14).to.have.property('subscribed', true);
+        _chai.expect(testSubscription15).to.have.property('subscribed', true);
+        _chai.expect(testSubscription16).to.have.property('subscribed', true);
+        _chai.expect(testSubscription17).to.have.property('subscribed', true);
+        _chai.expect(testSubscription18).to.have.property('subscribed', true);
+        _chai.expect(testSubscription19).to.have.property('subscribed', true);
+        _chai.expect(testSubscription20).to.have.property('subscribed', true);
+        _chai.expect(testSubscription21).to.have.property('subscribed', true);
+        _chai.expect(testSubscription22).to.have.property('subscribed', true);
+        _chai.expect(testSubscription23).to.have.property('subscribed', true);
+        _chai.expect(testSubscription24).to.have.property('subscribed', true);
+        _chai.expect(testSubscription25).to.have.property('subscribed', true);
+        _chai.expect(testSubscription26).to.have.property('subscribed', true);
 
         pubsub.publish('testEvent0').publish('testEvent1').publish('testEvent2');
 
-        expect(subscriptionExecutionCount).to.equal(27);
+        _chai.expect(subscriptionExecutionCount).to.equal(27);
 
-        expect(pubsub.bulkUnsubscribe([
+        _chai.expect(pubsub.bulkUnsubscribe([
             'after',
             'before'
         ], 'testEvent1')).to.equal(true);
 
-        expect(testSubscription0).to.have.property('subscribed', true);
-        expect(testSubscription1).to.have.property('subscribed', true);
-        expect(testSubscription2).to.have.property('subscribed', true);
-        expect(testSubscription3).to.have.property('subscribed', true);
-        expect(testSubscription4).to.have.property('subscribed', true);
-        expect(testSubscription5).to.have.property('subscribed', true);
-        expect(testSubscription6).to.have.property('subscribed', true);
-        expect(testSubscription7).to.have.property('subscribed', true);
-        expect(testSubscription8).to.have.property('subscribed', true);
-        expect(testSubscription9).to.have.property('subscribed', false);
-        expect(testSubscription10).to.have.property('subscribed', false);
-        expect(testSubscription11).to.have.property('subscribed', false);
-        expect(testSubscription12).to.have.property('subscribed', true);
-        expect(testSubscription13).to.have.property('subscribed', true);
-        expect(testSubscription14).to.have.property('subscribed', true);
-        expect(testSubscription15).to.have.property('subscribed', false);
-        expect(testSubscription16).to.have.property('subscribed', false);
-        expect(testSubscription17).to.have.property('subscribed', false);
-        expect(testSubscription18).to.have.property('subscribed', true);
-        expect(testSubscription19).to.have.property('subscribed', true);
-        expect(testSubscription20).to.have.property('subscribed', true);
-        expect(testSubscription21).to.have.property('subscribed', true);
-        expect(testSubscription22).to.have.property('subscribed', true);
-        expect(testSubscription23).to.have.property('subscribed', true);
-        expect(testSubscription24).to.have.property('subscribed', true);
-        expect(testSubscription25).to.have.property('subscribed', true);
-        expect(testSubscription26).to.have.property('subscribed', true);
+        _chai.expect(testSubscription0).to.have.property('subscribed', true);
+        _chai.expect(testSubscription1).to.have.property('subscribed', true);
+        _chai.expect(testSubscription2).to.have.property('subscribed', true);
+        _chai.expect(testSubscription3).to.have.property('subscribed', true);
+        _chai.expect(testSubscription4).to.have.property('subscribed', true);
+        _chai.expect(testSubscription5).to.have.property('subscribed', true);
+        _chai.expect(testSubscription6).to.have.property('subscribed', true);
+        _chai.expect(testSubscription7).to.have.property('subscribed', true);
+        _chai.expect(testSubscription8).to.have.property('subscribed', true);
+        _chai.expect(testSubscription9).to.have.property('subscribed', false);
+        _chai.expect(testSubscription10).to.have.property('subscribed', false);
+        _chai.expect(testSubscription11).to.have.property('subscribed', false);
+        _chai.expect(testSubscription12).to.have.property('subscribed', true);
+        _chai.expect(testSubscription13).to.have.property('subscribed', true);
+        _chai.expect(testSubscription14).to.have.property('subscribed', true);
+        _chai.expect(testSubscription15).to.have.property('subscribed', false);
+        _chai.expect(testSubscription16).to.have.property('subscribed', false);
+        _chai.expect(testSubscription17).to.have.property('subscribed', false);
+        _chai.expect(testSubscription18).to.have.property('subscribed', true);
+        _chai.expect(testSubscription19).to.have.property('subscribed', true);
+        _chai.expect(testSubscription20).to.have.property('subscribed', true);
+        _chai.expect(testSubscription21).to.have.property('subscribed', true);
+        _chai.expect(testSubscription22).to.have.property('subscribed', true);
+        _chai.expect(testSubscription23).to.have.property('subscribed', true);
+        _chai.expect(testSubscription24).to.have.property('subscribed', true);
+        _chai.expect(testSubscription25).to.have.property('subscribed', true);
+        _chai.expect(testSubscription26).to.have.property('subscribed', true);
 
         subscriptionExecutionCount = 0;
 
         pubsub.publish('testEvent0').publish('testEvent1').publish('testEvent2');
 
-        expect(subscriptionExecutionCount).to.equal(21);
+        _chai.expect(subscriptionExecutionCount).to.equal(21);
 
-        expect(pubsub.bulkUnsubscribe([
+        _chai.expect(pubsub.bulkUnsubscribe([
             'after',
             'before'
         ], 'testEvent1')).to.equal(false);
     });
 
-    it('should allow bulk unsubscription of multiple events at a specific stage', () => {
+    _mocha.it('should allow bulk unsubscription of multiple events at a specific stage', () => {
         let subscriptionExecutionCount = 0;
 
         const callbackFunction = () => {
                 subscriptionExecutionCount += 1;
             },
-            pubsub = Pubsub(),
+            pubsub = _Pubsub(),
             testSubscription0 = pubsub.before('testEvent0', callbackFunction),
             testSubscription1 = pubsub.before('testEvent0', callbackFunction),
             testSubscription2 = pubsub.before('testEvent0', callbackFunction),
@@ -2776,90 +2764,90 @@ describe('pubsub', () => {
             testSubscription25 = pubsub.after('testEvent2', callbackFunction),
             testSubscription26 = pubsub.after('testEvent2', callbackFunction);
 
-        expect(testSubscription0).to.have.property('subscribed', true);
-        expect(testSubscription1).to.have.property('subscribed', true);
-        expect(testSubscription2).to.have.property('subscribed', true);
-        expect(testSubscription3).to.have.property('subscribed', true);
-        expect(testSubscription4).to.have.property('subscribed', true);
-        expect(testSubscription5).to.have.property('subscribed', true);
-        expect(testSubscription6).to.have.property('subscribed', true);
-        expect(testSubscription7).to.have.property('subscribed', true);
-        expect(testSubscription8).to.have.property('subscribed', true);
-        expect(testSubscription9).to.have.property('subscribed', true);
-        expect(testSubscription10).to.have.property('subscribed', true);
-        expect(testSubscription11).to.have.property('subscribed', true);
-        expect(testSubscription12).to.have.property('subscribed', true);
-        expect(testSubscription13).to.have.property('subscribed', true);
-        expect(testSubscription14).to.have.property('subscribed', true);
-        expect(testSubscription15).to.have.property('subscribed', true);
-        expect(testSubscription16).to.have.property('subscribed', true);
-        expect(testSubscription17).to.have.property('subscribed', true);
-        expect(testSubscription18).to.have.property('subscribed', true);
-        expect(testSubscription19).to.have.property('subscribed', true);
-        expect(testSubscription20).to.have.property('subscribed', true);
-        expect(testSubscription21).to.have.property('subscribed', true);
-        expect(testSubscription22).to.have.property('subscribed', true);
-        expect(testSubscription23).to.have.property('subscribed', true);
-        expect(testSubscription24).to.have.property('subscribed', true);
-        expect(testSubscription25).to.have.property('subscribed', true);
-        expect(testSubscription26).to.have.property('subscribed', true);
+        _chai.expect(testSubscription0).to.have.property('subscribed', true);
+        _chai.expect(testSubscription1).to.have.property('subscribed', true);
+        _chai.expect(testSubscription2).to.have.property('subscribed', true);
+        _chai.expect(testSubscription3).to.have.property('subscribed', true);
+        _chai.expect(testSubscription4).to.have.property('subscribed', true);
+        _chai.expect(testSubscription5).to.have.property('subscribed', true);
+        _chai.expect(testSubscription6).to.have.property('subscribed', true);
+        _chai.expect(testSubscription7).to.have.property('subscribed', true);
+        _chai.expect(testSubscription8).to.have.property('subscribed', true);
+        _chai.expect(testSubscription9).to.have.property('subscribed', true);
+        _chai.expect(testSubscription10).to.have.property('subscribed', true);
+        _chai.expect(testSubscription11).to.have.property('subscribed', true);
+        _chai.expect(testSubscription12).to.have.property('subscribed', true);
+        _chai.expect(testSubscription13).to.have.property('subscribed', true);
+        _chai.expect(testSubscription14).to.have.property('subscribed', true);
+        _chai.expect(testSubscription15).to.have.property('subscribed', true);
+        _chai.expect(testSubscription16).to.have.property('subscribed', true);
+        _chai.expect(testSubscription17).to.have.property('subscribed', true);
+        _chai.expect(testSubscription18).to.have.property('subscribed', true);
+        _chai.expect(testSubscription19).to.have.property('subscribed', true);
+        _chai.expect(testSubscription20).to.have.property('subscribed', true);
+        _chai.expect(testSubscription21).to.have.property('subscribed', true);
+        _chai.expect(testSubscription22).to.have.property('subscribed', true);
+        _chai.expect(testSubscription23).to.have.property('subscribed', true);
+        _chai.expect(testSubscription24).to.have.property('subscribed', true);
+        _chai.expect(testSubscription25).to.have.property('subscribed', true);
+        _chai.expect(testSubscription26).to.have.property('subscribed', true);
 
         pubsub.publish('testEvent0').publish('testEvent1').publish('testEvent2');
 
-        expect(subscriptionExecutionCount).to.equal(27);
+        _chai.expect(subscriptionExecutionCount).to.equal(27);
 
-        expect(pubsub.bulkUnsubscribe('on', [
+        _chai.expect(pubsub.bulkUnsubscribe('on', [
             'testEvent0',
             'testEvent2'
         ])).to.equal(true);
 
-        expect(testSubscription0).to.have.property('subscribed', true);
-        expect(testSubscription1).to.have.property('subscribed', true);
-        expect(testSubscription2).to.have.property('subscribed', true);
-        expect(testSubscription3).to.have.property('subscribed', false);
-        expect(testSubscription4).to.have.property('subscribed', false);
-        expect(testSubscription5).to.have.property('subscribed', false);
-        expect(testSubscription6).to.have.property('subscribed', true);
-        expect(testSubscription7).to.have.property('subscribed', true);
-        expect(testSubscription8).to.have.property('subscribed', true);
-        expect(testSubscription9).to.have.property('subscribed', true);
-        expect(testSubscription10).to.have.property('subscribed', true);
-        expect(testSubscription11).to.have.property('subscribed', true);
-        expect(testSubscription12).to.have.property('subscribed', true);
-        expect(testSubscription13).to.have.property('subscribed', true);
-        expect(testSubscription14).to.have.property('subscribed', true);
-        expect(testSubscription15).to.have.property('subscribed', true);
-        expect(testSubscription16).to.have.property('subscribed', true);
-        expect(testSubscription17).to.have.property('subscribed', true);
-        expect(testSubscription18).to.have.property('subscribed', true);
-        expect(testSubscription19).to.have.property('subscribed', true);
-        expect(testSubscription20).to.have.property('subscribed', true);
-        expect(testSubscription21).to.have.property('subscribed', false);
-        expect(testSubscription22).to.have.property('subscribed', false);
-        expect(testSubscription23).to.have.property('subscribed', false);
-        expect(testSubscription24).to.have.property('subscribed', true);
-        expect(testSubscription25).to.have.property('subscribed', true);
-        expect(testSubscription26).to.have.property('subscribed', true);
+        _chai.expect(testSubscription0).to.have.property('subscribed', true);
+        _chai.expect(testSubscription1).to.have.property('subscribed', true);
+        _chai.expect(testSubscription2).to.have.property('subscribed', true);
+        _chai.expect(testSubscription3).to.have.property('subscribed', false);
+        _chai.expect(testSubscription4).to.have.property('subscribed', false);
+        _chai.expect(testSubscription5).to.have.property('subscribed', false);
+        _chai.expect(testSubscription6).to.have.property('subscribed', true);
+        _chai.expect(testSubscription7).to.have.property('subscribed', true);
+        _chai.expect(testSubscription8).to.have.property('subscribed', true);
+        _chai.expect(testSubscription9).to.have.property('subscribed', true);
+        _chai.expect(testSubscription10).to.have.property('subscribed', true);
+        _chai.expect(testSubscription11).to.have.property('subscribed', true);
+        _chai.expect(testSubscription12).to.have.property('subscribed', true);
+        _chai.expect(testSubscription13).to.have.property('subscribed', true);
+        _chai.expect(testSubscription14).to.have.property('subscribed', true);
+        _chai.expect(testSubscription15).to.have.property('subscribed', true);
+        _chai.expect(testSubscription16).to.have.property('subscribed', true);
+        _chai.expect(testSubscription17).to.have.property('subscribed', true);
+        _chai.expect(testSubscription18).to.have.property('subscribed', true);
+        _chai.expect(testSubscription19).to.have.property('subscribed', true);
+        _chai.expect(testSubscription20).to.have.property('subscribed', true);
+        _chai.expect(testSubscription21).to.have.property('subscribed', false);
+        _chai.expect(testSubscription22).to.have.property('subscribed', false);
+        _chai.expect(testSubscription23).to.have.property('subscribed', false);
+        _chai.expect(testSubscription24).to.have.property('subscribed', true);
+        _chai.expect(testSubscription25).to.have.property('subscribed', true);
+        _chai.expect(testSubscription26).to.have.property('subscribed', true);
 
         subscriptionExecutionCount = 0;
 
         pubsub.publish('testEvent0').publish('testEvent1').publish('testEvent2');
 
-        expect(subscriptionExecutionCount).to.equal(21);
+        _chai.expect(subscriptionExecutionCount).to.equal(21);
 
-        expect(pubsub.bulkUnsubscribe('on', [
+        _chai.expect(pubsub.bulkUnsubscribe('on', [
             'testEvent0',
             'testEvent2'
         ])).to.equal(false);
     });
 
-    it('should allow bulk unsubscription of multiple events at multiple stages', () => {
+    _mocha.it('should allow bulk unsubscription of multiple events at multiple stages', () => {
         let subscriptionExecutionCount = 0;
 
         const callbackFunction = () => {
                 subscriptionExecutionCount += 1;
             },
-            pubsub = Pubsub(),
+            pubsub = _Pubsub(),
             testSubscription0 = pubsub.before('testEvent0', callbackFunction),
             testSubscription1 = pubsub.before('testEvent0', callbackFunction),
             testSubscription2 = pubsub.before('testEvent0', callbackFunction),
@@ -2888,39 +2876,39 @@ describe('pubsub', () => {
             testSubscription25 = pubsub.after('testEvent2', callbackFunction),
             testSubscription26 = pubsub.after('testEvent2', callbackFunction);
 
-        expect(testSubscription0).to.have.property('subscribed', true);
-        expect(testSubscription1).to.have.property('subscribed', true);
-        expect(testSubscription2).to.have.property('subscribed', true);
-        expect(testSubscription3).to.have.property('subscribed', true);
-        expect(testSubscription4).to.have.property('subscribed', true);
-        expect(testSubscription5).to.have.property('subscribed', true);
-        expect(testSubscription6).to.have.property('subscribed', true);
-        expect(testSubscription7).to.have.property('subscribed', true);
-        expect(testSubscription8).to.have.property('subscribed', true);
-        expect(testSubscription9).to.have.property('subscribed', true);
-        expect(testSubscription10).to.have.property('subscribed', true);
-        expect(testSubscription11).to.have.property('subscribed', true);
-        expect(testSubscription12).to.have.property('subscribed', true);
-        expect(testSubscription13).to.have.property('subscribed', true);
-        expect(testSubscription14).to.have.property('subscribed', true);
-        expect(testSubscription15).to.have.property('subscribed', true);
-        expect(testSubscription16).to.have.property('subscribed', true);
-        expect(testSubscription17).to.have.property('subscribed', true);
-        expect(testSubscription18).to.have.property('subscribed', true);
-        expect(testSubscription19).to.have.property('subscribed', true);
-        expect(testSubscription20).to.have.property('subscribed', true);
-        expect(testSubscription21).to.have.property('subscribed', true);
-        expect(testSubscription22).to.have.property('subscribed', true);
-        expect(testSubscription23).to.have.property('subscribed', true);
-        expect(testSubscription24).to.have.property('subscribed', true);
-        expect(testSubscription25).to.have.property('subscribed', true);
-        expect(testSubscription26).to.have.property('subscribed', true);
+        _chai.expect(testSubscription0).to.have.property('subscribed', true);
+        _chai.expect(testSubscription1).to.have.property('subscribed', true);
+        _chai.expect(testSubscription2).to.have.property('subscribed', true);
+        _chai.expect(testSubscription3).to.have.property('subscribed', true);
+        _chai.expect(testSubscription4).to.have.property('subscribed', true);
+        _chai.expect(testSubscription5).to.have.property('subscribed', true);
+        _chai.expect(testSubscription6).to.have.property('subscribed', true);
+        _chai.expect(testSubscription7).to.have.property('subscribed', true);
+        _chai.expect(testSubscription8).to.have.property('subscribed', true);
+        _chai.expect(testSubscription9).to.have.property('subscribed', true);
+        _chai.expect(testSubscription10).to.have.property('subscribed', true);
+        _chai.expect(testSubscription11).to.have.property('subscribed', true);
+        _chai.expect(testSubscription12).to.have.property('subscribed', true);
+        _chai.expect(testSubscription13).to.have.property('subscribed', true);
+        _chai.expect(testSubscription14).to.have.property('subscribed', true);
+        _chai.expect(testSubscription15).to.have.property('subscribed', true);
+        _chai.expect(testSubscription16).to.have.property('subscribed', true);
+        _chai.expect(testSubscription17).to.have.property('subscribed', true);
+        _chai.expect(testSubscription18).to.have.property('subscribed', true);
+        _chai.expect(testSubscription19).to.have.property('subscribed', true);
+        _chai.expect(testSubscription20).to.have.property('subscribed', true);
+        _chai.expect(testSubscription21).to.have.property('subscribed', true);
+        _chai.expect(testSubscription22).to.have.property('subscribed', true);
+        _chai.expect(testSubscription23).to.have.property('subscribed', true);
+        _chai.expect(testSubscription24).to.have.property('subscribed', true);
+        _chai.expect(testSubscription25).to.have.property('subscribed', true);
+        _chai.expect(testSubscription26).to.have.property('subscribed', true);
 
         pubsub.publish('testEvent0').publish('testEvent1').publish('testEvent2');
 
-        expect(subscriptionExecutionCount).to.equal(27);
+        _chai.expect(subscriptionExecutionCount).to.equal(27);
 
-        expect(pubsub.bulkUnsubscribe([
+        _chai.expect(pubsub.bulkUnsubscribe([
             'before',
             'on'
         ], [
@@ -2928,41 +2916,41 @@ describe('pubsub', () => {
             'testEvent2'
         ])).to.equal(true);
 
-        expect(testSubscription0).to.have.property('subscribed', false);
-        expect(testSubscription1).to.have.property('subscribed', false);
-        expect(testSubscription2).to.have.property('subscribed', false);
-        expect(testSubscription3).to.have.property('subscribed', false);
-        expect(testSubscription4).to.have.property('subscribed', false);
-        expect(testSubscription5).to.have.property('subscribed', false);
-        expect(testSubscription6).to.have.property('subscribed', true);
-        expect(testSubscription7).to.have.property('subscribed', true);
-        expect(testSubscription8).to.have.property('subscribed', true);
-        expect(testSubscription9).to.have.property('subscribed', true);
-        expect(testSubscription10).to.have.property('subscribed', true);
-        expect(testSubscription11).to.have.property('subscribed', true);
-        expect(testSubscription12).to.have.property('subscribed', true);
-        expect(testSubscription13).to.have.property('subscribed', true);
-        expect(testSubscription14).to.have.property('subscribed', true);
-        expect(testSubscription15).to.have.property('subscribed', true);
-        expect(testSubscription16).to.have.property('subscribed', true);
-        expect(testSubscription17).to.have.property('subscribed', true);
-        expect(testSubscription18).to.have.property('subscribed', false);
-        expect(testSubscription19).to.have.property('subscribed', false);
-        expect(testSubscription20).to.have.property('subscribed', false);
-        expect(testSubscription21).to.have.property('subscribed', false);
-        expect(testSubscription22).to.have.property('subscribed', false);
-        expect(testSubscription23).to.have.property('subscribed', false);
-        expect(testSubscription24).to.have.property('subscribed', true);
-        expect(testSubscription25).to.have.property('subscribed', true);
-        expect(testSubscription26).to.have.property('subscribed', true);
+        _chai.expect(testSubscription0).to.have.property('subscribed', false);
+        _chai.expect(testSubscription1).to.have.property('subscribed', false);
+        _chai.expect(testSubscription2).to.have.property('subscribed', false);
+        _chai.expect(testSubscription3).to.have.property('subscribed', false);
+        _chai.expect(testSubscription4).to.have.property('subscribed', false);
+        _chai.expect(testSubscription5).to.have.property('subscribed', false);
+        _chai.expect(testSubscription6).to.have.property('subscribed', true);
+        _chai.expect(testSubscription7).to.have.property('subscribed', true);
+        _chai.expect(testSubscription8).to.have.property('subscribed', true);
+        _chai.expect(testSubscription9).to.have.property('subscribed', true);
+        _chai.expect(testSubscription10).to.have.property('subscribed', true);
+        _chai.expect(testSubscription11).to.have.property('subscribed', true);
+        _chai.expect(testSubscription12).to.have.property('subscribed', true);
+        _chai.expect(testSubscription13).to.have.property('subscribed', true);
+        _chai.expect(testSubscription14).to.have.property('subscribed', true);
+        _chai.expect(testSubscription15).to.have.property('subscribed', true);
+        _chai.expect(testSubscription16).to.have.property('subscribed', true);
+        _chai.expect(testSubscription17).to.have.property('subscribed', true);
+        _chai.expect(testSubscription18).to.have.property('subscribed', false);
+        _chai.expect(testSubscription19).to.have.property('subscribed', false);
+        _chai.expect(testSubscription20).to.have.property('subscribed', false);
+        _chai.expect(testSubscription21).to.have.property('subscribed', false);
+        _chai.expect(testSubscription22).to.have.property('subscribed', false);
+        _chai.expect(testSubscription23).to.have.property('subscribed', false);
+        _chai.expect(testSubscription24).to.have.property('subscribed', true);
+        _chai.expect(testSubscription25).to.have.property('subscribed', true);
+        _chai.expect(testSubscription26).to.have.property('subscribed', true);
 
         subscriptionExecutionCount = 0;
 
         pubsub.publish('testEvent0').publish('testEvent1').publish('testEvent2');
 
-        expect(subscriptionExecutionCount).to.equal(15);
+        _chai.expect(subscriptionExecutionCount).to.equal(15);
 
-        expect(pubsub.bulkUnsubscribe([
+        _chai.expect(pubsub.bulkUnsubscribe([
             'before',
             'on'
         ], [
@@ -2971,13 +2959,13 @@ describe('pubsub', () => {
         ])).to.equal(false);
     });
 
-    it('should allow bulk unsubscription with specific configuration', () => {
+    _mocha.it('should allow bulk unsubscription with specific configuration', () => {
         let subscriptionExecutionCount = 0;
 
         const callbackFunction = () => {
                 subscriptionExecutionCount += 1;
             },
-            pubsub = Pubsub(),
+            pubsub = _Pubsub(),
             testSubscription0 = pubsub.before('testEvent0', callbackFunction),
             testSubscription1 = pubsub.before('testEvent0', callbackFunction),
             testSubscription2 = pubsub.before('testEvent0', callbackFunction),
@@ -3006,39 +2994,39 @@ describe('pubsub', () => {
             testSubscription25 = pubsub.after('testEvent2', callbackFunction),
             testSubscription26 = pubsub.after('testEvent2', callbackFunction);
 
-        expect(testSubscription0).to.have.property('subscribed', true);
-        expect(testSubscription1).to.have.property('subscribed', true);
-        expect(testSubscription2).to.have.property('subscribed', true);
-        expect(testSubscription3).to.have.property('subscribed', true);
-        expect(testSubscription4).to.have.property('subscribed', true);
-        expect(testSubscription5).to.have.property('subscribed', true);
-        expect(testSubscription6).to.have.property('subscribed', true);
-        expect(testSubscription7).to.have.property('subscribed', true);
-        expect(testSubscription8).to.have.property('subscribed', true);
-        expect(testSubscription9).to.have.property('subscribed', true);
-        expect(testSubscription10).to.have.property('subscribed', true);
-        expect(testSubscription11).to.have.property('subscribed', true);
-        expect(testSubscription12).to.have.property('subscribed', true);
-        expect(testSubscription13).to.have.property('subscribed', true);
-        expect(testSubscription14).to.have.property('subscribed', true);
-        expect(testSubscription15).to.have.property('subscribed', true);
-        expect(testSubscription16).to.have.property('subscribed', true);
-        expect(testSubscription17).to.have.property('subscribed', true);
-        expect(testSubscription18).to.have.property('subscribed', true);
-        expect(testSubscription19).to.have.property('subscribed', true);
-        expect(testSubscription20).to.have.property('subscribed', true);
-        expect(testSubscription21).to.have.property('subscribed', true);
-        expect(testSubscription22).to.have.property('subscribed', true);
-        expect(testSubscription23).to.have.property('subscribed', true);
-        expect(testSubscription24).to.have.property('subscribed', true);
-        expect(testSubscription25).to.have.property('subscribed', true);
-        expect(testSubscription26).to.have.property('subscribed', true);
+        _chai.expect(testSubscription0).to.have.property('subscribed', true);
+        _chai.expect(testSubscription1).to.have.property('subscribed', true);
+        _chai.expect(testSubscription2).to.have.property('subscribed', true);
+        _chai.expect(testSubscription3).to.have.property('subscribed', true);
+        _chai.expect(testSubscription4).to.have.property('subscribed', true);
+        _chai.expect(testSubscription5).to.have.property('subscribed', true);
+        _chai.expect(testSubscription6).to.have.property('subscribed', true);
+        _chai.expect(testSubscription7).to.have.property('subscribed', true);
+        _chai.expect(testSubscription8).to.have.property('subscribed', true);
+        _chai.expect(testSubscription9).to.have.property('subscribed', true);
+        _chai.expect(testSubscription10).to.have.property('subscribed', true);
+        _chai.expect(testSubscription11).to.have.property('subscribed', true);
+        _chai.expect(testSubscription12).to.have.property('subscribed', true);
+        _chai.expect(testSubscription13).to.have.property('subscribed', true);
+        _chai.expect(testSubscription14).to.have.property('subscribed', true);
+        _chai.expect(testSubscription15).to.have.property('subscribed', true);
+        _chai.expect(testSubscription16).to.have.property('subscribed', true);
+        _chai.expect(testSubscription17).to.have.property('subscribed', true);
+        _chai.expect(testSubscription18).to.have.property('subscribed', true);
+        _chai.expect(testSubscription19).to.have.property('subscribed', true);
+        _chai.expect(testSubscription20).to.have.property('subscribed', true);
+        _chai.expect(testSubscription21).to.have.property('subscribed', true);
+        _chai.expect(testSubscription22).to.have.property('subscribed', true);
+        _chai.expect(testSubscription23).to.have.property('subscribed', true);
+        _chai.expect(testSubscription24).to.have.property('subscribed', true);
+        _chai.expect(testSubscription25).to.have.property('subscribed', true);
+        _chai.expect(testSubscription26).to.have.property('subscribed', true);
 
         pubsub.publish('testEvent0').publish('testEvent1').publish('testEvent2');
 
-        expect(subscriptionExecutionCount).to.equal(27);
+        _chai.expect(subscriptionExecutionCount).to.equal(27);
 
-        expect(pubsub.bulkUnsubscribe([
+        _chai.expect(pubsub.bulkUnsubscribe([
             {
                 eventName: 'testEvent0',
                 stageName: 'before'
@@ -3050,41 +3038,41 @@ describe('pubsub', () => {
             }
         ])).to.equal(true);
 
-        expect(testSubscription0).to.have.property('subscribed', false);
-        expect(testSubscription1).to.have.property('subscribed', false);
-        expect(testSubscription2).to.have.property('subscribed', false);
-        expect(testSubscription3).to.have.property('subscribed', true);
-        expect(testSubscription4).to.have.property('subscribed', true);
-        expect(testSubscription5).to.have.property('subscribed', true);
-        expect(testSubscription6).to.have.property('subscribed', true);
-        expect(testSubscription7).to.have.property('subscribed', true);
-        expect(testSubscription8).to.have.property('subscribed', true);
-        expect(testSubscription9).to.have.property('subscribed', false);
-        expect(testSubscription10).to.have.property('subscribed', false);
-        expect(testSubscription11).to.have.property('subscribed', false);
-        expect(testSubscription12).to.have.property('subscribed', false);
-        expect(testSubscription13).to.have.property('subscribed', false);
-        expect(testSubscription14).to.have.property('subscribed', false);
-        expect(testSubscription15).to.have.property('subscribed', false);
-        expect(testSubscription16).to.have.property('subscribed', false);
-        expect(testSubscription17).to.have.property('subscribed', false);
-        expect(testSubscription18).to.have.property('subscribed', true);
-        expect(testSubscription19).to.have.property('subscribed', true);
-        expect(testSubscription20).to.have.property('subscribed', true);
-        expect(testSubscription21).to.have.property('subscribed', true);
-        expect(testSubscription22).to.have.property('subscribed', true);
-        expect(testSubscription23).to.have.property('subscribed', true);
-        expect(testSubscription24).to.have.property('subscribed', false);
-        expect(testSubscription25).to.have.property('subscribed', false);
-        expect(testSubscription26).to.have.property('subscribed', false);
+        _chai.expect(testSubscription0).to.have.property('subscribed', false);
+        _chai.expect(testSubscription1).to.have.property('subscribed', false);
+        _chai.expect(testSubscription2).to.have.property('subscribed', false);
+        _chai.expect(testSubscription3).to.have.property('subscribed', true);
+        _chai.expect(testSubscription4).to.have.property('subscribed', true);
+        _chai.expect(testSubscription5).to.have.property('subscribed', true);
+        _chai.expect(testSubscription6).to.have.property('subscribed', true);
+        _chai.expect(testSubscription7).to.have.property('subscribed', true);
+        _chai.expect(testSubscription8).to.have.property('subscribed', true);
+        _chai.expect(testSubscription9).to.have.property('subscribed', false);
+        _chai.expect(testSubscription10).to.have.property('subscribed', false);
+        _chai.expect(testSubscription11).to.have.property('subscribed', false);
+        _chai.expect(testSubscription12).to.have.property('subscribed', false);
+        _chai.expect(testSubscription13).to.have.property('subscribed', false);
+        _chai.expect(testSubscription14).to.have.property('subscribed', false);
+        _chai.expect(testSubscription15).to.have.property('subscribed', false);
+        _chai.expect(testSubscription16).to.have.property('subscribed', false);
+        _chai.expect(testSubscription17).to.have.property('subscribed', false);
+        _chai.expect(testSubscription18).to.have.property('subscribed', true);
+        _chai.expect(testSubscription19).to.have.property('subscribed', true);
+        _chai.expect(testSubscription20).to.have.property('subscribed', true);
+        _chai.expect(testSubscription21).to.have.property('subscribed', true);
+        _chai.expect(testSubscription22).to.have.property('subscribed', true);
+        _chai.expect(testSubscription23).to.have.property('subscribed', true);
+        _chai.expect(testSubscription24).to.have.property('subscribed', false);
+        _chai.expect(testSubscription25).to.have.property('subscribed', false);
+        _chai.expect(testSubscription26).to.have.property('subscribed', false);
 
         subscriptionExecutionCount = 0;
 
         pubsub.publish('testEvent0').publish('testEvent1').publish('testEvent2');
 
-        expect(subscriptionExecutionCount).to.equal(12);
+        _chai.expect(subscriptionExecutionCount).to.equal(12);
 
-        expect(pubsub.bulkUnsubscribe([
+        _chai.expect(pubsub.bulkUnsubscribe([
             {
                 eventName: 'testEvent0',
                 stageName: 'before'
@@ -3097,20 +3085,20 @@ describe('pubsub', () => {
         ])).to.equal(false);
     });
 
-    it('should handle bulk unsubscription of undefined events', () => {
-        const pubsub = Pubsub();
+    _mocha.it('should handle bulk unsubscription of undefined events', () => {
+        const pubsub = _Pubsub();
 
-        expect(pubsub.bulkUnsubscribe('unknownEvent')).to.equal(false);
-        expect(pubsub.bulkUnsubscribe('on', 'unknownEvent')).to.equal(false);
+        _chai.expect(pubsub.bulkUnsubscribe('unknownEvent')).to.equal(false);
+        _chai.expect(pubsub.bulkUnsubscribe('on', 'unknownEvent')).to.equal(false);
     });
 
-    it('should not allow public bulk unsubscription when allowPublicUnsubscription is false', () => {
+    _mocha.it('should not allow public bulk unsubscription when allowPublicUnsubscription is false', () => {
         let subscriptionExecutionCount = 0;
 
         const callbackFunction = () => {
                 subscriptionExecutionCount += 1;
             },
-            pubsub = Pubsub({
+            pubsub = _Pubsub({
                 events: {
                     testEvent0: {
                         allowPublicUnsubscription: false
@@ -3151,84 +3139,84 @@ describe('pubsub', () => {
             testSubscription25 = pubsub.after('testEvent2', callbackFunction),
             testSubscription26 = pubsub.after('testEvent2', callbackFunction);
 
-        expect(testSubscription0).to.have.property('subscribed', true);
-        expect(testSubscription1).to.have.property('subscribed', true);
-        expect(testSubscription2).to.have.property('subscribed', true);
-        expect(testSubscription3).to.have.property('subscribed', true);
-        expect(testSubscription4).to.have.property('subscribed', true);
-        expect(testSubscription5).to.have.property('subscribed', true);
-        expect(testSubscription6).to.have.property('subscribed', true);
-        expect(testSubscription7).to.have.property('subscribed', true);
-        expect(testSubscription8).to.have.property('subscribed', true);
-        expect(testSubscription9).to.have.property('subscribed', true);
-        expect(testSubscription10).to.have.property('subscribed', true);
-        expect(testSubscription11).to.have.property('subscribed', true);
-        expect(testSubscription12).to.have.property('subscribed', true);
-        expect(testSubscription13).to.have.property('subscribed', true);
-        expect(testSubscription14).to.have.property('subscribed', true);
-        expect(testSubscription15).to.have.property('subscribed', true);
-        expect(testSubscription16).to.have.property('subscribed', true);
-        expect(testSubscription17).to.have.property('subscribed', true);
-        expect(testSubscription18).to.have.property('subscribed', true);
-        expect(testSubscription19).to.have.property('subscribed', true);
-        expect(testSubscription20).to.have.property('subscribed', true);
-        expect(testSubscription21).to.have.property('subscribed', true);
-        expect(testSubscription22).to.have.property('subscribed', true);
-        expect(testSubscription23).to.have.property('subscribed', true);
-        expect(testSubscription24).to.have.property('subscribed', true);
-        expect(testSubscription25).to.have.property('subscribed', true);
-        expect(testSubscription26).to.have.property('subscribed', true);
+        _chai.expect(testSubscription0).to.have.property('subscribed', true);
+        _chai.expect(testSubscription1).to.have.property('subscribed', true);
+        _chai.expect(testSubscription2).to.have.property('subscribed', true);
+        _chai.expect(testSubscription3).to.have.property('subscribed', true);
+        _chai.expect(testSubscription4).to.have.property('subscribed', true);
+        _chai.expect(testSubscription5).to.have.property('subscribed', true);
+        _chai.expect(testSubscription6).to.have.property('subscribed', true);
+        _chai.expect(testSubscription7).to.have.property('subscribed', true);
+        _chai.expect(testSubscription8).to.have.property('subscribed', true);
+        _chai.expect(testSubscription9).to.have.property('subscribed', true);
+        _chai.expect(testSubscription10).to.have.property('subscribed', true);
+        _chai.expect(testSubscription11).to.have.property('subscribed', true);
+        _chai.expect(testSubscription12).to.have.property('subscribed', true);
+        _chai.expect(testSubscription13).to.have.property('subscribed', true);
+        _chai.expect(testSubscription14).to.have.property('subscribed', true);
+        _chai.expect(testSubscription15).to.have.property('subscribed', true);
+        _chai.expect(testSubscription16).to.have.property('subscribed', true);
+        _chai.expect(testSubscription17).to.have.property('subscribed', true);
+        _chai.expect(testSubscription18).to.have.property('subscribed', true);
+        _chai.expect(testSubscription19).to.have.property('subscribed', true);
+        _chai.expect(testSubscription20).to.have.property('subscribed', true);
+        _chai.expect(testSubscription21).to.have.property('subscribed', true);
+        _chai.expect(testSubscription22).to.have.property('subscribed', true);
+        _chai.expect(testSubscription23).to.have.property('subscribed', true);
+        _chai.expect(testSubscription24).to.have.property('subscribed', true);
+        _chai.expect(testSubscription25).to.have.property('subscribed', true);
+        _chai.expect(testSubscription26).to.have.property('subscribed', true);
 
         pubsub.publish('testEvent0').publish('testEvent1').publish('testEvent2');
 
-        expect(subscriptionExecutionCount).to.equal(27);
+        _chai.expect(subscriptionExecutionCount).to.equal(27);
 
-        expect(pubsub.bulkUnsubscribe()).to.equal(false);
-        expect(pubsub.bulkUnsubscribe('testEvent0')).to.equal(false);
-        expect(pubsub.bulkUnsubscribe('on', 'testEvent0')).to.equal(false);
+        _chai.expect(pubsub.bulkUnsubscribe()).to.equal(false);
+        _chai.expect(pubsub.bulkUnsubscribe('testEvent0')).to.equal(false);
+        _chai.expect(pubsub.bulkUnsubscribe('on', 'testEvent0')).to.equal(false);
 
-        expect(testSubscription0).to.have.property('subscribed', true);
-        expect(testSubscription1).to.have.property('subscribed', true);
-        expect(testSubscription2).to.have.property('subscribed', true);
-        expect(testSubscription3).to.have.property('subscribed', true);
-        expect(testSubscription4).to.have.property('subscribed', true);
-        expect(testSubscription5).to.have.property('subscribed', true);
-        expect(testSubscription6).to.have.property('subscribed', true);
-        expect(testSubscription7).to.have.property('subscribed', true);
-        expect(testSubscription8).to.have.property('subscribed', true);
-        expect(testSubscription9).to.have.property('subscribed', true);
-        expect(testSubscription10).to.have.property('subscribed', true);
-        expect(testSubscription11).to.have.property('subscribed', true);
-        expect(testSubscription12).to.have.property('subscribed', true);
-        expect(testSubscription13).to.have.property('subscribed', true);
-        expect(testSubscription14).to.have.property('subscribed', true);
-        expect(testSubscription15).to.have.property('subscribed', true);
-        expect(testSubscription16).to.have.property('subscribed', true);
-        expect(testSubscription17).to.have.property('subscribed', true);
-        expect(testSubscription18).to.have.property('subscribed', true);
-        expect(testSubscription19).to.have.property('subscribed', true);
-        expect(testSubscription20).to.have.property('subscribed', true);
-        expect(testSubscription21).to.have.property('subscribed', true);
-        expect(testSubscription22).to.have.property('subscribed', true);
-        expect(testSubscription23).to.have.property('subscribed', true);
-        expect(testSubscription24).to.have.property('subscribed', true);
-        expect(testSubscription25).to.have.property('subscribed', true);
-        expect(testSubscription26).to.have.property('subscribed', true);
+        _chai.expect(testSubscription0).to.have.property('subscribed', true);
+        _chai.expect(testSubscription1).to.have.property('subscribed', true);
+        _chai.expect(testSubscription2).to.have.property('subscribed', true);
+        _chai.expect(testSubscription3).to.have.property('subscribed', true);
+        _chai.expect(testSubscription4).to.have.property('subscribed', true);
+        _chai.expect(testSubscription5).to.have.property('subscribed', true);
+        _chai.expect(testSubscription6).to.have.property('subscribed', true);
+        _chai.expect(testSubscription7).to.have.property('subscribed', true);
+        _chai.expect(testSubscription8).to.have.property('subscribed', true);
+        _chai.expect(testSubscription9).to.have.property('subscribed', true);
+        _chai.expect(testSubscription10).to.have.property('subscribed', true);
+        _chai.expect(testSubscription11).to.have.property('subscribed', true);
+        _chai.expect(testSubscription12).to.have.property('subscribed', true);
+        _chai.expect(testSubscription13).to.have.property('subscribed', true);
+        _chai.expect(testSubscription14).to.have.property('subscribed', true);
+        _chai.expect(testSubscription15).to.have.property('subscribed', true);
+        _chai.expect(testSubscription16).to.have.property('subscribed', true);
+        _chai.expect(testSubscription17).to.have.property('subscribed', true);
+        _chai.expect(testSubscription18).to.have.property('subscribed', true);
+        _chai.expect(testSubscription19).to.have.property('subscribed', true);
+        _chai.expect(testSubscription20).to.have.property('subscribed', true);
+        _chai.expect(testSubscription21).to.have.property('subscribed', true);
+        _chai.expect(testSubscription22).to.have.property('subscribed', true);
+        _chai.expect(testSubscription23).to.have.property('subscribed', true);
+        _chai.expect(testSubscription24).to.have.property('subscribed', true);
+        _chai.expect(testSubscription25).to.have.property('subscribed', true);
+        _chai.expect(testSubscription26).to.have.property('subscribed', true);
 
         subscriptionExecutionCount = 0;
 
         pubsub.publish('testEvent0').publish('testEvent1').publish('testEvent2');
 
-        expect(subscriptionExecutionCount).to.equal(27);
+        _chai.expect(subscriptionExecutionCount).to.equal(27);
     });
 
-    it('should allow protected bulk unsubscription of all subscriptions', () => {
+    _mocha.it('should allow protected bulk unsubscription of all subscriptions', () => {
         let subscriptionExecutionCount = 0;
 
         const callbackFunction = () => {
                 subscriptionExecutionCount += 1;
             },
-            pubsub = Pubsub(),
+            pubsub = _Pubsub(),
             testSubscription0 = pubsub.before('testEvent0', callbackFunction),
             testSubscription1 = pubsub.before('testEvent0', callbackFunction),
             testSubscription2 = pubsub.before('testEvent0', callbackFunction),
@@ -3257,84 +3245,84 @@ describe('pubsub', () => {
             testSubscription25 = pubsub.after('testEvent2', callbackFunction),
             testSubscription26 = pubsub.after('testEvent2', callbackFunction);
 
-        expect(testSubscription0).to.have.property('subscribed', true);
-        expect(testSubscription1).to.have.property('subscribed', true);
-        expect(testSubscription2).to.have.property('subscribed', true);
-        expect(testSubscription3).to.have.property('subscribed', true);
-        expect(testSubscription4).to.have.property('subscribed', true);
-        expect(testSubscription5).to.have.property('subscribed', true);
-        expect(testSubscription6).to.have.property('subscribed', true);
-        expect(testSubscription7).to.have.property('subscribed', true);
-        expect(testSubscription8).to.have.property('subscribed', true);
-        expect(testSubscription9).to.have.property('subscribed', true);
-        expect(testSubscription10).to.have.property('subscribed', true);
-        expect(testSubscription11).to.have.property('subscribed', true);
-        expect(testSubscription12).to.have.property('subscribed', true);
-        expect(testSubscription13).to.have.property('subscribed', true);
-        expect(testSubscription14).to.have.property('subscribed', true);
-        expect(testSubscription15).to.have.property('subscribed', true);
-        expect(testSubscription16).to.have.property('subscribed', true);
-        expect(testSubscription17).to.have.property('subscribed', true);
-        expect(testSubscription18).to.have.property('subscribed', true);
-        expect(testSubscription19).to.have.property('subscribed', true);
-        expect(testSubscription20).to.have.property('subscribed', true);
-        expect(testSubscription21).to.have.property('subscribed', true);
-        expect(testSubscription22).to.have.property('subscribed', true);
-        expect(testSubscription23).to.have.property('subscribed', true);
-        expect(testSubscription24).to.have.property('subscribed', true);
-        expect(testSubscription25).to.have.property('subscribed', true);
-        expect(testSubscription26).to.have.property('subscribed', true);
+        _chai.expect(testSubscription0).to.have.property('subscribed', true);
+        _chai.expect(testSubscription1).to.have.property('subscribed', true);
+        _chai.expect(testSubscription2).to.have.property('subscribed', true);
+        _chai.expect(testSubscription3).to.have.property('subscribed', true);
+        _chai.expect(testSubscription4).to.have.property('subscribed', true);
+        _chai.expect(testSubscription5).to.have.property('subscribed', true);
+        _chai.expect(testSubscription6).to.have.property('subscribed', true);
+        _chai.expect(testSubscription7).to.have.property('subscribed', true);
+        _chai.expect(testSubscription8).to.have.property('subscribed', true);
+        _chai.expect(testSubscription9).to.have.property('subscribed', true);
+        _chai.expect(testSubscription10).to.have.property('subscribed', true);
+        _chai.expect(testSubscription11).to.have.property('subscribed', true);
+        _chai.expect(testSubscription12).to.have.property('subscribed', true);
+        _chai.expect(testSubscription13).to.have.property('subscribed', true);
+        _chai.expect(testSubscription14).to.have.property('subscribed', true);
+        _chai.expect(testSubscription15).to.have.property('subscribed', true);
+        _chai.expect(testSubscription16).to.have.property('subscribed', true);
+        _chai.expect(testSubscription17).to.have.property('subscribed', true);
+        _chai.expect(testSubscription18).to.have.property('subscribed', true);
+        _chai.expect(testSubscription19).to.have.property('subscribed', true);
+        _chai.expect(testSubscription20).to.have.property('subscribed', true);
+        _chai.expect(testSubscription21).to.have.property('subscribed', true);
+        _chai.expect(testSubscription22).to.have.property('subscribed', true);
+        _chai.expect(testSubscription23).to.have.property('subscribed', true);
+        _chai.expect(testSubscription24).to.have.property('subscribed', true);
+        _chai.expect(testSubscription25).to.have.property('subscribed', true);
+        _chai.expect(testSubscription26).to.have.property('subscribed', true);
 
         pubsub.publish('testEvent0').publish('testEvent1').publish('testEvent2');
 
-        expect(subscriptionExecutionCount).to.equal(27);
+        _chai.expect(subscriptionExecutionCount).to.equal(27);
 
-        expect(pubsub._bulkUnsubscribe()).to.equal(true);
+        _chai.expect(pubsub._bulkUnsubscribe()).to.equal(true);
 
-        expect(testSubscription0).to.have.property('subscribed', false);
-        expect(testSubscription1).to.have.property('subscribed', false);
-        expect(testSubscription2).to.have.property('subscribed', false);
-        expect(testSubscription3).to.have.property('subscribed', false);
-        expect(testSubscription4).to.have.property('subscribed', false);
-        expect(testSubscription5).to.have.property('subscribed', false);
-        expect(testSubscription6).to.have.property('subscribed', false);
-        expect(testSubscription7).to.have.property('subscribed', false);
-        expect(testSubscription8).to.have.property('subscribed', false);
-        expect(testSubscription9).to.have.property('subscribed', false);
-        expect(testSubscription10).to.have.property('subscribed', false);
-        expect(testSubscription11).to.have.property('subscribed', false);
-        expect(testSubscription12).to.have.property('subscribed', false);
-        expect(testSubscription13).to.have.property('subscribed', false);
-        expect(testSubscription14).to.have.property('subscribed', false);
-        expect(testSubscription15).to.have.property('subscribed', false);
-        expect(testSubscription16).to.have.property('subscribed', false);
-        expect(testSubscription17).to.have.property('subscribed', false);
-        expect(testSubscription18).to.have.property('subscribed', false);
-        expect(testSubscription19).to.have.property('subscribed', false);
-        expect(testSubscription20).to.have.property('subscribed', false);
-        expect(testSubscription21).to.have.property('subscribed', false);
-        expect(testSubscription22).to.have.property('subscribed', false);
-        expect(testSubscription23).to.have.property('subscribed', false);
-        expect(testSubscription24).to.have.property('subscribed', false);
-        expect(testSubscription25).to.have.property('subscribed', false);
-        expect(testSubscription26).to.have.property('subscribed', false);
+        _chai.expect(testSubscription0).to.have.property('subscribed', false);
+        _chai.expect(testSubscription1).to.have.property('subscribed', false);
+        _chai.expect(testSubscription2).to.have.property('subscribed', false);
+        _chai.expect(testSubscription3).to.have.property('subscribed', false);
+        _chai.expect(testSubscription4).to.have.property('subscribed', false);
+        _chai.expect(testSubscription5).to.have.property('subscribed', false);
+        _chai.expect(testSubscription6).to.have.property('subscribed', false);
+        _chai.expect(testSubscription7).to.have.property('subscribed', false);
+        _chai.expect(testSubscription8).to.have.property('subscribed', false);
+        _chai.expect(testSubscription9).to.have.property('subscribed', false);
+        _chai.expect(testSubscription10).to.have.property('subscribed', false);
+        _chai.expect(testSubscription11).to.have.property('subscribed', false);
+        _chai.expect(testSubscription12).to.have.property('subscribed', false);
+        _chai.expect(testSubscription13).to.have.property('subscribed', false);
+        _chai.expect(testSubscription14).to.have.property('subscribed', false);
+        _chai.expect(testSubscription15).to.have.property('subscribed', false);
+        _chai.expect(testSubscription16).to.have.property('subscribed', false);
+        _chai.expect(testSubscription17).to.have.property('subscribed', false);
+        _chai.expect(testSubscription18).to.have.property('subscribed', false);
+        _chai.expect(testSubscription19).to.have.property('subscribed', false);
+        _chai.expect(testSubscription20).to.have.property('subscribed', false);
+        _chai.expect(testSubscription21).to.have.property('subscribed', false);
+        _chai.expect(testSubscription22).to.have.property('subscribed', false);
+        _chai.expect(testSubscription23).to.have.property('subscribed', false);
+        _chai.expect(testSubscription24).to.have.property('subscribed', false);
+        _chai.expect(testSubscription25).to.have.property('subscribed', false);
+        _chai.expect(testSubscription26).to.have.property('subscribed', false);
 
         subscriptionExecutionCount = 0;
 
         pubsub.publish('testEvent0').publish('testEvent1').publish('testEvent2');
 
-        expect(subscriptionExecutionCount).to.equal(0);
+        _chai.expect(subscriptionExecutionCount).to.equal(0);
 
-        expect(pubsub._bulkUnsubscribe()).to.equal(false);
+        _chai.expect(pubsub._bulkUnsubscribe()).to.equal(false);
     });
 
-    it('should allow protected bulk unsubscription of an event', () => {
+    _mocha.it('should allow protected bulk unsubscription of an event', () => {
         let subscriptionExecutionCount = 0;
 
         const callbackFunction = () => {
                 subscriptionExecutionCount += 1;
             },
-            pubsub = Pubsub(),
+            pubsub = _Pubsub(),
             testSubscription0 = pubsub.before('testEvent0', callbackFunction),
             testSubscription1 = pubsub.before('testEvent0', callbackFunction),
             testSubscription2 = pubsub.before('testEvent0', callbackFunction),
@@ -3363,84 +3351,84 @@ describe('pubsub', () => {
             testSubscription25 = pubsub.after('testEvent2', callbackFunction),
             testSubscription26 = pubsub.after('testEvent2', callbackFunction);
 
-        expect(testSubscription0).to.have.property('subscribed', true);
-        expect(testSubscription1).to.have.property('subscribed', true);
-        expect(testSubscription2).to.have.property('subscribed', true);
-        expect(testSubscription3).to.have.property('subscribed', true);
-        expect(testSubscription4).to.have.property('subscribed', true);
-        expect(testSubscription5).to.have.property('subscribed', true);
-        expect(testSubscription6).to.have.property('subscribed', true);
-        expect(testSubscription7).to.have.property('subscribed', true);
-        expect(testSubscription8).to.have.property('subscribed', true);
-        expect(testSubscription9).to.have.property('subscribed', true);
-        expect(testSubscription10).to.have.property('subscribed', true);
-        expect(testSubscription11).to.have.property('subscribed', true);
-        expect(testSubscription12).to.have.property('subscribed', true);
-        expect(testSubscription13).to.have.property('subscribed', true);
-        expect(testSubscription14).to.have.property('subscribed', true);
-        expect(testSubscription15).to.have.property('subscribed', true);
-        expect(testSubscription16).to.have.property('subscribed', true);
-        expect(testSubscription17).to.have.property('subscribed', true);
-        expect(testSubscription18).to.have.property('subscribed', true);
-        expect(testSubscription19).to.have.property('subscribed', true);
-        expect(testSubscription20).to.have.property('subscribed', true);
-        expect(testSubscription21).to.have.property('subscribed', true);
-        expect(testSubscription22).to.have.property('subscribed', true);
-        expect(testSubscription23).to.have.property('subscribed', true);
-        expect(testSubscription24).to.have.property('subscribed', true);
-        expect(testSubscription25).to.have.property('subscribed', true);
-        expect(testSubscription26).to.have.property('subscribed', true);
+        _chai.expect(testSubscription0).to.have.property('subscribed', true);
+        _chai.expect(testSubscription1).to.have.property('subscribed', true);
+        _chai.expect(testSubscription2).to.have.property('subscribed', true);
+        _chai.expect(testSubscription3).to.have.property('subscribed', true);
+        _chai.expect(testSubscription4).to.have.property('subscribed', true);
+        _chai.expect(testSubscription5).to.have.property('subscribed', true);
+        _chai.expect(testSubscription6).to.have.property('subscribed', true);
+        _chai.expect(testSubscription7).to.have.property('subscribed', true);
+        _chai.expect(testSubscription8).to.have.property('subscribed', true);
+        _chai.expect(testSubscription9).to.have.property('subscribed', true);
+        _chai.expect(testSubscription10).to.have.property('subscribed', true);
+        _chai.expect(testSubscription11).to.have.property('subscribed', true);
+        _chai.expect(testSubscription12).to.have.property('subscribed', true);
+        _chai.expect(testSubscription13).to.have.property('subscribed', true);
+        _chai.expect(testSubscription14).to.have.property('subscribed', true);
+        _chai.expect(testSubscription15).to.have.property('subscribed', true);
+        _chai.expect(testSubscription16).to.have.property('subscribed', true);
+        _chai.expect(testSubscription17).to.have.property('subscribed', true);
+        _chai.expect(testSubscription18).to.have.property('subscribed', true);
+        _chai.expect(testSubscription19).to.have.property('subscribed', true);
+        _chai.expect(testSubscription20).to.have.property('subscribed', true);
+        _chai.expect(testSubscription21).to.have.property('subscribed', true);
+        _chai.expect(testSubscription22).to.have.property('subscribed', true);
+        _chai.expect(testSubscription23).to.have.property('subscribed', true);
+        _chai.expect(testSubscription24).to.have.property('subscribed', true);
+        _chai.expect(testSubscription25).to.have.property('subscribed', true);
+        _chai.expect(testSubscription26).to.have.property('subscribed', true);
 
         pubsub.publish('testEvent0').publish('testEvent1').publish('testEvent2');
 
-        expect(subscriptionExecutionCount).to.equal(27);
+        _chai.expect(subscriptionExecutionCount).to.equal(27);
 
-        expect(pubsub._bulkUnsubscribe('testEvent1')).to.equal(true);
+        _chai.expect(pubsub._bulkUnsubscribe('testEvent1')).to.equal(true);
 
-        expect(testSubscription0).to.have.property('subscribed', true);
-        expect(testSubscription1).to.have.property('subscribed', true);
-        expect(testSubscription2).to.have.property('subscribed', true);
-        expect(testSubscription3).to.have.property('subscribed', true);
-        expect(testSubscription4).to.have.property('subscribed', true);
-        expect(testSubscription5).to.have.property('subscribed', true);
-        expect(testSubscription6).to.have.property('subscribed', true);
-        expect(testSubscription7).to.have.property('subscribed', true);
-        expect(testSubscription8).to.have.property('subscribed', true);
-        expect(testSubscription9).to.have.property('subscribed', false);
-        expect(testSubscription10).to.have.property('subscribed', false);
-        expect(testSubscription11).to.have.property('subscribed', false);
-        expect(testSubscription12).to.have.property('subscribed', false);
-        expect(testSubscription13).to.have.property('subscribed', false);
-        expect(testSubscription14).to.have.property('subscribed', false);
-        expect(testSubscription15).to.have.property('subscribed', false);
-        expect(testSubscription16).to.have.property('subscribed', false);
-        expect(testSubscription17).to.have.property('subscribed', false);
-        expect(testSubscription18).to.have.property('subscribed', true);
-        expect(testSubscription19).to.have.property('subscribed', true);
-        expect(testSubscription20).to.have.property('subscribed', true);
-        expect(testSubscription21).to.have.property('subscribed', true);
-        expect(testSubscription22).to.have.property('subscribed', true);
-        expect(testSubscription23).to.have.property('subscribed', true);
-        expect(testSubscription24).to.have.property('subscribed', true);
-        expect(testSubscription25).to.have.property('subscribed', true);
-        expect(testSubscription26).to.have.property('subscribed', true);
+        _chai.expect(testSubscription0).to.have.property('subscribed', true);
+        _chai.expect(testSubscription1).to.have.property('subscribed', true);
+        _chai.expect(testSubscription2).to.have.property('subscribed', true);
+        _chai.expect(testSubscription3).to.have.property('subscribed', true);
+        _chai.expect(testSubscription4).to.have.property('subscribed', true);
+        _chai.expect(testSubscription5).to.have.property('subscribed', true);
+        _chai.expect(testSubscription6).to.have.property('subscribed', true);
+        _chai.expect(testSubscription7).to.have.property('subscribed', true);
+        _chai.expect(testSubscription8).to.have.property('subscribed', true);
+        _chai.expect(testSubscription9).to.have.property('subscribed', false);
+        _chai.expect(testSubscription10).to.have.property('subscribed', false);
+        _chai.expect(testSubscription11).to.have.property('subscribed', false);
+        _chai.expect(testSubscription12).to.have.property('subscribed', false);
+        _chai.expect(testSubscription13).to.have.property('subscribed', false);
+        _chai.expect(testSubscription14).to.have.property('subscribed', false);
+        _chai.expect(testSubscription15).to.have.property('subscribed', false);
+        _chai.expect(testSubscription16).to.have.property('subscribed', false);
+        _chai.expect(testSubscription17).to.have.property('subscribed', false);
+        _chai.expect(testSubscription18).to.have.property('subscribed', true);
+        _chai.expect(testSubscription19).to.have.property('subscribed', true);
+        _chai.expect(testSubscription20).to.have.property('subscribed', true);
+        _chai.expect(testSubscription21).to.have.property('subscribed', true);
+        _chai.expect(testSubscription22).to.have.property('subscribed', true);
+        _chai.expect(testSubscription23).to.have.property('subscribed', true);
+        _chai.expect(testSubscription24).to.have.property('subscribed', true);
+        _chai.expect(testSubscription25).to.have.property('subscribed', true);
+        _chai.expect(testSubscription26).to.have.property('subscribed', true);
 
         subscriptionExecutionCount = 0;
 
         pubsub.publish('testEvent0').publish('testEvent1').publish('testEvent2');
 
-        expect(subscriptionExecutionCount).to.equal(18);
+        _chai.expect(subscriptionExecutionCount).to.equal(18);
 
-        expect(pubsub._bulkUnsubscribe('testEvent1')).to.equal(false);
+        _chai.expect(pubsub._bulkUnsubscribe('testEvent1')).to.equal(false);
     });
 
-    it('should allow protected bulk unsubscription of multiple events', () => {
+    _mocha.it('should allow protected bulk unsubscription of multiple events', () => {
         let subscriptionExecutionCount = 0;
 
         const callbackFunction = () => {
                 subscriptionExecutionCount += 1;
             },
-            pubsub = Pubsub(),
+            pubsub = _Pubsub(),
             testSubscription0 = pubsub.before('testEvent0', callbackFunction),
             testSubscription1 = pubsub.before('testEvent0', callbackFunction),
             testSubscription2 = pubsub.before('testEvent0', callbackFunction),
@@ -3469,90 +3457,90 @@ describe('pubsub', () => {
             testSubscription25 = pubsub.after('testEvent2', callbackFunction),
             testSubscription26 = pubsub.after('testEvent2', callbackFunction);
 
-        expect(testSubscription0).to.have.property('subscribed', true);
-        expect(testSubscription1).to.have.property('subscribed', true);
-        expect(testSubscription2).to.have.property('subscribed', true);
-        expect(testSubscription3).to.have.property('subscribed', true);
-        expect(testSubscription4).to.have.property('subscribed', true);
-        expect(testSubscription5).to.have.property('subscribed', true);
-        expect(testSubscription6).to.have.property('subscribed', true);
-        expect(testSubscription7).to.have.property('subscribed', true);
-        expect(testSubscription8).to.have.property('subscribed', true);
-        expect(testSubscription9).to.have.property('subscribed', true);
-        expect(testSubscription10).to.have.property('subscribed', true);
-        expect(testSubscription11).to.have.property('subscribed', true);
-        expect(testSubscription12).to.have.property('subscribed', true);
-        expect(testSubscription13).to.have.property('subscribed', true);
-        expect(testSubscription14).to.have.property('subscribed', true);
-        expect(testSubscription15).to.have.property('subscribed', true);
-        expect(testSubscription16).to.have.property('subscribed', true);
-        expect(testSubscription17).to.have.property('subscribed', true);
-        expect(testSubscription18).to.have.property('subscribed', true);
-        expect(testSubscription19).to.have.property('subscribed', true);
-        expect(testSubscription20).to.have.property('subscribed', true);
-        expect(testSubscription21).to.have.property('subscribed', true);
-        expect(testSubscription22).to.have.property('subscribed', true);
-        expect(testSubscription23).to.have.property('subscribed', true);
-        expect(testSubscription24).to.have.property('subscribed', true);
-        expect(testSubscription25).to.have.property('subscribed', true);
-        expect(testSubscription26).to.have.property('subscribed', true);
+        _chai.expect(testSubscription0).to.have.property('subscribed', true);
+        _chai.expect(testSubscription1).to.have.property('subscribed', true);
+        _chai.expect(testSubscription2).to.have.property('subscribed', true);
+        _chai.expect(testSubscription3).to.have.property('subscribed', true);
+        _chai.expect(testSubscription4).to.have.property('subscribed', true);
+        _chai.expect(testSubscription5).to.have.property('subscribed', true);
+        _chai.expect(testSubscription6).to.have.property('subscribed', true);
+        _chai.expect(testSubscription7).to.have.property('subscribed', true);
+        _chai.expect(testSubscription8).to.have.property('subscribed', true);
+        _chai.expect(testSubscription9).to.have.property('subscribed', true);
+        _chai.expect(testSubscription10).to.have.property('subscribed', true);
+        _chai.expect(testSubscription11).to.have.property('subscribed', true);
+        _chai.expect(testSubscription12).to.have.property('subscribed', true);
+        _chai.expect(testSubscription13).to.have.property('subscribed', true);
+        _chai.expect(testSubscription14).to.have.property('subscribed', true);
+        _chai.expect(testSubscription15).to.have.property('subscribed', true);
+        _chai.expect(testSubscription16).to.have.property('subscribed', true);
+        _chai.expect(testSubscription17).to.have.property('subscribed', true);
+        _chai.expect(testSubscription18).to.have.property('subscribed', true);
+        _chai.expect(testSubscription19).to.have.property('subscribed', true);
+        _chai.expect(testSubscription20).to.have.property('subscribed', true);
+        _chai.expect(testSubscription21).to.have.property('subscribed', true);
+        _chai.expect(testSubscription22).to.have.property('subscribed', true);
+        _chai.expect(testSubscription23).to.have.property('subscribed', true);
+        _chai.expect(testSubscription24).to.have.property('subscribed', true);
+        _chai.expect(testSubscription25).to.have.property('subscribed', true);
+        _chai.expect(testSubscription26).to.have.property('subscribed', true);
 
         pubsub.publish('testEvent0').publish('testEvent1').publish('testEvent2');
 
-        expect(subscriptionExecutionCount).to.equal(27);
+        _chai.expect(subscriptionExecutionCount).to.equal(27);
 
-        expect(pubsub._bulkUnsubscribe([
+        _chai.expect(pubsub._bulkUnsubscribe([
             'testEvent0',
             'testEvent1'
         ])).to.equal(true);
 
-        expect(testSubscription0).to.have.property('subscribed', false);
-        expect(testSubscription1).to.have.property('subscribed', false);
-        expect(testSubscription2).to.have.property('subscribed', false);
-        expect(testSubscription3).to.have.property('subscribed', false);
-        expect(testSubscription4).to.have.property('subscribed', false);
-        expect(testSubscription5).to.have.property('subscribed', false);
-        expect(testSubscription6).to.have.property('subscribed', false);
-        expect(testSubscription7).to.have.property('subscribed', false);
-        expect(testSubscription8).to.have.property('subscribed', false);
-        expect(testSubscription9).to.have.property('subscribed', false);
-        expect(testSubscription10).to.have.property('subscribed', false);
-        expect(testSubscription11).to.have.property('subscribed', false);
-        expect(testSubscription12).to.have.property('subscribed', false);
-        expect(testSubscription13).to.have.property('subscribed', false);
-        expect(testSubscription14).to.have.property('subscribed', false);
-        expect(testSubscription15).to.have.property('subscribed', false);
-        expect(testSubscription16).to.have.property('subscribed', false);
-        expect(testSubscription17).to.have.property('subscribed', false);
-        expect(testSubscription18).to.have.property('subscribed', true);
-        expect(testSubscription19).to.have.property('subscribed', true);
-        expect(testSubscription20).to.have.property('subscribed', true);
-        expect(testSubscription21).to.have.property('subscribed', true);
-        expect(testSubscription22).to.have.property('subscribed', true);
-        expect(testSubscription23).to.have.property('subscribed', true);
-        expect(testSubscription24).to.have.property('subscribed', true);
-        expect(testSubscription25).to.have.property('subscribed', true);
-        expect(testSubscription26).to.have.property('subscribed', true);
+        _chai.expect(testSubscription0).to.have.property('subscribed', false);
+        _chai.expect(testSubscription1).to.have.property('subscribed', false);
+        _chai.expect(testSubscription2).to.have.property('subscribed', false);
+        _chai.expect(testSubscription3).to.have.property('subscribed', false);
+        _chai.expect(testSubscription4).to.have.property('subscribed', false);
+        _chai.expect(testSubscription5).to.have.property('subscribed', false);
+        _chai.expect(testSubscription6).to.have.property('subscribed', false);
+        _chai.expect(testSubscription7).to.have.property('subscribed', false);
+        _chai.expect(testSubscription8).to.have.property('subscribed', false);
+        _chai.expect(testSubscription9).to.have.property('subscribed', false);
+        _chai.expect(testSubscription10).to.have.property('subscribed', false);
+        _chai.expect(testSubscription11).to.have.property('subscribed', false);
+        _chai.expect(testSubscription12).to.have.property('subscribed', false);
+        _chai.expect(testSubscription13).to.have.property('subscribed', false);
+        _chai.expect(testSubscription14).to.have.property('subscribed', false);
+        _chai.expect(testSubscription15).to.have.property('subscribed', false);
+        _chai.expect(testSubscription16).to.have.property('subscribed', false);
+        _chai.expect(testSubscription17).to.have.property('subscribed', false);
+        _chai.expect(testSubscription18).to.have.property('subscribed', true);
+        _chai.expect(testSubscription19).to.have.property('subscribed', true);
+        _chai.expect(testSubscription20).to.have.property('subscribed', true);
+        _chai.expect(testSubscription21).to.have.property('subscribed', true);
+        _chai.expect(testSubscription22).to.have.property('subscribed', true);
+        _chai.expect(testSubscription23).to.have.property('subscribed', true);
+        _chai.expect(testSubscription24).to.have.property('subscribed', true);
+        _chai.expect(testSubscription25).to.have.property('subscribed', true);
+        _chai.expect(testSubscription26).to.have.property('subscribed', true);
 
         subscriptionExecutionCount = 0;
 
         pubsub.publish('testEvent0').publish('testEvent1').publish('testEvent2');
 
-        expect(subscriptionExecutionCount).to.equal(9);
+        _chai.expect(subscriptionExecutionCount).to.equal(9);
 
-        expect(pubsub._bulkUnsubscribe([
+        _chai.expect(pubsub._bulkUnsubscribe([
             'testEvent0',
             'testEvent1'
         ])).to.equal(false);
     });
 
-    it('should allow protected bulk unsubscription of an event at a specific stage', () => {
+    _mocha.it('should allow protected bulk unsubscription of an event at a specific stage', () => {
         let subscriptionExecutionCount = 0;
 
         const callbackFunction = () => {
                 subscriptionExecutionCount += 1;
             },
-            pubsub = Pubsub(),
+            pubsub = _Pubsub(),
             testSubscription0 = pubsub.before('testEvent0', callbackFunction),
             testSubscription1 = pubsub.before('testEvent0', callbackFunction),
             testSubscription2 = pubsub.before('testEvent0', callbackFunction),
@@ -3581,84 +3569,84 @@ describe('pubsub', () => {
             testSubscription25 = pubsub.after('testEvent2', callbackFunction),
             testSubscription26 = pubsub.after('testEvent2', callbackFunction);
 
-        expect(testSubscription0).to.have.property('subscribed', true);
-        expect(testSubscription1).to.have.property('subscribed', true);
-        expect(testSubscription2).to.have.property('subscribed', true);
-        expect(testSubscription3).to.have.property('subscribed', true);
-        expect(testSubscription4).to.have.property('subscribed', true);
-        expect(testSubscription5).to.have.property('subscribed', true);
-        expect(testSubscription6).to.have.property('subscribed', true);
-        expect(testSubscription7).to.have.property('subscribed', true);
-        expect(testSubscription8).to.have.property('subscribed', true);
-        expect(testSubscription9).to.have.property('subscribed', true);
-        expect(testSubscription10).to.have.property('subscribed', true);
-        expect(testSubscription11).to.have.property('subscribed', true);
-        expect(testSubscription12).to.have.property('subscribed', true);
-        expect(testSubscription13).to.have.property('subscribed', true);
-        expect(testSubscription14).to.have.property('subscribed', true);
-        expect(testSubscription15).to.have.property('subscribed', true);
-        expect(testSubscription16).to.have.property('subscribed', true);
-        expect(testSubscription17).to.have.property('subscribed', true);
-        expect(testSubscription18).to.have.property('subscribed', true);
-        expect(testSubscription19).to.have.property('subscribed', true);
-        expect(testSubscription20).to.have.property('subscribed', true);
-        expect(testSubscription21).to.have.property('subscribed', true);
-        expect(testSubscription22).to.have.property('subscribed', true);
-        expect(testSubscription23).to.have.property('subscribed', true);
-        expect(testSubscription24).to.have.property('subscribed', true);
-        expect(testSubscription25).to.have.property('subscribed', true);
-        expect(testSubscription26).to.have.property('subscribed', true);
+        _chai.expect(testSubscription0).to.have.property('subscribed', true);
+        _chai.expect(testSubscription1).to.have.property('subscribed', true);
+        _chai.expect(testSubscription2).to.have.property('subscribed', true);
+        _chai.expect(testSubscription3).to.have.property('subscribed', true);
+        _chai.expect(testSubscription4).to.have.property('subscribed', true);
+        _chai.expect(testSubscription5).to.have.property('subscribed', true);
+        _chai.expect(testSubscription6).to.have.property('subscribed', true);
+        _chai.expect(testSubscription7).to.have.property('subscribed', true);
+        _chai.expect(testSubscription8).to.have.property('subscribed', true);
+        _chai.expect(testSubscription9).to.have.property('subscribed', true);
+        _chai.expect(testSubscription10).to.have.property('subscribed', true);
+        _chai.expect(testSubscription11).to.have.property('subscribed', true);
+        _chai.expect(testSubscription12).to.have.property('subscribed', true);
+        _chai.expect(testSubscription13).to.have.property('subscribed', true);
+        _chai.expect(testSubscription14).to.have.property('subscribed', true);
+        _chai.expect(testSubscription15).to.have.property('subscribed', true);
+        _chai.expect(testSubscription16).to.have.property('subscribed', true);
+        _chai.expect(testSubscription17).to.have.property('subscribed', true);
+        _chai.expect(testSubscription18).to.have.property('subscribed', true);
+        _chai.expect(testSubscription19).to.have.property('subscribed', true);
+        _chai.expect(testSubscription20).to.have.property('subscribed', true);
+        _chai.expect(testSubscription21).to.have.property('subscribed', true);
+        _chai.expect(testSubscription22).to.have.property('subscribed', true);
+        _chai.expect(testSubscription23).to.have.property('subscribed', true);
+        _chai.expect(testSubscription24).to.have.property('subscribed', true);
+        _chai.expect(testSubscription25).to.have.property('subscribed', true);
+        _chai.expect(testSubscription26).to.have.property('subscribed', true);
 
         pubsub.publish('testEvent0').publish('testEvent1').publish('testEvent2');
 
-        expect(subscriptionExecutionCount).to.equal(27);
+        _chai.expect(subscriptionExecutionCount).to.equal(27);
 
-        expect(pubsub._bulkUnsubscribe('on', 'testEvent1')).to.equal(true);
+        _chai.expect(pubsub._bulkUnsubscribe('on', 'testEvent1')).to.equal(true);
 
-        expect(testSubscription0).to.have.property('subscribed', true);
-        expect(testSubscription1).to.have.property('subscribed', true);
-        expect(testSubscription2).to.have.property('subscribed', true);
-        expect(testSubscription3).to.have.property('subscribed', true);
-        expect(testSubscription4).to.have.property('subscribed', true);
-        expect(testSubscription5).to.have.property('subscribed', true);
-        expect(testSubscription6).to.have.property('subscribed', true);
-        expect(testSubscription7).to.have.property('subscribed', true);
-        expect(testSubscription8).to.have.property('subscribed', true);
-        expect(testSubscription9).to.have.property('subscribed', true);
-        expect(testSubscription10).to.have.property('subscribed', true);
-        expect(testSubscription11).to.have.property('subscribed', true);
-        expect(testSubscription12).to.have.property('subscribed', false);
-        expect(testSubscription13).to.have.property('subscribed', false);
-        expect(testSubscription14).to.have.property('subscribed', false);
-        expect(testSubscription15).to.have.property('subscribed', true);
-        expect(testSubscription16).to.have.property('subscribed', true);
-        expect(testSubscription17).to.have.property('subscribed', true);
-        expect(testSubscription18).to.have.property('subscribed', true);
-        expect(testSubscription19).to.have.property('subscribed', true);
-        expect(testSubscription20).to.have.property('subscribed', true);
-        expect(testSubscription21).to.have.property('subscribed', true);
-        expect(testSubscription22).to.have.property('subscribed', true);
-        expect(testSubscription23).to.have.property('subscribed', true);
-        expect(testSubscription24).to.have.property('subscribed', true);
-        expect(testSubscription25).to.have.property('subscribed', true);
-        expect(testSubscription26).to.have.property('subscribed', true);
+        _chai.expect(testSubscription0).to.have.property('subscribed', true);
+        _chai.expect(testSubscription1).to.have.property('subscribed', true);
+        _chai.expect(testSubscription2).to.have.property('subscribed', true);
+        _chai.expect(testSubscription3).to.have.property('subscribed', true);
+        _chai.expect(testSubscription4).to.have.property('subscribed', true);
+        _chai.expect(testSubscription5).to.have.property('subscribed', true);
+        _chai.expect(testSubscription6).to.have.property('subscribed', true);
+        _chai.expect(testSubscription7).to.have.property('subscribed', true);
+        _chai.expect(testSubscription8).to.have.property('subscribed', true);
+        _chai.expect(testSubscription9).to.have.property('subscribed', true);
+        _chai.expect(testSubscription10).to.have.property('subscribed', true);
+        _chai.expect(testSubscription11).to.have.property('subscribed', true);
+        _chai.expect(testSubscription12).to.have.property('subscribed', false);
+        _chai.expect(testSubscription13).to.have.property('subscribed', false);
+        _chai.expect(testSubscription14).to.have.property('subscribed', false);
+        _chai.expect(testSubscription15).to.have.property('subscribed', true);
+        _chai.expect(testSubscription16).to.have.property('subscribed', true);
+        _chai.expect(testSubscription17).to.have.property('subscribed', true);
+        _chai.expect(testSubscription18).to.have.property('subscribed', true);
+        _chai.expect(testSubscription19).to.have.property('subscribed', true);
+        _chai.expect(testSubscription20).to.have.property('subscribed', true);
+        _chai.expect(testSubscription21).to.have.property('subscribed', true);
+        _chai.expect(testSubscription22).to.have.property('subscribed', true);
+        _chai.expect(testSubscription23).to.have.property('subscribed', true);
+        _chai.expect(testSubscription24).to.have.property('subscribed', true);
+        _chai.expect(testSubscription25).to.have.property('subscribed', true);
+        _chai.expect(testSubscription26).to.have.property('subscribed', true);
 
         subscriptionExecutionCount = 0;
 
         pubsub.publish('testEvent0').publish('testEvent1').publish('testEvent2');
 
-        expect(subscriptionExecutionCount).to.equal(24);
+        _chai.expect(subscriptionExecutionCount).to.equal(24);
 
-        expect(pubsub._bulkUnsubscribe('on', 'testEvent1')).to.equal(false);
+        _chai.expect(pubsub._bulkUnsubscribe('on', 'testEvent1')).to.equal(false);
     });
 
-    it('should allow protected bulk unsubscription of an event at multiple stages', () => {
+    _mocha.it('should allow protected bulk unsubscription of an event at multiple stages', () => {
         let subscriptionExecutionCount = 0;
 
         const callbackFunction = () => {
                 subscriptionExecutionCount += 1;
             },
-            pubsub = Pubsub(),
+            pubsub = _Pubsub(),
             testSubscription0 = pubsub.before('testEvent0', callbackFunction),
             testSubscription1 = pubsub.before('testEvent0', callbackFunction),
             testSubscription2 = pubsub.before('testEvent0', callbackFunction),
@@ -3687,90 +3675,90 @@ describe('pubsub', () => {
             testSubscription25 = pubsub.after('testEvent2', callbackFunction),
             testSubscription26 = pubsub.after('testEvent2', callbackFunction);
 
-        expect(testSubscription0).to.have.property('subscribed', true);
-        expect(testSubscription1).to.have.property('subscribed', true);
-        expect(testSubscription2).to.have.property('subscribed', true);
-        expect(testSubscription3).to.have.property('subscribed', true);
-        expect(testSubscription4).to.have.property('subscribed', true);
-        expect(testSubscription5).to.have.property('subscribed', true);
-        expect(testSubscription6).to.have.property('subscribed', true);
-        expect(testSubscription7).to.have.property('subscribed', true);
-        expect(testSubscription8).to.have.property('subscribed', true);
-        expect(testSubscription9).to.have.property('subscribed', true);
-        expect(testSubscription10).to.have.property('subscribed', true);
-        expect(testSubscription11).to.have.property('subscribed', true);
-        expect(testSubscription12).to.have.property('subscribed', true);
-        expect(testSubscription13).to.have.property('subscribed', true);
-        expect(testSubscription14).to.have.property('subscribed', true);
-        expect(testSubscription15).to.have.property('subscribed', true);
-        expect(testSubscription16).to.have.property('subscribed', true);
-        expect(testSubscription17).to.have.property('subscribed', true);
-        expect(testSubscription18).to.have.property('subscribed', true);
-        expect(testSubscription19).to.have.property('subscribed', true);
-        expect(testSubscription20).to.have.property('subscribed', true);
-        expect(testSubscription21).to.have.property('subscribed', true);
-        expect(testSubscription22).to.have.property('subscribed', true);
-        expect(testSubscription23).to.have.property('subscribed', true);
-        expect(testSubscription24).to.have.property('subscribed', true);
-        expect(testSubscription25).to.have.property('subscribed', true);
-        expect(testSubscription26).to.have.property('subscribed', true);
+        _chai.expect(testSubscription0).to.have.property('subscribed', true);
+        _chai.expect(testSubscription1).to.have.property('subscribed', true);
+        _chai.expect(testSubscription2).to.have.property('subscribed', true);
+        _chai.expect(testSubscription3).to.have.property('subscribed', true);
+        _chai.expect(testSubscription4).to.have.property('subscribed', true);
+        _chai.expect(testSubscription5).to.have.property('subscribed', true);
+        _chai.expect(testSubscription6).to.have.property('subscribed', true);
+        _chai.expect(testSubscription7).to.have.property('subscribed', true);
+        _chai.expect(testSubscription8).to.have.property('subscribed', true);
+        _chai.expect(testSubscription9).to.have.property('subscribed', true);
+        _chai.expect(testSubscription10).to.have.property('subscribed', true);
+        _chai.expect(testSubscription11).to.have.property('subscribed', true);
+        _chai.expect(testSubscription12).to.have.property('subscribed', true);
+        _chai.expect(testSubscription13).to.have.property('subscribed', true);
+        _chai.expect(testSubscription14).to.have.property('subscribed', true);
+        _chai.expect(testSubscription15).to.have.property('subscribed', true);
+        _chai.expect(testSubscription16).to.have.property('subscribed', true);
+        _chai.expect(testSubscription17).to.have.property('subscribed', true);
+        _chai.expect(testSubscription18).to.have.property('subscribed', true);
+        _chai.expect(testSubscription19).to.have.property('subscribed', true);
+        _chai.expect(testSubscription20).to.have.property('subscribed', true);
+        _chai.expect(testSubscription21).to.have.property('subscribed', true);
+        _chai.expect(testSubscription22).to.have.property('subscribed', true);
+        _chai.expect(testSubscription23).to.have.property('subscribed', true);
+        _chai.expect(testSubscription24).to.have.property('subscribed', true);
+        _chai.expect(testSubscription25).to.have.property('subscribed', true);
+        _chai.expect(testSubscription26).to.have.property('subscribed', true);
 
         pubsub.publish('testEvent0').publish('testEvent1').publish('testEvent2');
 
-        expect(subscriptionExecutionCount).to.equal(27);
+        _chai.expect(subscriptionExecutionCount).to.equal(27);
 
-        expect(pubsub._bulkUnsubscribe([
+        _chai.expect(pubsub._bulkUnsubscribe([
             'after',
             'before'
         ], 'testEvent1')).to.equal(true);
 
-        expect(testSubscription0).to.have.property('subscribed', true);
-        expect(testSubscription1).to.have.property('subscribed', true);
-        expect(testSubscription2).to.have.property('subscribed', true);
-        expect(testSubscription3).to.have.property('subscribed', true);
-        expect(testSubscription4).to.have.property('subscribed', true);
-        expect(testSubscription5).to.have.property('subscribed', true);
-        expect(testSubscription6).to.have.property('subscribed', true);
-        expect(testSubscription7).to.have.property('subscribed', true);
-        expect(testSubscription8).to.have.property('subscribed', true);
-        expect(testSubscription9).to.have.property('subscribed', false);
-        expect(testSubscription10).to.have.property('subscribed', false);
-        expect(testSubscription11).to.have.property('subscribed', false);
-        expect(testSubscription12).to.have.property('subscribed', true);
-        expect(testSubscription13).to.have.property('subscribed', true);
-        expect(testSubscription14).to.have.property('subscribed', true);
-        expect(testSubscription15).to.have.property('subscribed', false);
-        expect(testSubscription16).to.have.property('subscribed', false);
-        expect(testSubscription17).to.have.property('subscribed', false);
-        expect(testSubscription18).to.have.property('subscribed', true);
-        expect(testSubscription19).to.have.property('subscribed', true);
-        expect(testSubscription20).to.have.property('subscribed', true);
-        expect(testSubscription21).to.have.property('subscribed', true);
-        expect(testSubscription22).to.have.property('subscribed', true);
-        expect(testSubscription23).to.have.property('subscribed', true);
-        expect(testSubscription24).to.have.property('subscribed', true);
-        expect(testSubscription25).to.have.property('subscribed', true);
-        expect(testSubscription26).to.have.property('subscribed', true);
+        _chai.expect(testSubscription0).to.have.property('subscribed', true);
+        _chai.expect(testSubscription1).to.have.property('subscribed', true);
+        _chai.expect(testSubscription2).to.have.property('subscribed', true);
+        _chai.expect(testSubscription3).to.have.property('subscribed', true);
+        _chai.expect(testSubscription4).to.have.property('subscribed', true);
+        _chai.expect(testSubscription5).to.have.property('subscribed', true);
+        _chai.expect(testSubscription6).to.have.property('subscribed', true);
+        _chai.expect(testSubscription7).to.have.property('subscribed', true);
+        _chai.expect(testSubscription8).to.have.property('subscribed', true);
+        _chai.expect(testSubscription9).to.have.property('subscribed', false);
+        _chai.expect(testSubscription10).to.have.property('subscribed', false);
+        _chai.expect(testSubscription11).to.have.property('subscribed', false);
+        _chai.expect(testSubscription12).to.have.property('subscribed', true);
+        _chai.expect(testSubscription13).to.have.property('subscribed', true);
+        _chai.expect(testSubscription14).to.have.property('subscribed', true);
+        _chai.expect(testSubscription15).to.have.property('subscribed', false);
+        _chai.expect(testSubscription16).to.have.property('subscribed', false);
+        _chai.expect(testSubscription17).to.have.property('subscribed', false);
+        _chai.expect(testSubscription18).to.have.property('subscribed', true);
+        _chai.expect(testSubscription19).to.have.property('subscribed', true);
+        _chai.expect(testSubscription20).to.have.property('subscribed', true);
+        _chai.expect(testSubscription21).to.have.property('subscribed', true);
+        _chai.expect(testSubscription22).to.have.property('subscribed', true);
+        _chai.expect(testSubscription23).to.have.property('subscribed', true);
+        _chai.expect(testSubscription24).to.have.property('subscribed', true);
+        _chai.expect(testSubscription25).to.have.property('subscribed', true);
+        _chai.expect(testSubscription26).to.have.property('subscribed', true);
 
         subscriptionExecutionCount = 0;
 
         pubsub.publish('testEvent0').publish('testEvent1').publish('testEvent2');
 
-        expect(subscriptionExecutionCount).to.equal(21);
+        _chai.expect(subscriptionExecutionCount).to.equal(21);
 
-        expect(pubsub._bulkUnsubscribe([
+        _chai.expect(pubsub._bulkUnsubscribe([
             'after',
             'before'
         ], 'testEvent1')).to.equal(false);
     });
 
-    it('should allow protected bulk unsubscription of multiple events at a specific stage', () => {
+    _mocha.it('should allow protected bulk unsubscription of multiple events at a specific stage', () => {
         let subscriptionExecutionCount = 0;
 
         const callbackFunction = () => {
                 subscriptionExecutionCount += 1;
             },
-            pubsub = Pubsub(),
+            pubsub = _Pubsub(),
             testSubscription0 = pubsub.before('testEvent0', callbackFunction),
             testSubscription1 = pubsub.before('testEvent0', callbackFunction),
             testSubscription2 = pubsub.before('testEvent0', callbackFunction),
@@ -3799,90 +3787,90 @@ describe('pubsub', () => {
             testSubscription25 = pubsub.after('testEvent2', callbackFunction),
             testSubscription26 = pubsub.after('testEvent2', callbackFunction);
 
-        expect(testSubscription0).to.have.property('subscribed', true);
-        expect(testSubscription1).to.have.property('subscribed', true);
-        expect(testSubscription2).to.have.property('subscribed', true);
-        expect(testSubscription3).to.have.property('subscribed', true);
-        expect(testSubscription4).to.have.property('subscribed', true);
-        expect(testSubscription5).to.have.property('subscribed', true);
-        expect(testSubscription6).to.have.property('subscribed', true);
-        expect(testSubscription7).to.have.property('subscribed', true);
-        expect(testSubscription8).to.have.property('subscribed', true);
-        expect(testSubscription9).to.have.property('subscribed', true);
-        expect(testSubscription10).to.have.property('subscribed', true);
-        expect(testSubscription11).to.have.property('subscribed', true);
-        expect(testSubscription12).to.have.property('subscribed', true);
-        expect(testSubscription13).to.have.property('subscribed', true);
-        expect(testSubscription14).to.have.property('subscribed', true);
-        expect(testSubscription15).to.have.property('subscribed', true);
-        expect(testSubscription16).to.have.property('subscribed', true);
-        expect(testSubscription17).to.have.property('subscribed', true);
-        expect(testSubscription18).to.have.property('subscribed', true);
-        expect(testSubscription19).to.have.property('subscribed', true);
-        expect(testSubscription20).to.have.property('subscribed', true);
-        expect(testSubscription21).to.have.property('subscribed', true);
-        expect(testSubscription22).to.have.property('subscribed', true);
-        expect(testSubscription23).to.have.property('subscribed', true);
-        expect(testSubscription24).to.have.property('subscribed', true);
-        expect(testSubscription25).to.have.property('subscribed', true);
-        expect(testSubscription26).to.have.property('subscribed', true);
+        _chai.expect(testSubscription0).to.have.property('subscribed', true);
+        _chai.expect(testSubscription1).to.have.property('subscribed', true);
+        _chai.expect(testSubscription2).to.have.property('subscribed', true);
+        _chai.expect(testSubscription3).to.have.property('subscribed', true);
+        _chai.expect(testSubscription4).to.have.property('subscribed', true);
+        _chai.expect(testSubscription5).to.have.property('subscribed', true);
+        _chai.expect(testSubscription6).to.have.property('subscribed', true);
+        _chai.expect(testSubscription7).to.have.property('subscribed', true);
+        _chai.expect(testSubscription8).to.have.property('subscribed', true);
+        _chai.expect(testSubscription9).to.have.property('subscribed', true);
+        _chai.expect(testSubscription10).to.have.property('subscribed', true);
+        _chai.expect(testSubscription11).to.have.property('subscribed', true);
+        _chai.expect(testSubscription12).to.have.property('subscribed', true);
+        _chai.expect(testSubscription13).to.have.property('subscribed', true);
+        _chai.expect(testSubscription14).to.have.property('subscribed', true);
+        _chai.expect(testSubscription15).to.have.property('subscribed', true);
+        _chai.expect(testSubscription16).to.have.property('subscribed', true);
+        _chai.expect(testSubscription17).to.have.property('subscribed', true);
+        _chai.expect(testSubscription18).to.have.property('subscribed', true);
+        _chai.expect(testSubscription19).to.have.property('subscribed', true);
+        _chai.expect(testSubscription20).to.have.property('subscribed', true);
+        _chai.expect(testSubscription21).to.have.property('subscribed', true);
+        _chai.expect(testSubscription22).to.have.property('subscribed', true);
+        _chai.expect(testSubscription23).to.have.property('subscribed', true);
+        _chai.expect(testSubscription24).to.have.property('subscribed', true);
+        _chai.expect(testSubscription25).to.have.property('subscribed', true);
+        _chai.expect(testSubscription26).to.have.property('subscribed', true);
 
         pubsub.publish('testEvent0').publish('testEvent1').publish('testEvent2');
 
-        expect(subscriptionExecutionCount).to.equal(27);
+        _chai.expect(subscriptionExecutionCount).to.equal(27);
 
-        expect(pubsub._bulkUnsubscribe('on', [
+        _chai.expect(pubsub._bulkUnsubscribe('on', [
             'testEvent0',
             'testEvent2'
         ])).to.equal(true);
 
-        expect(testSubscription0).to.have.property('subscribed', true);
-        expect(testSubscription1).to.have.property('subscribed', true);
-        expect(testSubscription2).to.have.property('subscribed', true);
-        expect(testSubscription3).to.have.property('subscribed', false);
-        expect(testSubscription4).to.have.property('subscribed', false);
-        expect(testSubscription5).to.have.property('subscribed', false);
-        expect(testSubscription6).to.have.property('subscribed', true);
-        expect(testSubscription7).to.have.property('subscribed', true);
-        expect(testSubscription8).to.have.property('subscribed', true);
-        expect(testSubscription9).to.have.property('subscribed', true);
-        expect(testSubscription10).to.have.property('subscribed', true);
-        expect(testSubscription11).to.have.property('subscribed', true);
-        expect(testSubscription12).to.have.property('subscribed', true);
-        expect(testSubscription13).to.have.property('subscribed', true);
-        expect(testSubscription14).to.have.property('subscribed', true);
-        expect(testSubscription15).to.have.property('subscribed', true);
-        expect(testSubscription16).to.have.property('subscribed', true);
-        expect(testSubscription17).to.have.property('subscribed', true);
-        expect(testSubscription18).to.have.property('subscribed', true);
-        expect(testSubscription19).to.have.property('subscribed', true);
-        expect(testSubscription20).to.have.property('subscribed', true);
-        expect(testSubscription21).to.have.property('subscribed', false);
-        expect(testSubscription22).to.have.property('subscribed', false);
-        expect(testSubscription23).to.have.property('subscribed', false);
-        expect(testSubscription24).to.have.property('subscribed', true);
-        expect(testSubscription25).to.have.property('subscribed', true);
-        expect(testSubscription26).to.have.property('subscribed', true);
+        _chai.expect(testSubscription0).to.have.property('subscribed', true);
+        _chai.expect(testSubscription1).to.have.property('subscribed', true);
+        _chai.expect(testSubscription2).to.have.property('subscribed', true);
+        _chai.expect(testSubscription3).to.have.property('subscribed', false);
+        _chai.expect(testSubscription4).to.have.property('subscribed', false);
+        _chai.expect(testSubscription5).to.have.property('subscribed', false);
+        _chai.expect(testSubscription6).to.have.property('subscribed', true);
+        _chai.expect(testSubscription7).to.have.property('subscribed', true);
+        _chai.expect(testSubscription8).to.have.property('subscribed', true);
+        _chai.expect(testSubscription9).to.have.property('subscribed', true);
+        _chai.expect(testSubscription10).to.have.property('subscribed', true);
+        _chai.expect(testSubscription11).to.have.property('subscribed', true);
+        _chai.expect(testSubscription12).to.have.property('subscribed', true);
+        _chai.expect(testSubscription13).to.have.property('subscribed', true);
+        _chai.expect(testSubscription14).to.have.property('subscribed', true);
+        _chai.expect(testSubscription15).to.have.property('subscribed', true);
+        _chai.expect(testSubscription16).to.have.property('subscribed', true);
+        _chai.expect(testSubscription17).to.have.property('subscribed', true);
+        _chai.expect(testSubscription18).to.have.property('subscribed', true);
+        _chai.expect(testSubscription19).to.have.property('subscribed', true);
+        _chai.expect(testSubscription20).to.have.property('subscribed', true);
+        _chai.expect(testSubscription21).to.have.property('subscribed', false);
+        _chai.expect(testSubscription22).to.have.property('subscribed', false);
+        _chai.expect(testSubscription23).to.have.property('subscribed', false);
+        _chai.expect(testSubscription24).to.have.property('subscribed', true);
+        _chai.expect(testSubscription25).to.have.property('subscribed', true);
+        _chai.expect(testSubscription26).to.have.property('subscribed', true);
 
         subscriptionExecutionCount = 0;
 
         pubsub.publish('testEvent0').publish('testEvent1').publish('testEvent2');
 
-        expect(subscriptionExecutionCount).to.equal(21);
+        _chai.expect(subscriptionExecutionCount).to.equal(21);
 
-        expect(pubsub._bulkUnsubscribe('on', [
+        _chai.expect(pubsub._bulkUnsubscribe('on', [
             'testEvent0',
             'testEvent2'
         ])).to.equal(false);
     });
 
-    it('should allow protected bulk unsubscription of multiple events at multiple stages', () => {
+    _mocha.it('should allow protected bulk unsubscription of multiple events at multiple stages', () => {
         let subscriptionExecutionCount = 0;
 
         const callbackFunction = () => {
                 subscriptionExecutionCount += 1;
             },
-            pubsub = Pubsub(),
+            pubsub = _Pubsub(),
             testSubscription0 = pubsub.before('testEvent0', callbackFunction),
             testSubscription1 = pubsub.before('testEvent0', callbackFunction),
             testSubscription2 = pubsub.before('testEvent0', callbackFunction),
@@ -3911,39 +3899,39 @@ describe('pubsub', () => {
             testSubscription25 = pubsub.after('testEvent2', callbackFunction),
             testSubscription26 = pubsub.after('testEvent2', callbackFunction);
 
-        expect(testSubscription0).to.have.property('subscribed', true);
-        expect(testSubscription1).to.have.property('subscribed', true);
-        expect(testSubscription2).to.have.property('subscribed', true);
-        expect(testSubscription3).to.have.property('subscribed', true);
-        expect(testSubscription4).to.have.property('subscribed', true);
-        expect(testSubscription5).to.have.property('subscribed', true);
-        expect(testSubscription6).to.have.property('subscribed', true);
-        expect(testSubscription7).to.have.property('subscribed', true);
-        expect(testSubscription8).to.have.property('subscribed', true);
-        expect(testSubscription9).to.have.property('subscribed', true);
-        expect(testSubscription10).to.have.property('subscribed', true);
-        expect(testSubscription11).to.have.property('subscribed', true);
-        expect(testSubscription12).to.have.property('subscribed', true);
-        expect(testSubscription13).to.have.property('subscribed', true);
-        expect(testSubscription14).to.have.property('subscribed', true);
-        expect(testSubscription15).to.have.property('subscribed', true);
-        expect(testSubscription16).to.have.property('subscribed', true);
-        expect(testSubscription17).to.have.property('subscribed', true);
-        expect(testSubscription18).to.have.property('subscribed', true);
-        expect(testSubscription19).to.have.property('subscribed', true);
-        expect(testSubscription20).to.have.property('subscribed', true);
-        expect(testSubscription21).to.have.property('subscribed', true);
-        expect(testSubscription22).to.have.property('subscribed', true);
-        expect(testSubscription23).to.have.property('subscribed', true);
-        expect(testSubscription24).to.have.property('subscribed', true);
-        expect(testSubscription25).to.have.property('subscribed', true);
-        expect(testSubscription26).to.have.property('subscribed', true);
+        _chai.expect(testSubscription0).to.have.property('subscribed', true);
+        _chai.expect(testSubscription1).to.have.property('subscribed', true);
+        _chai.expect(testSubscription2).to.have.property('subscribed', true);
+        _chai.expect(testSubscription3).to.have.property('subscribed', true);
+        _chai.expect(testSubscription4).to.have.property('subscribed', true);
+        _chai.expect(testSubscription5).to.have.property('subscribed', true);
+        _chai.expect(testSubscription6).to.have.property('subscribed', true);
+        _chai.expect(testSubscription7).to.have.property('subscribed', true);
+        _chai.expect(testSubscription8).to.have.property('subscribed', true);
+        _chai.expect(testSubscription9).to.have.property('subscribed', true);
+        _chai.expect(testSubscription10).to.have.property('subscribed', true);
+        _chai.expect(testSubscription11).to.have.property('subscribed', true);
+        _chai.expect(testSubscription12).to.have.property('subscribed', true);
+        _chai.expect(testSubscription13).to.have.property('subscribed', true);
+        _chai.expect(testSubscription14).to.have.property('subscribed', true);
+        _chai.expect(testSubscription15).to.have.property('subscribed', true);
+        _chai.expect(testSubscription16).to.have.property('subscribed', true);
+        _chai.expect(testSubscription17).to.have.property('subscribed', true);
+        _chai.expect(testSubscription18).to.have.property('subscribed', true);
+        _chai.expect(testSubscription19).to.have.property('subscribed', true);
+        _chai.expect(testSubscription20).to.have.property('subscribed', true);
+        _chai.expect(testSubscription21).to.have.property('subscribed', true);
+        _chai.expect(testSubscription22).to.have.property('subscribed', true);
+        _chai.expect(testSubscription23).to.have.property('subscribed', true);
+        _chai.expect(testSubscription24).to.have.property('subscribed', true);
+        _chai.expect(testSubscription25).to.have.property('subscribed', true);
+        _chai.expect(testSubscription26).to.have.property('subscribed', true);
 
         pubsub.publish('testEvent0').publish('testEvent1').publish('testEvent2');
 
-        expect(subscriptionExecutionCount).to.equal(27);
+        _chai.expect(subscriptionExecutionCount).to.equal(27);
 
-        expect(pubsub._bulkUnsubscribe([
+        _chai.expect(pubsub._bulkUnsubscribe([
             'before',
             'on'
         ], [
@@ -3951,41 +3939,41 @@ describe('pubsub', () => {
             'testEvent2'
         ])).to.equal(true);
 
-        expect(testSubscription0).to.have.property('subscribed', false);
-        expect(testSubscription1).to.have.property('subscribed', false);
-        expect(testSubscription2).to.have.property('subscribed', false);
-        expect(testSubscription3).to.have.property('subscribed', false);
-        expect(testSubscription4).to.have.property('subscribed', false);
-        expect(testSubscription5).to.have.property('subscribed', false);
-        expect(testSubscription6).to.have.property('subscribed', true);
-        expect(testSubscription7).to.have.property('subscribed', true);
-        expect(testSubscription8).to.have.property('subscribed', true);
-        expect(testSubscription9).to.have.property('subscribed', true);
-        expect(testSubscription10).to.have.property('subscribed', true);
-        expect(testSubscription11).to.have.property('subscribed', true);
-        expect(testSubscription12).to.have.property('subscribed', true);
-        expect(testSubscription13).to.have.property('subscribed', true);
-        expect(testSubscription14).to.have.property('subscribed', true);
-        expect(testSubscription15).to.have.property('subscribed', true);
-        expect(testSubscription16).to.have.property('subscribed', true);
-        expect(testSubscription17).to.have.property('subscribed', true);
-        expect(testSubscription18).to.have.property('subscribed', false);
-        expect(testSubscription19).to.have.property('subscribed', false);
-        expect(testSubscription20).to.have.property('subscribed', false);
-        expect(testSubscription21).to.have.property('subscribed', false);
-        expect(testSubscription22).to.have.property('subscribed', false);
-        expect(testSubscription23).to.have.property('subscribed', false);
-        expect(testSubscription24).to.have.property('subscribed', true);
-        expect(testSubscription25).to.have.property('subscribed', true);
-        expect(testSubscription26).to.have.property('subscribed', true);
+        _chai.expect(testSubscription0).to.have.property('subscribed', false);
+        _chai.expect(testSubscription1).to.have.property('subscribed', false);
+        _chai.expect(testSubscription2).to.have.property('subscribed', false);
+        _chai.expect(testSubscription3).to.have.property('subscribed', false);
+        _chai.expect(testSubscription4).to.have.property('subscribed', false);
+        _chai.expect(testSubscription5).to.have.property('subscribed', false);
+        _chai.expect(testSubscription6).to.have.property('subscribed', true);
+        _chai.expect(testSubscription7).to.have.property('subscribed', true);
+        _chai.expect(testSubscription8).to.have.property('subscribed', true);
+        _chai.expect(testSubscription9).to.have.property('subscribed', true);
+        _chai.expect(testSubscription10).to.have.property('subscribed', true);
+        _chai.expect(testSubscription11).to.have.property('subscribed', true);
+        _chai.expect(testSubscription12).to.have.property('subscribed', true);
+        _chai.expect(testSubscription13).to.have.property('subscribed', true);
+        _chai.expect(testSubscription14).to.have.property('subscribed', true);
+        _chai.expect(testSubscription15).to.have.property('subscribed', true);
+        _chai.expect(testSubscription16).to.have.property('subscribed', true);
+        _chai.expect(testSubscription17).to.have.property('subscribed', true);
+        _chai.expect(testSubscription18).to.have.property('subscribed', false);
+        _chai.expect(testSubscription19).to.have.property('subscribed', false);
+        _chai.expect(testSubscription20).to.have.property('subscribed', false);
+        _chai.expect(testSubscription21).to.have.property('subscribed', false);
+        _chai.expect(testSubscription22).to.have.property('subscribed', false);
+        _chai.expect(testSubscription23).to.have.property('subscribed', false);
+        _chai.expect(testSubscription24).to.have.property('subscribed', true);
+        _chai.expect(testSubscription25).to.have.property('subscribed', true);
+        _chai.expect(testSubscription26).to.have.property('subscribed', true);
 
         subscriptionExecutionCount = 0;
 
         pubsub.publish('testEvent0').publish('testEvent1').publish('testEvent2');
 
-        expect(subscriptionExecutionCount).to.equal(15);
+        _chai.expect(subscriptionExecutionCount).to.equal(15);
 
-        expect(pubsub._bulkUnsubscribe([
+        _chai.expect(pubsub._bulkUnsubscribe([
             'before',
             'on'
         ], [
@@ -3994,13 +3982,13 @@ describe('pubsub', () => {
         ])).to.equal(false);
     });
 
-    it('should allow protected bulk unsubscription with specific configuration', () => {
+    _mocha.it('should allow protected bulk unsubscription with specific configuration', () => {
         let subscriptionExecutionCount = 0;
 
         const callbackFunction = () => {
                 subscriptionExecutionCount += 1;
             },
-            pubsub = Pubsub(),
+            pubsub = _Pubsub(),
             testSubscription0 = pubsub.before('testEvent0', callbackFunction),
             testSubscription1 = pubsub.before('testEvent0', callbackFunction),
             testSubscription2 = pubsub.before('testEvent0', callbackFunction),
@@ -4029,39 +4017,39 @@ describe('pubsub', () => {
             testSubscription25 = pubsub.after('testEvent2', callbackFunction),
             testSubscription26 = pubsub.after('testEvent2', callbackFunction);
 
-        expect(testSubscription0).to.have.property('subscribed', true);
-        expect(testSubscription1).to.have.property('subscribed', true);
-        expect(testSubscription2).to.have.property('subscribed', true);
-        expect(testSubscription3).to.have.property('subscribed', true);
-        expect(testSubscription4).to.have.property('subscribed', true);
-        expect(testSubscription5).to.have.property('subscribed', true);
-        expect(testSubscription6).to.have.property('subscribed', true);
-        expect(testSubscription7).to.have.property('subscribed', true);
-        expect(testSubscription8).to.have.property('subscribed', true);
-        expect(testSubscription9).to.have.property('subscribed', true);
-        expect(testSubscription10).to.have.property('subscribed', true);
-        expect(testSubscription11).to.have.property('subscribed', true);
-        expect(testSubscription12).to.have.property('subscribed', true);
-        expect(testSubscription13).to.have.property('subscribed', true);
-        expect(testSubscription14).to.have.property('subscribed', true);
-        expect(testSubscription15).to.have.property('subscribed', true);
-        expect(testSubscription16).to.have.property('subscribed', true);
-        expect(testSubscription17).to.have.property('subscribed', true);
-        expect(testSubscription18).to.have.property('subscribed', true);
-        expect(testSubscription19).to.have.property('subscribed', true);
-        expect(testSubscription20).to.have.property('subscribed', true);
-        expect(testSubscription21).to.have.property('subscribed', true);
-        expect(testSubscription22).to.have.property('subscribed', true);
-        expect(testSubscription23).to.have.property('subscribed', true);
-        expect(testSubscription24).to.have.property('subscribed', true);
-        expect(testSubscription25).to.have.property('subscribed', true);
-        expect(testSubscription26).to.have.property('subscribed', true);
+        _chai.expect(testSubscription0).to.have.property('subscribed', true);
+        _chai.expect(testSubscription1).to.have.property('subscribed', true);
+        _chai.expect(testSubscription2).to.have.property('subscribed', true);
+        _chai.expect(testSubscription3).to.have.property('subscribed', true);
+        _chai.expect(testSubscription4).to.have.property('subscribed', true);
+        _chai.expect(testSubscription5).to.have.property('subscribed', true);
+        _chai.expect(testSubscription6).to.have.property('subscribed', true);
+        _chai.expect(testSubscription7).to.have.property('subscribed', true);
+        _chai.expect(testSubscription8).to.have.property('subscribed', true);
+        _chai.expect(testSubscription9).to.have.property('subscribed', true);
+        _chai.expect(testSubscription10).to.have.property('subscribed', true);
+        _chai.expect(testSubscription11).to.have.property('subscribed', true);
+        _chai.expect(testSubscription12).to.have.property('subscribed', true);
+        _chai.expect(testSubscription13).to.have.property('subscribed', true);
+        _chai.expect(testSubscription14).to.have.property('subscribed', true);
+        _chai.expect(testSubscription15).to.have.property('subscribed', true);
+        _chai.expect(testSubscription16).to.have.property('subscribed', true);
+        _chai.expect(testSubscription17).to.have.property('subscribed', true);
+        _chai.expect(testSubscription18).to.have.property('subscribed', true);
+        _chai.expect(testSubscription19).to.have.property('subscribed', true);
+        _chai.expect(testSubscription20).to.have.property('subscribed', true);
+        _chai.expect(testSubscription21).to.have.property('subscribed', true);
+        _chai.expect(testSubscription22).to.have.property('subscribed', true);
+        _chai.expect(testSubscription23).to.have.property('subscribed', true);
+        _chai.expect(testSubscription24).to.have.property('subscribed', true);
+        _chai.expect(testSubscription25).to.have.property('subscribed', true);
+        _chai.expect(testSubscription26).to.have.property('subscribed', true);
 
         pubsub.publish('testEvent0').publish('testEvent1').publish('testEvent2');
 
-        expect(subscriptionExecutionCount).to.equal(27);
+        _chai.expect(subscriptionExecutionCount).to.equal(27);
 
-        expect(pubsub._bulkUnsubscribe([
+        _chai.expect(pubsub._bulkUnsubscribe([
             {
                 eventName: 'testEvent0',
                 stageName: 'before'
@@ -4073,41 +4061,41 @@ describe('pubsub', () => {
             }
         ])).to.equal(true);
 
-        expect(testSubscription0).to.have.property('subscribed', false);
-        expect(testSubscription1).to.have.property('subscribed', false);
-        expect(testSubscription2).to.have.property('subscribed', false);
-        expect(testSubscription3).to.have.property('subscribed', true);
-        expect(testSubscription4).to.have.property('subscribed', true);
-        expect(testSubscription5).to.have.property('subscribed', true);
-        expect(testSubscription6).to.have.property('subscribed', true);
-        expect(testSubscription7).to.have.property('subscribed', true);
-        expect(testSubscription8).to.have.property('subscribed', true);
-        expect(testSubscription9).to.have.property('subscribed', false);
-        expect(testSubscription10).to.have.property('subscribed', false);
-        expect(testSubscription11).to.have.property('subscribed', false);
-        expect(testSubscription12).to.have.property('subscribed', false);
-        expect(testSubscription13).to.have.property('subscribed', false);
-        expect(testSubscription14).to.have.property('subscribed', false);
-        expect(testSubscription15).to.have.property('subscribed', false);
-        expect(testSubscription16).to.have.property('subscribed', false);
-        expect(testSubscription17).to.have.property('subscribed', false);
-        expect(testSubscription18).to.have.property('subscribed', true);
-        expect(testSubscription19).to.have.property('subscribed', true);
-        expect(testSubscription20).to.have.property('subscribed', true);
-        expect(testSubscription21).to.have.property('subscribed', true);
-        expect(testSubscription22).to.have.property('subscribed', true);
-        expect(testSubscription23).to.have.property('subscribed', true);
-        expect(testSubscription24).to.have.property('subscribed', false);
-        expect(testSubscription25).to.have.property('subscribed', false);
-        expect(testSubscription26).to.have.property('subscribed', false);
+        _chai.expect(testSubscription0).to.have.property('subscribed', false);
+        _chai.expect(testSubscription1).to.have.property('subscribed', false);
+        _chai.expect(testSubscription2).to.have.property('subscribed', false);
+        _chai.expect(testSubscription3).to.have.property('subscribed', true);
+        _chai.expect(testSubscription4).to.have.property('subscribed', true);
+        _chai.expect(testSubscription5).to.have.property('subscribed', true);
+        _chai.expect(testSubscription6).to.have.property('subscribed', true);
+        _chai.expect(testSubscription7).to.have.property('subscribed', true);
+        _chai.expect(testSubscription8).to.have.property('subscribed', true);
+        _chai.expect(testSubscription9).to.have.property('subscribed', false);
+        _chai.expect(testSubscription10).to.have.property('subscribed', false);
+        _chai.expect(testSubscription11).to.have.property('subscribed', false);
+        _chai.expect(testSubscription12).to.have.property('subscribed', false);
+        _chai.expect(testSubscription13).to.have.property('subscribed', false);
+        _chai.expect(testSubscription14).to.have.property('subscribed', false);
+        _chai.expect(testSubscription15).to.have.property('subscribed', false);
+        _chai.expect(testSubscription16).to.have.property('subscribed', false);
+        _chai.expect(testSubscription17).to.have.property('subscribed', false);
+        _chai.expect(testSubscription18).to.have.property('subscribed', true);
+        _chai.expect(testSubscription19).to.have.property('subscribed', true);
+        _chai.expect(testSubscription20).to.have.property('subscribed', true);
+        _chai.expect(testSubscription21).to.have.property('subscribed', true);
+        _chai.expect(testSubscription22).to.have.property('subscribed', true);
+        _chai.expect(testSubscription23).to.have.property('subscribed', true);
+        _chai.expect(testSubscription24).to.have.property('subscribed', false);
+        _chai.expect(testSubscription25).to.have.property('subscribed', false);
+        _chai.expect(testSubscription26).to.have.property('subscribed', false);
 
         subscriptionExecutionCount = 0;
 
         pubsub.publish('testEvent0').publish('testEvent1').publish('testEvent2');
 
-        expect(subscriptionExecutionCount).to.equal(12);
+        _chai.expect(subscriptionExecutionCount).to.equal(12);
 
-        expect(pubsub._bulkUnsubscribe([
+        _chai.expect(pubsub._bulkUnsubscribe([
             {
                 eventName: 'testEvent0',
                 stageName: 'before'
@@ -4120,20 +4108,20 @@ describe('pubsub', () => {
         ])).to.equal(false);
     });
 
-    it('should handle protected bulk unsubscription of undefined events', () => {
-        const pubsub = Pubsub();
+    _mocha.it('should handle protected bulk unsubscription of undefined events', () => {
+        const pubsub = _Pubsub();
 
-        expect(pubsub._bulkUnsubscribe('unknownEvent')).to.equal(false);
-        expect(pubsub._bulkUnsubscribe('on', 'unknownEvent')).to.equal(false);
+        _chai.expect(pubsub._bulkUnsubscribe('unknownEvent')).to.equal(false);
+        _chai.expect(pubsub._bulkUnsubscribe('on', 'unknownEvent')).to.equal(false);
     });
 
-    it('should not allow duplicate subscriptions when allowDuplicateSubscription is false', () => {
+    _mocha.it('should not allow duplicate subscriptions when allowDuplicateSubscription is false', () => {
         let subscriptionExecutionCount = 0;
 
         const callbackFunction = () => {
                 subscriptionExecutionCount += 1;
             },
-            pubsub = Pubsub();
+            pubsub = _Pubsub();
 
         pubsub.defineEvent('testEvent0', {
             allowDuplicateSubscription: false
@@ -4151,17 +4139,17 @@ describe('pubsub', () => {
 
         pubsub.publish('testEvent0');
 
-        expect(subscriptionExecutionCount).to.equal(2);
+        _chai.expect(subscriptionExecutionCount).to.equal(2);
 
         subscriptionExecutionCount = 0;
 
         pubsub.publish('testEvent1');
 
-        expect(subscriptionExecutionCount).to.equal(4);
+        _chai.expect(subscriptionExecutionCount).to.equal(4);
     });
 
-    it('should not allow public publish when allowPublicPublish is false', () => {
-        const pubsub = Pubsub(),
+    _mocha.it('should not allow public publish when allowPublicPublish is false', () => {
+        const pubsub = _Pubsub(),
             subscriptionsExecuted = [];
 
         pubsub.defineEvent('testEvent', {
@@ -4182,19 +4170,19 @@ describe('pubsub', () => {
 
         pubsub.publish('testEvent');
 
-        expect(subscriptionsExecuted).to.deep.equal([]);
+        _chai.expect(subscriptionsExecuted).to.deep.equal([]);
 
         pubsub._publish('testEvent');
 
-        expect(subscriptionsExecuted).to.deep.equal([
+        _chai.expect(subscriptionsExecuted).to.deep.equal([
             'before',
             'on',
             'after'
         ]);
     });
 
-    it('should not allow public subscribe when allowPublicSubscription is false', () => {
-        const pubsub = Pubsub(),
+    _mocha.it('should not allow public subscribe when allowPublicSubscription is false', () => {
+        const pubsub = _Pubsub(),
             subscriptionsExecuted = [];
 
         pubsub.defineEvent('testEvent', {
@@ -4215,7 +4203,7 @@ describe('pubsub', () => {
 
         pubsub.publish('testEvent');
 
-        expect(subscriptionsExecuted).to.deep.equal([]);
+        _chai.expect(subscriptionsExecuted).to.deep.equal([]);
 
         pubsub._after('testEvent', () => {
             subscriptionsExecuted.push('protected after');
@@ -4231,15 +4219,15 @@ describe('pubsub', () => {
 
         pubsub.publish('testEvent');
 
-        expect(subscriptionsExecuted).to.deep.equal([
+        _chai.expect(subscriptionsExecuted).to.deep.equal([
             'protected before',
             'protected on',
             'protected after'
         ]);
     });
 
-    it('should not publish a completeOnce event after it has already completed', () => {
-        const pubsub = Pubsub(),
+    _mocha.it('should not publish a completeOnce event after it has already completed', () => {
+        const pubsub = _Pubsub(),
             subscriptionsExecuted = [];
 
         pubsub.defineEvent('testEvent', {
@@ -4261,14 +4249,14 @@ describe('pubsub', () => {
 
         pubsub.publish('testEvent');
 
-        expect(subscriptionsExecuted).to.deep.equal([
+        _chai.expect(subscriptionsExecuted).to.deep.equal([
             'before',
             'on'
         ]);
 
         pubsub.publish('testEvent');
 
-        expect(subscriptionsExecuted).to.deep.equal([
+        _chai.expect(subscriptionsExecuted).to.deep.equal([
             'before',
             'on',
             'on',
@@ -4277,7 +4265,7 @@ describe('pubsub', () => {
 
         pubsub.publish('testEvent');
 
-        expect(subscriptionsExecuted).to.deep.equal([
+        _chai.expect(subscriptionsExecuted).to.deep.equal([
             'before',
             'on',
             'on',
@@ -4285,8 +4273,8 @@ describe('pubsub', () => {
         ]);
     });
 
-    it('should not complete a completeOnce event after it has already completed', () => {
-        const pubsub = Pubsub(),
+    _mocha.it('should not complete a completeOnce event after it has already completed', () => {
+        const pubsub = _Pubsub(),
             subscriptionsExecuted = [];
 
         pubsub.defineEvent('testEvent', {
@@ -4308,7 +4296,7 @@ describe('pubsub', () => {
 
         pubsub.publish('testEvent');
 
-        expect(subscriptionsExecuted).to.deep.equal([
+        _chai.expect(subscriptionsExecuted).to.deep.equal([
             'before',
             'on',
             'after',
@@ -4316,17 +4304,17 @@ describe('pubsub', () => {
         ]);
     });
 
-    it('should not stop dispatch when dispatchStoppable is false', () => {
-        const distributor0 = Pubsub(),
-            distributor0a = Pubsub(),
-            distributor0b = Pubsub(),
-            distributor1 = Pubsub(),
-            distributor1a = Pubsub(),
-            distributor1b = Pubsub(),
-            distributor2 = Pubsub(),
-            distributor2a = Pubsub(),
-            distributor2b = Pubsub(),
-            publisher = Pubsub(),
+    _mocha.it('should not stop dispatch when dispatchStoppable is false', () => {
+        const distributor0 = _Pubsub(),
+            distributor0a = _Pubsub(),
+            distributor0b = _Pubsub(),
+            distributor1 = _Pubsub(),
+            distributor1a = _Pubsub(),
+            distributor1b = _Pubsub(),
+            distributor2 = _Pubsub(),
+            distributor2a = _Pubsub(),
+            distributor2b = _Pubsub(),
+            publisher = _Pubsub(),
             subscriptionsExecuted = [];
 
         publisher.defineEvent('testEvent', {
@@ -4386,65 +4374,65 @@ describe('pubsub', () => {
             pubsub
         ]) => {
             pubsub.after('testEvent', event => {
-                expect(event).to.have.property('distributor', pubsub);
-                expect(event).to.have.property('publisher', publisher);
+                _chai.expect(event).to.have.property('distributor', pubsub);
+                _chai.expect(event).to.have.property('publisher', publisher);
                 subscriptionsExecuted.push(`${name} after 0`);
             });
 
             pubsub.after('testEvent', event => {
-                expect(event).to.have.property('distributor', pubsub);
-                expect(event).to.have.property('publisher', publisher);
+                _chai.expect(event).to.have.property('distributor', pubsub);
+                _chai.expect(event).to.have.property('publisher', publisher);
                 subscriptionsExecuted.push(`${name} after 1`);
             });
 
             pubsub.after('testEvent', event => {
-                expect(event).to.have.property('distributor', pubsub);
-                expect(event).to.have.property('publisher', publisher);
+                _chai.expect(event).to.have.property('distributor', pubsub);
+                _chai.expect(event).to.have.property('publisher', publisher);
                 subscriptionsExecuted.push(`${name} after 2`);
             });
 
             pubsub.before('testEvent', event => {
-                expect(event).to.have.property('distributor', pubsub);
-                expect(event).to.have.property('publisher', publisher);
+                _chai.expect(event).to.have.property('distributor', pubsub);
+                _chai.expect(event).to.have.property('publisher', publisher);
                 event.stopDispatch();
-                expect(event.dispatchStopped).not.to.be.true;
+                _chai.expect(event.dispatchStopped).not.to.be.true;
                 subscriptionsExecuted.push(`${name} before 0`);
             });
 
             pubsub.before('testEvent', event => {
-                expect(event).to.have.property('distributor', pubsub);
-                expect(event).to.have.property('publisher', publisher);
+                _chai.expect(event).to.have.property('distributor', pubsub);
+                _chai.expect(event).to.have.property('publisher', publisher);
                 subscriptionsExecuted.push(`${name} before 1`);
             });
 
             pubsub.before('testEvent', event => {
-                expect(event).to.have.property('distributor', pubsub);
-                expect(event).to.have.property('publisher', publisher);
+                _chai.expect(event).to.have.property('distributor', pubsub);
+                _chai.expect(event).to.have.property('publisher', publisher);
                 subscriptionsExecuted.push(`${name} before 2`);
             });
 
             pubsub.on('testEvent', event => {
-                expect(event).to.have.property('distributor', pubsub);
-                expect(event).to.have.property('publisher', publisher);
+                _chai.expect(event).to.have.property('distributor', pubsub);
+                _chai.expect(event).to.have.property('publisher', publisher);
                 subscriptionsExecuted.push(`${name} on 0`);
             });
 
             pubsub.on('testEvent', event => {
-                expect(event).to.have.property('distributor', pubsub);
-                expect(event).to.have.property('publisher', publisher);
+                _chai.expect(event).to.have.property('distributor', pubsub);
+                _chai.expect(event).to.have.property('publisher', publisher);
                 subscriptionsExecuted.push(`${name} on 1`);
             });
 
             pubsub.on('testEvent', event => {
-                expect(event).to.have.property('distributor', pubsub);
-                expect(event).to.have.property('publisher', publisher);
+                _chai.expect(event).to.have.property('distributor', pubsub);
+                _chai.expect(event).to.have.property('publisher', publisher);
                 subscriptionsExecuted.push(`${name} on 2`);
             });
         });
 
         publisher.publish('testEvent');
 
-        expect(subscriptionsExecuted).to.deep.equal([
+        _chai.expect(subscriptionsExecuted).to.deep.equal([
             'publisher before 0',
             'publisher before 1',
             'publisher before 2',
@@ -4538,17 +4526,17 @@ describe('pubsub', () => {
         ]);
     });
 
-    it('should not distribute events to distributors when distributable is false', () => {
-        const distributor0 = Pubsub(),
-            distributor0a = Pubsub(),
-            distributor0b = Pubsub(),
-            distributor1 = Pubsub(),
-            distributor1a = Pubsub(),
-            distributor1b = Pubsub(),
-            distributor2 = Pubsub(),
-            distributor2a = Pubsub(),
-            distributor2b = Pubsub(),
-            publisher = Pubsub(),
+    _mocha.it('should not distribute events to distributors when distributable is false', () => {
+        const distributor0 = _Pubsub(),
+            distributor0a = _Pubsub(),
+            distributor0b = _Pubsub(),
+            distributor1 = _Pubsub(),
+            distributor1a = _Pubsub(),
+            distributor1b = _Pubsub(),
+            distributor2 = _Pubsub(),
+            distributor2a = _Pubsub(),
+            distributor2b = _Pubsub(),
+            publisher = _Pubsub(),
             subscriptionsExecuted = [];
 
         publisher.defineEvent('testEvent', {
@@ -4608,63 +4596,63 @@ describe('pubsub', () => {
             pubsub
         ]) => {
             pubsub.after('testEvent', event => {
-                expect(event).to.have.property('distributor', pubsub);
-                expect(event).to.have.property('publisher', publisher);
+                _chai.expect(event).to.have.property('distributor', pubsub);
+                _chai.expect(event).to.have.property('publisher', publisher);
                 subscriptionsExecuted.push(`${name} after 0`);
             });
 
             pubsub.after('testEvent', event => {
-                expect(event).to.have.property('distributor', pubsub);
-                expect(event).to.have.property('publisher', publisher);
+                _chai.expect(event).to.have.property('distributor', pubsub);
+                _chai.expect(event).to.have.property('publisher', publisher);
                 subscriptionsExecuted.push(`${name} after 1`);
             });
 
             pubsub.after('testEvent', event => {
-                expect(event).to.have.property('distributor', pubsub);
-                expect(event).to.have.property('publisher', publisher);
+                _chai.expect(event).to.have.property('distributor', pubsub);
+                _chai.expect(event).to.have.property('publisher', publisher);
                 subscriptionsExecuted.push(`${name} after 2`);
             });
 
             pubsub.before('testEvent', event => {
-                expect(event).to.have.property('distributor', pubsub);
-                expect(event).to.have.property('publisher', publisher);
+                _chai.expect(event).to.have.property('distributor', pubsub);
+                _chai.expect(event).to.have.property('publisher', publisher);
                 subscriptionsExecuted.push(`${name} before 0`);
             });
 
             pubsub.before('testEvent', event => {
-                expect(event).to.have.property('distributor', pubsub);
-                expect(event).to.have.property('publisher', publisher);
+                _chai.expect(event).to.have.property('distributor', pubsub);
+                _chai.expect(event).to.have.property('publisher', publisher);
                 subscriptionsExecuted.push(`${name} before 1`);
             });
 
             pubsub.before('testEvent', event => {
-                expect(event).to.have.property('distributor', pubsub);
-                expect(event).to.have.property('publisher', publisher);
+                _chai.expect(event).to.have.property('distributor', pubsub);
+                _chai.expect(event).to.have.property('publisher', publisher);
                 subscriptionsExecuted.push(`${name} before 2`);
             });
 
             pubsub.on('testEvent', event => {
-                expect(event).to.have.property('distributor', pubsub);
-                expect(event).to.have.property('publisher', publisher);
+                _chai.expect(event).to.have.property('distributor', pubsub);
+                _chai.expect(event).to.have.property('publisher', publisher);
                 subscriptionsExecuted.push(`${name} on 0`);
             });
 
             pubsub.on('testEvent', event => {
-                expect(event).to.have.property('distributor', pubsub);
-                expect(event).to.have.property('publisher', publisher);
+                _chai.expect(event).to.have.property('distributor', pubsub);
+                _chai.expect(event).to.have.property('publisher', publisher);
                 subscriptionsExecuted.push(`${name} on 1`);
             });
 
             pubsub.on('testEvent', event => {
-                expect(event).to.have.property('distributor', pubsub);
-                expect(event).to.have.property('publisher', publisher);
+                _chai.expect(event).to.have.property('distributor', pubsub);
+                _chai.expect(event).to.have.property('publisher', publisher);
                 subscriptionsExecuted.push(`${name} on 2`);
             });
         });
 
         publisher.publish('testEvent');
 
-        expect(subscriptionsExecuted).to.deep.equal([
+        _chai.expect(subscriptionsExecuted).to.deep.equal([
             'publisher before 0',
             'publisher before 1',
             'publisher before 2',
@@ -4677,17 +4665,17 @@ describe('pubsub', () => {
         ]);
     });
 
-    it('should not stop distribution when distributionStoppable is false', () => {
-        const distributor0 = Pubsub(),
-            distributor0a = Pubsub(),
-            distributor0b = Pubsub(),
-            distributor1 = Pubsub(),
-            distributor1a = Pubsub(),
-            distributor1b = Pubsub(),
-            distributor2 = Pubsub(),
-            distributor2a = Pubsub(),
-            distributor2b = Pubsub(),
-            publisher = Pubsub(),
+    _mocha.it('should not stop distribution when distributionStoppable is false', () => {
+        const distributor0 = _Pubsub(),
+            distributor0a = _Pubsub(),
+            distributor0b = _Pubsub(),
+            distributor1 = _Pubsub(),
+            distributor1a = _Pubsub(),
+            distributor1b = _Pubsub(),
+            distributor2 = _Pubsub(),
+            distributor2a = _Pubsub(),
+            distributor2b = _Pubsub(),
+            publisher = _Pubsub(),
             subscriptionsExecuted = [];
 
         publisher.defineEvent('testEvent', {
@@ -4747,65 +4735,65 @@ describe('pubsub', () => {
             pubsub
         ]) => {
             pubsub.after('testEvent', event => {
-                expect(event).to.have.property('distributor', pubsub);
-                expect(event).to.have.property('publisher', publisher);
+                _chai.expect(event).to.have.property('distributor', pubsub);
+                _chai.expect(event).to.have.property('publisher', publisher);
                 subscriptionsExecuted.push(`${name} after 0`);
             });
 
             pubsub.after('testEvent', event => {
-                expect(event).to.have.property('distributor', pubsub);
-                expect(event).to.have.property('publisher', publisher);
+                _chai.expect(event).to.have.property('distributor', pubsub);
+                _chai.expect(event).to.have.property('publisher', publisher);
                 subscriptionsExecuted.push(`${name} after 1`);
             });
 
             pubsub.after('testEvent', event => {
-                expect(event).to.have.property('distributor', pubsub);
-                expect(event).to.have.property('publisher', publisher);
+                _chai.expect(event).to.have.property('distributor', pubsub);
+                _chai.expect(event).to.have.property('publisher', publisher);
                 subscriptionsExecuted.push(`${name} after 2`);
             });
 
             pubsub.before('testEvent', event => {
-                expect(event).to.have.property('distributor', pubsub);
-                expect(event).to.have.property('publisher', publisher);
+                _chai.expect(event).to.have.property('distributor', pubsub);
+                _chai.expect(event).to.have.property('publisher', publisher);
                 event.stopDistribution();
-                expect(event.distributionStopped).not.to.be.true;
+                _chai.expect(event.distributionStopped).not.to.be.true;
                 subscriptionsExecuted.push(`${name} before 0`);
             });
 
             pubsub.before('testEvent', event => {
-                expect(event).to.have.property('distributor', pubsub);
-                expect(event).to.have.property('publisher', publisher);
+                _chai.expect(event).to.have.property('distributor', pubsub);
+                _chai.expect(event).to.have.property('publisher', publisher);
                 subscriptionsExecuted.push(`${name} before 1`);
             });
 
             pubsub.before('testEvent', event => {
-                expect(event).to.have.property('distributor', pubsub);
-                expect(event).to.have.property('publisher', publisher);
+                _chai.expect(event).to.have.property('distributor', pubsub);
+                _chai.expect(event).to.have.property('publisher', publisher);
                 subscriptionsExecuted.push(`${name} before 2`);
             });
 
             pubsub.on('testEvent', event => {
-                expect(event).to.have.property('distributor', pubsub);
-                expect(event).to.have.property('publisher', publisher);
+                _chai.expect(event).to.have.property('distributor', pubsub);
+                _chai.expect(event).to.have.property('publisher', publisher);
                 subscriptionsExecuted.push(`${name} on 0`);
             });
 
             pubsub.on('testEvent', event => {
-                expect(event).to.have.property('distributor', pubsub);
-                expect(event).to.have.property('publisher', publisher);
+                _chai.expect(event).to.have.property('distributor', pubsub);
+                _chai.expect(event).to.have.property('publisher', publisher);
                 subscriptionsExecuted.push(`${name} on 1`);
             });
 
             pubsub.on('testEvent', event => {
-                expect(event).to.have.property('distributor', pubsub);
-                expect(event).to.have.property('publisher', publisher);
+                _chai.expect(event).to.have.property('distributor', pubsub);
+                _chai.expect(event).to.have.property('publisher', publisher);
                 subscriptionsExecuted.push(`${name} on 2`);
             });
         });
 
         publisher.publish('testEvent');
 
-        expect(subscriptionsExecuted).to.deep.equal([
+        _chai.expect(subscriptionsExecuted).to.deep.equal([
             'publisher before 0',
             'publisher before 1',
             'publisher before 2',
@@ -4899,17 +4887,17 @@ describe('pubsub', () => {
         ]);
     });
 
-    it('should not stop the event when eventStoppable is false', () => {
-        const distributor0 = Pubsub(),
-            distributor0a = Pubsub(),
-            distributor0b = Pubsub(),
-            distributor1 = Pubsub(),
-            distributor1a = Pubsub(),
-            distributor1b = Pubsub(),
-            distributor2 = Pubsub(),
-            distributor2a = Pubsub(),
-            distributor2b = Pubsub(),
-            publisher = Pubsub(),
+    _mocha.it('should not stop the event when eventStoppable is false', () => {
+        const distributor0 = _Pubsub(),
+            distributor0a = _Pubsub(),
+            distributor0b = _Pubsub(),
+            distributor1 = _Pubsub(),
+            distributor1a = _Pubsub(),
+            distributor1b = _Pubsub(),
+            distributor2 = _Pubsub(),
+            distributor2a = _Pubsub(),
+            distributor2b = _Pubsub(),
+            publisher = _Pubsub(),
             subscriptionsExecuted = [];
 
         publisher.defineEvent('testEvent', {
@@ -4969,65 +4957,65 @@ describe('pubsub', () => {
             pubsub
         ]) => {
             pubsub.after('testEvent', event => {
-                expect(event).to.have.property('distributor', pubsub);
-                expect(event).to.have.property('publisher', publisher);
+                _chai.expect(event).to.have.property('distributor', pubsub);
+                _chai.expect(event).to.have.property('publisher', publisher);
                 subscriptionsExecuted.push(`${name} after 0`);
             });
 
             pubsub.after('testEvent', event => {
-                expect(event).to.have.property('distributor', pubsub);
-                expect(event).to.have.property('publisher', publisher);
+                _chai.expect(event).to.have.property('distributor', pubsub);
+                _chai.expect(event).to.have.property('publisher', publisher);
                 subscriptionsExecuted.push(`${name} after 1`);
             });
 
             pubsub.after('testEvent', event => {
-                expect(event).to.have.property('distributor', pubsub);
-                expect(event).to.have.property('publisher', publisher);
+                _chai.expect(event).to.have.property('distributor', pubsub);
+                _chai.expect(event).to.have.property('publisher', publisher);
                 subscriptionsExecuted.push(`${name} after 2`);
             });
 
             pubsub.before('testEvent', event => {
-                expect(event).to.have.property('distributor', pubsub);
-                expect(event).to.have.property('publisher', publisher);
+                _chai.expect(event).to.have.property('distributor', pubsub);
+                _chai.expect(event).to.have.property('publisher', publisher);
                 event.stopEvent();
-                expect(event.eventStopped).not.to.be.true;
+                _chai.expect(event.eventStopped).not.to.be.true;
                 subscriptionsExecuted.push(`${name} before 0`);
             });
 
             pubsub.before('testEvent', event => {
-                expect(event).to.have.property('distributor', pubsub);
-                expect(event).to.have.property('publisher', publisher);
+                _chai.expect(event).to.have.property('distributor', pubsub);
+                _chai.expect(event).to.have.property('publisher', publisher);
                 subscriptionsExecuted.push(`${name} before 1`);
             });
 
             pubsub.before('testEvent', event => {
-                expect(event).to.have.property('distributor', pubsub);
-                expect(event).to.have.property('publisher', publisher);
+                _chai.expect(event).to.have.property('distributor', pubsub);
+                _chai.expect(event).to.have.property('publisher', publisher);
                 subscriptionsExecuted.push(`${name} before 2`);
             });
 
             pubsub.on('testEvent', event => {
-                expect(event).to.have.property('distributor', pubsub);
-                expect(event).to.have.property('publisher', publisher);
+                _chai.expect(event).to.have.property('distributor', pubsub);
+                _chai.expect(event).to.have.property('publisher', publisher);
                 subscriptionsExecuted.push(`${name} on 0`);
             });
 
             pubsub.on('testEvent', event => {
-                expect(event).to.have.property('distributor', pubsub);
-                expect(event).to.have.property('publisher', publisher);
+                _chai.expect(event).to.have.property('distributor', pubsub);
+                _chai.expect(event).to.have.property('publisher', publisher);
                 subscriptionsExecuted.push(`${name} on 1`);
             });
 
             pubsub.on('testEvent', event => {
-                expect(event).to.have.property('distributor', pubsub);
-                expect(event).to.have.property('publisher', publisher);
+                _chai.expect(event).to.have.property('distributor', pubsub);
+                _chai.expect(event).to.have.property('publisher', publisher);
                 subscriptionsExecuted.push(`${name} on 2`);
             });
         });
 
         publisher.publish('testEvent');
 
-        expect(subscriptionsExecuted).to.deep.equal([
+        _chai.expect(subscriptionsExecuted).to.deep.equal([
             'publisher before 0',
             'publisher before 1',
             'publisher before 2',
@@ -5121,8 +5109,8 @@ describe('pubsub', () => {
         ]);
     });
 
-    it('should not prevent events when preventable is false', () => {
-        const pubsub = Pubsub(),
+    _mocha.it('should not prevent events when preventable is false', () => {
+        const pubsub = _Pubsub(),
             subscriptionsExecuted = [];
 
         pubsub.defineEvent('testEvent', {
@@ -5135,26 +5123,26 @@ describe('pubsub', () => {
 
         pubsub.before('testEvent', event => {
             event.preventDefault();
-            expect(event.defaultIsPrevented()).not.to.be.true;
+            _chai.expect(event.defaultIsPrevented()).not.to.be.true;
             subscriptionsExecuted.push('before');
         });
 
         pubsub.on('testEvent', event => {
-            expect(event.defaultIsPrevented()).not.to.be.true;
+            _chai.expect(event.defaultIsPrevented()).not.to.be.true;
             subscriptionsExecuted.push('on');
         });
 
         pubsub.publish('testEvent');
 
-        expect(subscriptionsExecuted).to.deep.equal([
+        _chai.expect(subscriptionsExecuted).to.deep.equal([
             'before',
             'on',
             'after'
         ]);
     });
 
-    it('should not prevent event stages when preventable is false', () => {
-        const pubsub = Pubsub(),
+    _mocha.it('should not prevent event stages when preventable is false', () => {
+        const pubsub = _Pubsub(),
             subscriptionsExecuted = [];
 
         pubsub.defineEvent('testEvent', {
@@ -5167,7 +5155,7 @@ describe('pubsub', () => {
 
         pubsub.before('testEvent', event => {
             event.prevent('on');
-            expect(event.isPrevented('on')).not.to.be.true;
+            _chai.expect(event.isPrevented('on')).not.to.be.true;
             subscriptionsExecuted.push('before');
         });
 
@@ -5177,15 +5165,15 @@ describe('pubsub', () => {
 
         pubsub.publish('testEvent');
 
-        expect(subscriptionsExecuted).to.deep.equal([
+        _chai.expect(subscriptionsExecuted).to.deep.equal([
             'before',
             'on',
             'after'
         ]);
     });
 
-    it('should not publish a publishOnce event more than once', () => {
-        const pubsub = Pubsub(),
+    _mocha.it('should not publish a publishOnce event more than once', () => {
+        const pubsub = _Pubsub(),
             subscriptionsExecuted = [];
 
         pubsub.defineEvent('testEvent', {
@@ -5206,7 +5194,7 @@ describe('pubsub', () => {
 
         pubsub.publish('testEvent');
 
-        expect(subscriptionsExecuted).to.deep.equal([
+        _chai.expect(subscriptionsExecuted).to.deep.equal([
             'before',
             'on',
             'after'
@@ -5214,16 +5202,16 @@ describe('pubsub', () => {
 
         pubsub.publish('testEvent');
 
-        expect(subscriptionsExecuted).to.deep.equal([
+        _chai.expect(subscriptionsExecuted).to.deep.equal([
             'before',
             'on',
             'after'
         ]);
     });
 
-    it('should allow custom event stages', () => {
+    _mocha.it('should allow custom event stages', () => {
         const customSymbol = Symbol('customSymbol'),
-            pubsub = Pubsub(),
+            pubsub = _Pubsub(),
             subscriptionsExecuted = [];
 
         pubsub.defineEvent('testEvent', {
@@ -5233,13 +5221,13 @@ describe('pubsub', () => {
                 customSymbol,
                 'on',
                 'about-to-happen',
-                defaultSymbol,
+                _pubsub.defaultSymbol,
                 'it just happened!'
             ]
         });
 
         pubsub.subscribe('about-to-happen', 'testEvent', event => {
-            expect(event.completed).not.to.be.true;
+            _chai.expect(event.completed).not.to.be.true;
             subscriptionsExecuted.push('about-to-happen');
         });
 
@@ -5248,33 +5236,33 @@ describe('pubsub', () => {
         });
 
         pubsub.subscribe('before', 'testEvent', event => {
-            expect(event.completed).not.to.be.true;
+            _chai.expect(event.completed).not.to.be.true;
             subscriptionsExecuted.push('before');
         });
 
         pubsub.subscribe(customSymbol, 'testEvent', event => {
-            expect(event.completed).not.to.be.true;
+            _chai.expect(event.completed).not.to.be.true;
             subscriptionsExecuted.push('customSymbol');
         });
 
         pubsub.subscribe('it just happened!', 'testEvent', event => {
-            expect(event.completed).to.be.true;
+            _chai.expect(event.completed).to.be.true;
             subscriptionsExecuted.push('it just happened!');
         });
 
         pubsub.subscribe('on', 'testEvent', event => {
-            expect(event.completed).not.to.be.true;
+            _chai.expect(event.completed).not.to.be.true;
             subscriptionsExecuted.push('on');
         });
 
         pubsub.subscribe('wayBefore', 'testEvent', event => {
-            expect(event.completed).not.to.be.true;
+            _chai.expect(event.completed).not.to.be.true;
             subscriptionsExecuted.push('wayBefore');
         });
 
         pubsub.publish('testEvent');
 
-        expect(subscriptionsExecuted).to.deep.equal([
+        _chai.expect(subscriptionsExecuted).to.deep.equal([
             'wayBefore',
             'before',
             'customSymbol',
@@ -5284,8 +5272,8 @@ describe('pubsub', () => {
         ]);
     });
 
-    it('should only prevent preventable event stages', () => {
-        const pubsub = Pubsub();
+    _mocha.it('should only prevent preventable event stages', () => {
+        const pubsub = _Pubsub();
 
         let subscriptionsExecuted = [];
 
@@ -5305,7 +5293,7 @@ describe('pubsub', () => {
         pubsub.subscribe('a', 'testEvent', {
             callbackFunction (event) {
                 event.prevent('b');
-                expect(event.isPrevented('b')).to.be.true;
+                _chai.expect(event.isPrevented('b')).to.be.true;
                 subscriptionsExecuted.push('a');
             },
             once: true
@@ -5325,7 +5313,7 @@ describe('pubsub', () => {
 
         pubsub.publish('testEvent');
 
-        expect(subscriptionsExecuted).to.deep.equal([
+        _chai.expect(subscriptionsExecuted).to.deep.equal([
             'a'
         ]);
 
@@ -5334,7 +5322,7 @@ describe('pubsub', () => {
         pubsub.subscribe('a', 'testEvent', {
             callbackFunction (event) {
                 event.prevent('c');
-                expect(event.isPrevented('c')).not.to.be.true;
+                _chai.expect(event.isPrevented('c')).not.to.be.true;
                 subscriptionsExecuted.push('a');
             },
             once: true
@@ -5342,7 +5330,7 @@ describe('pubsub', () => {
 
         pubsub.publish('testEvent');
 
-        expect(subscriptionsExecuted).to.deep.equal([
+        _chai.expect(subscriptionsExecuted).to.deep.equal([
             'a',
             'b',
             'c',
@@ -5354,7 +5342,7 @@ describe('pubsub', () => {
         pubsub.subscribe('a', 'testEvent', {
             callbackFunction (event) {
                 event.prevent('d');
-                expect(event.isPrevented('d')).to.be.true;
+                _chai.expect(event.isPrevented('d')).to.be.true;
                 subscriptionsExecuted.push('a');
             },
             once: true
@@ -5362,20 +5350,20 @@ describe('pubsub', () => {
 
         pubsub.publish('testEvent');
 
-        expect(subscriptionsExecuted).to.deep.equal([
+        _chai.expect(subscriptionsExecuted).to.deep.equal([
             'a',
             'b',
             'c'
         ]);
     });
 
-    it('should pass configured event data to subscribers', () => {
+    _mocha.it('should pass configured event data to subscribers', () => {
         const data = {
                 a: 'a',
                 b: 'b',
                 c: 'c'
             },
-            pubsub = Pubsub(),
+            pubsub = _Pubsub(),
             subscriptionsExecuted = [];
 
         pubsub.defineEvent('testEvent', {
@@ -5383,20 +5371,20 @@ describe('pubsub', () => {
         });
 
         pubsub.on('testEvent', event => {
-            expect(event).to.have.property('data', data);
+            _chai.expect(event).to.have.property('data', data);
 
             subscriptionsExecuted.push('on');
         });
 
         pubsub.publish('testEvent');
 
-        expect(subscriptionsExecuted).to.deep.equal([
+        _chai.expect(subscriptionsExecuted).to.deep.equal([
             'on'
         ]);
     });
 
-    it('should merge configured event data with published event data', () => {
-        const pubsub = Pubsub(),
+    _mocha.it('should merge configured event data with published event data', () => {
+        const pubsub = _Pubsub(),
             subscriptionsExecuted = [];
 
         pubsub.defineEvent('testEvent', {
@@ -5408,7 +5396,7 @@ describe('pubsub', () => {
         });
 
         pubsub.on('testEvent', event => {
-            expect(event.data).to.deep.equal({
+            _chai.expect(event.data).to.deep.equal({
                 a: 'xyz',
                 b: 'b',
                 c: 'c',
@@ -5427,13 +5415,13 @@ describe('pubsub', () => {
             z: 'z'
         });
 
-        expect(subscriptionsExecuted).to.deep.equal([
+        _chai.expect(subscriptionsExecuted).to.deep.equal([
             'on'
         ]);
     });
 
-    it('should accept event definitions as a config object', () => {
-        const pubsub = Pubsub({
+    _mocha.it('should accept event definitions as a config object', () => {
+        const pubsub = _Pubsub({
                 events: {
                     testEvent: {
                         publishOnce: true
@@ -5448,22 +5436,22 @@ describe('pubsub', () => {
 
         pubsub.publish('testEvent');
 
-        expect(subscriptionsExecuted).to.deep.equal([
+        _chai.expect(subscriptionsExecuted).to.deep.equal([
             'on'
         ]);
 
         pubsub.publish('testEvent');
 
-        expect(subscriptionsExecuted).to.deep.equal([
+        _chai.expect(subscriptionsExecuted).to.deep.equal([
             'on'
         ]);
     });
 
-    it('should accept a Dispatcher instance as an event config', () => {
-        const pubsub = Pubsub(),
+    _mocha.it('should accept a Dispatcher instance as an event config', () => {
+        const pubsub = _Pubsub(),
             subscriptionsExecuted = [];
 
-        pubsub.defineEvent('testEvent', Dispatcher({
+        pubsub.defineEvent('testEvent', _pubsub.Dispatcher({
             name: 'testEvent',
             publishOnce: true
         }));
@@ -5474,20 +5462,20 @@ describe('pubsub', () => {
 
         pubsub.publish('testEvent');
 
-        expect(subscriptionsExecuted).to.deep.equal([
+        _chai.expect(subscriptionsExecuted).to.deep.equal([
             'on'
         ]);
 
         pubsub.publish('testEvent');
 
-        expect(subscriptionsExecuted).to.deep.equal([
+        _chai.expect(subscriptionsExecuted).to.deep.equal([
             'on'
         ]);
     });
 
-    it('should accept a custom dispatcher as an event config', () => {
+    _mocha.it('should accept a custom dispatcher as an event config', () => {
         const methodsExecuted = [],
-            pubsub = Pubsub(),
+            pubsub = _Pubsub(),
             subscriptionsExecuted = [];
 
         pubsub.defineEvent('testEvent', {
@@ -5502,46 +5490,46 @@ describe('pubsub', () => {
             },
             subscribe () {
                 methodsExecuted.push('subscribe');
-                return Subscription();
+                return _pubsub.Subscription();
             }
         });
 
-        expect(methodsExecuted).to.deep.equal([]);
+        _chai.expect(methodsExecuted).to.deep.equal([]);
 
         pubsub.on('testEvent', () => {
             subscriptionsExecuted.push('on');
         });
 
-        expect(methodsExecuted).to.deep.equal([
+        _chai.expect(methodsExecuted).to.deep.equal([
             'newState',
             'subscribe'
         ]);
 
         pubsub.publish('testEvent');
 
-        expect(methodsExecuted).to.deep.equal([
+        _chai.expect(methodsExecuted).to.deep.equal([
             'newState',
             'subscribe',
             'publish'
         ]);
 
-        expect(subscriptionsExecuted).to.deep.equal([]);
+        _chai.expect(subscriptionsExecuted).to.deep.equal([]);
 
         pubsub.publish('testEvent');
 
-        expect(methodsExecuted).to.deep.equal([
+        _chai.expect(methodsExecuted).to.deep.equal([
             'newState',
             'subscribe',
             'publish',
             'publish'
         ]);
 
-        expect(subscriptionsExecuted).to.deep.equal([]);
+        _chai.expect(subscriptionsExecuted).to.deep.equal([]);
     });
 
-    it('should allow static event definitions', () => {
-        const pubsub0 = Pubsub(),
-            pubsub1 = Pubsub();
+    _mocha.it('should allow static event definitions', () => {
+        const pubsub0 = _Pubsub(),
+            pubsub1 = _Pubsub();
 
         let subscriptionsExecuted = [];
 
@@ -5553,7 +5541,7 @@ describe('pubsub', () => {
             publishOnce: true
         });
 
-        Pubsub.defineEvent('testEvent2', {
+        _Pubsub.defineEvent('testEvent2', {
             publishOnce: true
         });
 
@@ -5583,7 +5571,7 @@ describe('pubsub', () => {
 
         pubsub0.publish('testEvent0');
 
-        expect(subscriptionsExecuted).to.deep.equal([
+        _chai.expect(subscriptionsExecuted).to.deep.equal([
             'on 00'
         ]);
 
@@ -5591,7 +5579,7 @@ describe('pubsub', () => {
 
         pubsub1.publish('testEvent0');
 
-        expect(subscriptionsExecuted).to.deep.equal([
+        _chai.expect(subscriptionsExecuted).to.deep.equal([
             'on 10'
         ]);
 
@@ -5599,7 +5587,7 @@ describe('pubsub', () => {
 
         pubsub0.publish('testEvent1');
 
-        expect(subscriptionsExecuted).to.deep.equal([
+        _chai.expect(subscriptionsExecuted).to.deep.equal([
             'on 01'
         ]);
 
@@ -5607,7 +5595,7 @@ describe('pubsub', () => {
 
         pubsub1.publish('testEvent1');
 
-        expect(subscriptionsExecuted).to.deep.equal([
+        _chai.expect(subscriptionsExecuted).to.deep.equal([
             'on 11'
         ]);
 
@@ -5615,7 +5603,7 @@ describe('pubsub', () => {
 
         pubsub0.publish('testEvent2');
 
-        expect(subscriptionsExecuted).to.deep.equal([
+        _chai.expect(subscriptionsExecuted).to.deep.equal([
             'on 02'
         ]);
 
@@ -5623,7 +5611,7 @@ describe('pubsub', () => {
 
         pubsub1.publish('testEvent2');
 
-        expect(subscriptionsExecuted).to.deep.equal([
+        _chai.expect(subscriptionsExecuted).to.deep.equal([
             'on 12'
         ]);
 
@@ -5631,13 +5619,13 @@ describe('pubsub', () => {
 
         pubsub0.publish('testEvent0');
 
-        expect(subscriptionsExecuted).to.deep.equal([]);
+        _chai.expect(subscriptionsExecuted).to.deep.equal([]);
 
         subscriptionsExecuted = [];
 
         pubsub1.publish('testEvent0');
 
-        expect(subscriptionsExecuted).to.deep.equal([
+        _chai.expect(subscriptionsExecuted).to.deep.equal([
             'on 10'
         ]);
 
@@ -5645,7 +5633,7 @@ describe('pubsub', () => {
 
         pubsub0.publish('testEvent1');
 
-        expect(subscriptionsExecuted).to.deep.equal([
+        _chai.expect(subscriptionsExecuted).to.deep.equal([
             'on 01'
         ]);
 
@@ -5653,23 +5641,23 @@ describe('pubsub', () => {
 
         pubsub1.publish('testEvent1');
 
-        expect(subscriptionsExecuted).to.deep.equal([]);
+        _chai.expect(subscriptionsExecuted).to.deep.equal([]);
 
         subscriptionsExecuted = [];
 
         pubsub0.publish('testEvent2');
 
-        expect(subscriptionsExecuted).to.deep.equal([]);
+        _chai.expect(subscriptionsExecuted).to.deep.equal([]);
 
         subscriptionsExecuted = [];
 
         pubsub1.publish('testEvent2');
 
-        expect(subscriptionsExecuted).to.deep.equal([]);
+        _chai.expect(subscriptionsExecuted).to.deep.equal([]);
     });
 
-    it('should allow new subscriptions while the event is in progress', () => {
-        const pubsub = Pubsub(),
+    _mocha.it('should allow new subscriptions while the event is in progress', () => {
+        const pubsub = _Pubsub(),
             subscriptionsExecuted = [];
 
         pubsub.before('testEvent', () => {
@@ -5686,20 +5674,20 @@ describe('pubsub', () => {
 
         pubsub.publish('testEvent');
 
-        expect(subscriptionsExecuted).to.deep.equal([
+        _chai.expect(subscriptionsExecuted).to.deep.equal([
             'before',
             'on',
             'after'
         ]);
     });
 
-    it('should immediately execute late subscribers to once events if the event was not prevented', () => {
+    _mocha.it('should immediately execute late subscribers to once events if the event was not prevented', () => {
         const data = {
                 a: 'a',
                 b: 'b',
                 c: 'c'
             },
-            pubsub = Pubsub();
+            pubsub = _Pubsub();
 
         let subscriptionsExecuted = [];
 
@@ -5712,19 +5700,19 @@ describe('pubsub', () => {
 
         pubsub.publish('testEvent0', data);
 
-        expect(subscriptionsExecuted).to.deep.equal([]);
+        _chai.expect(subscriptionsExecuted).to.deep.equal([]);
 
         pubsub.on('testEvent0', event => {
-            expect(event).to.have.property('data', data);
+            _chai.expect(event).to.have.property('data', data);
             subscriptionsExecuted.push('on');
         });
 
         pubsub.before('testEvent0', event => {
-            expect(event).to.have.property('data', data);
+            _chai.expect(event).to.have.property('data', data);
             subscriptionsExecuted.push('before');
         });
 
-        expect(subscriptionsExecuted).to.deep.equal([
+        _chai.expect(subscriptionsExecuted).to.deep.equal([
             'on',
             'before'
         ]);
@@ -5738,21 +5726,21 @@ describe('pubsub', () => {
         pubsub.publish('testEvent1', data);
 
         pubsub.on('testEvent1', event => {
-            expect(event).to.have.property('data', data);
+            _chai.expect(event).to.have.property('data', data);
             subscriptionsExecuted.push('on');
         });
 
         pubsub.before('testEvent1', event => {
-            expect(event).to.have.property('data', data);
+            _chai.expect(event).to.have.property('data', data);
             subscriptionsExecuted.push('before');
         });
 
         pubsub.after('testEvent1', event => {
-            expect(event).to.have.property('data', data);
+            _chai.expect(event).to.have.property('data', data);
             subscriptionsExecuted.push('after');
         });
 
-        expect(subscriptionsExecuted).to.deep.equal([]);
+        _chai.expect(subscriptionsExecuted).to.deep.equal([]);
 
         pubsub.defineEvent([
             'testEvent2',
@@ -5763,19 +5751,19 @@ describe('pubsub', () => {
 
         pubsub.publish('testEvent2', data);
 
-        expect(subscriptionsExecuted).to.deep.equal([]);
+        _chai.expect(subscriptionsExecuted).to.deep.equal([]);
 
         pubsub.on('testEvent2', event => {
-            expect(event).to.have.property('data', data);
+            _chai.expect(event).to.have.property('data', data);
             subscriptionsExecuted.push('on');
         });
 
         pubsub.before('testEvent2', event => {
-            expect(event).to.have.property('data', data);
+            _chai.expect(event).to.have.property('data', data);
             subscriptionsExecuted.push('before');
         });
 
-        expect(subscriptionsExecuted).to.deep.equal([
+        _chai.expect(subscriptionsExecuted).to.deep.equal([
             'on',
             'before'
         ]);
@@ -5789,26 +5777,26 @@ describe('pubsub', () => {
         pubsub.publish('testEvent3', data);
 
         pubsub.on('testEvent3', event => {
-            expect(event).to.have.property('data', data);
+            _chai.expect(event).to.have.property('data', data);
             event.prevent('after');
             subscriptionsExecuted.push('on');
         });
 
         pubsub.before('testEvent3', event => {
-            expect(event).to.have.property('data', data);
+            _chai.expect(event).to.have.property('data', data);
             subscriptionsExecuted.push('before');
         });
 
         pubsub.after('testEvent3', event => {
-            expect(event).to.have.property('data', data);
+            _chai.expect(event).to.have.property('data', data);
             subscriptionsExecuted.push('after');
         });
 
-        expect(subscriptionsExecuted).to.deep.equal([]);
+        _chai.expect(subscriptionsExecuted).to.deep.equal([]);
 
         pubsub.publish('testEvent3', data);
 
-        expect(subscriptionsExecuted).to.deep.equal([
+        _chai.expect(subscriptionsExecuted).to.deep.equal([
             'before',
             'on'
         ]);
@@ -5816,28 +5804,28 @@ describe('pubsub', () => {
         subscriptionsExecuted = [];
 
         pubsub.on('testEvent3', event => {
-            expect(event).to.have.property('data', data);
+            _chai.expect(event).to.have.property('data', data);
             event.prevent('after');
             subscriptionsExecuted.push('on');
         });
 
         pubsub.before('testEvent3', event => {
-            expect(event).to.have.property('data', data);
+            _chai.expect(event).to.have.property('data', data);
             subscriptionsExecuted.push('before');
         });
 
         pubsub.after('testEvent3', event => {
-            expect(event).to.have.property('data', data);
+            _chai.expect(event).to.have.property('data', data);
             subscriptionsExecuted.push('after');
         });
 
-        expect(subscriptionsExecuted).to.deep.equal([]);
+        _chai.expect(subscriptionsExecuted).to.deep.equal([]);
     });
 
     // TODO: test late subscribers to once events when dispatch, distribution, and event is stopped
 
-    it('should execute the default lifecycle function during the default stage', () => {
-        const pubsub = Pubsub(),
+    _mocha.it('should execute the default lifecycle function during the default stage', () => {
+        const pubsub = _Pubsub(),
             executedSubscribers = [];
 
         let calledDefaultFunction,
@@ -5845,49 +5833,49 @@ describe('pubsub', () => {
 
         pubsub.defineEvent('testEvent', {
             defaultFunction (event) {
-                expect(event).to.equal(eventObject);
+                _chai.expect(event).to.equal(eventObject);
                 calledDefaultFunction = true;
             }
         });
 
         pubsub.after('testEvent', event => {
-            expect(calledDefaultFunction).to.be.true;
-            expect(event).to.equal(eventObject);
+            _chai.expect(calledDefaultFunction).to.be.true;
+            _chai.expect(event).to.equal(eventObject);
             executedSubscribers.push('after');
         });
 
         pubsub.before('testEvent', event => {
-            expect(calledDefaultFunction).to.be.undefined;
+            _chai.expect(calledDefaultFunction).to.be.undefined;
             eventObject = event;
             executedSubscribers.push('before');
         });
 
         pubsub.on('testEvent', event => {
-            expect(calledDefaultFunction).to.be.undefined;
-            expect(event).to.equal(eventObject);
+            _chai.expect(calledDefaultFunction).to.be.undefined;
+            _chai.expect(event).to.equal(eventObject);
             executedSubscribers.push('on');
         });
 
         pubsub.publish('testEvent');
 
-        expect(executedSubscribers).to.deep.equal([
+        _chai.expect(executedSubscribers).to.deep.equal([
             'before',
             'on',
             'after'
         ]);
     });
 
-    it('should execute the dispatch stopped lifecycle function when dispatch is stopped', () => {
-        const distributor0 = Pubsub(),
-            distributor0a = Pubsub(),
-            distributor0b = Pubsub(),
-            distributor1 = Pubsub(),
-            distributor1a = Pubsub(),
-            distributor1b = Pubsub(),
-            distributor2 = Pubsub(),
-            distributor2a = Pubsub(),
-            distributor2b = Pubsub(),
-            publisher = Pubsub(),
+    _mocha.it('should execute the dispatch stopped lifecycle function when dispatch is stopped', () => {
+        const distributor0 = _Pubsub(),
+            distributor0a = _Pubsub(),
+            distributor0b = _Pubsub(),
+            distributor1 = _Pubsub(),
+            distributor1a = _Pubsub(),
+            distributor1b = _Pubsub(),
+            distributor2 = _Pubsub(),
+            distributor2a = _Pubsub(),
+            distributor2b = _Pubsub(),
+            publisher = _Pubsub(),
             subscriptionsExecuted = [];
 
         let calledDispatchStoppedFunction,
@@ -5895,7 +5883,7 @@ describe('pubsub', () => {
 
         publisher.defineEvent('testEvent', {
             dispatchStoppedFunction (event) {
-                expect(event).to.equal(eventObject);
+                _chai.expect(event).to.equal(eventObject);
                 calledDispatchStoppedFunction = true;
             }
         });
@@ -5953,91 +5941,91 @@ describe('pubsub', () => {
             pubsub
         ]) => {
             pubsub.after('testEvent', event => {
-                expect(event).to.equal(eventObject);
-                expect(event).to.have.property('distributor', pubsub);
-                expect(event).to.have.property('publisher', publisher);
-                expect(calledDispatchStoppedFunction).to.be.true;
+                _chai.expect(event).to.equal(eventObject);
+                _chai.expect(event).to.have.property('distributor', pubsub);
+                _chai.expect(event).to.have.property('publisher', publisher);
+                _chai.expect(calledDispatchStoppedFunction).to.be.true;
                 subscriptionsExecuted.push(`${name} after 0`);
             });
 
             pubsub.after('testEvent', event => {
-                expect(event).to.equal(eventObject);
-                expect(event).to.have.property('distributor', pubsub);
-                expect(event).to.have.property('publisher', publisher);
-                expect(calledDispatchStoppedFunction).to.be.true;
+                _chai.expect(event).to.equal(eventObject);
+                _chai.expect(event).to.have.property('distributor', pubsub);
+                _chai.expect(event).to.have.property('publisher', publisher);
+                _chai.expect(calledDispatchStoppedFunction).to.be.true;
                 subscriptionsExecuted.push(`${name} after 1`);
             });
 
             pubsub.after('testEvent', event => {
-                expect(event).to.equal(eventObject);
-                expect(event).to.have.property('distributor', pubsub);
-                expect(event).to.have.property('publisher', publisher);
-                expect(calledDispatchStoppedFunction).to.be.true;
+                _chai.expect(event).to.equal(eventObject);
+                _chai.expect(event).to.have.property('distributor', pubsub);
+                _chai.expect(event).to.have.property('publisher', publisher);
+                _chai.expect(calledDispatchStoppedFunction).to.be.true;
                 subscriptionsExecuted.push(`${name} after 2`);
             });
 
             pubsub.before('testEvent', event => {
                 if (eventObject) {
-                    expect(event).to.equal(eventObject);
+                    _chai.expect(event).to.equal(eventObject);
                 } else {
                     eventObject = event;
                 }
-                expect(event).to.have.property('distributor', pubsub);
-                expect(event).to.have.property('publisher', publisher);
+                _chai.expect(event).to.have.property('distributor', pubsub);
+                _chai.expect(event).to.have.property('publisher', publisher);
                 event.stopDispatch();
-                expect(event.dispatchStopped).to.be.true;
+                _chai.expect(event.dispatchStopped).to.be.true;
                 if (pubsub === publisher) {
-                    expect(calledDispatchStoppedFunction).to.be.undefined;
+                    _chai.expect(calledDispatchStoppedFunction).to.be.undefined;
                 } else {
-                    expect(calledDispatchStoppedFunction).to.be.true;
+                    _chai.expect(calledDispatchStoppedFunction).to.be.true;
                 }
                 subscriptionsExecuted.push(`${name} before 0`);
             });
 
             pubsub.before('testEvent', event => {
-                expect(event).to.equal(eventObject);
-                expect(event).to.have.property('distributor', pubsub);
-                expect(event).to.have.property('publisher', publisher);
-                expect(calledDispatchStoppedFunction).to.be.true;
+                _chai.expect(event).to.equal(eventObject);
+                _chai.expect(event).to.have.property('distributor', pubsub);
+                _chai.expect(event).to.have.property('publisher', publisher);
+                _chai.expect(calledDispatchStoppedFunction).to.be.true;
                 subscriptionsExecuted.push(`${name} before 1`);
             });
 
             pubsub.before('testEvent', event => {
-                expect(event).to.equal(eventObject);
-                expect(event).to.have.property('distributor', pubsub);
-                expect(event).to.have.property('publisher', publisher);
-                expect(calledDispatchStoppedFunction).to.be.true;
+                _chai.expect(event).to.equal(eventObject);
+                _chai.expect(event).to.have.property('distributor', pubsub);
+                _chai.expect(event).to.have.property('publisher', publisher);
+                _chai.expect(calledDispatchStoppedFunction).to.be.true;
                 subscriptionsExecuted.push(`${name} before 2`);
             });
 
             pubsub.on('testEvent', event => {
-                expect(event).to.equal(eventObject);
-                expect(event).to.have.property('distributor', pubsub);
-                expect(event).to.have.property('publisher', publisher);
-                expect(calledDispatchStoppedFunction).to.be.true;
+                _chai.expect(event).to.equal(eventObject);
+                _chai.expect(event).to.have.property('distributor', pubsub);
+                _chai.expect(event).to.have.property('publisher', publisher);
+                _chai.expect(calledDispatchStoppedFunction).to.be.true;
                 subscriptionsExecuted.push(`${name} on 0`);
             });
 
             pubsub.on('testEvent', event => {
-                expect(event).to.equal(eventObject);
-                expect(event).to.have.property('distributor', pubsub);
-                expect(event).to.have.property('publisher', publisher);
-                expect(calledDispatchStoppedFunction).to.be.true;
+                _chai.expect(event).to.equal(eventObject);
+                _chai.expect(event).to.have.property('distributor', pubsub);
+                _chai.expect(event).to.have.property('publisher', publisher);
+                _chai.expect(calledDispatchStoppedFunction).to.be.true;
                 subscriptionsExecuted.push(`${name} on 1`);
             });
 
             pubsub.on('testEvent', event => {
-                expect(event).to.equal(eventObject);
-                expect(event).to.have.property('distributor', pubsub);
-                expect(event).to.have.property('publisher', publisher);
-                expect(calledDispatchStoppedFunction).to.be.true;
+                _chai.expect(event).to.equal(eventObject);
+                _chai.expect(event).to.have.property('distributor', pubsub);
+                _chai.expect(event).to.have.property('publisher', publisher);
+                _chai.expect(calledDispatchStoppedFunction).to.be.true;
                 subscriptionsExecuted.push(`${name} on 2`);
             });
         });
 
         publisher.publish('testEvent');
 
-        expect(subscriptionsExecuted).to.deep.equal([
+        _chai.expect(subscriptionsExecuted).to.deep.equal([
             'publisher before 0',
             'distributor0 before 0',
             'distributor1 before 0',
@@ -6111,17 +6099,17 @@ describe('pubsub', () => {
         ]);
     });
 
-    it('should execute the distribution stopped lifecycle function when distribution is stopped', () => {
-        const distributor0 = Pubsub(),
-            distributor0a = Pubsub(),
-            distributor0b = Pubsub(),
-            distributor1 = Pubsub(),
-            distributor1a = Pubsub(),
-            distributor1b = Pubsub(),
-            distributor2 = Pubsub(),
-            distributor2a = Pubsub(),
-            distributor2b = Pubsub(),
-            publisher = Pubsub(),
+    _mocha.it('should execute the distribution stopped lifecycle function when distribution is stopped', () => {
+        const distributor0 = _Pubsub(),
+            distributor0a = _Pubsub(),
+            distributor0b = _Pubsub(),
+            distributor1 = _Pubsub(),
+            distributor1a = _Pubsub(),
+            distributor1b = _Pubsub(),
+            distributor2 = _Pubsub(),
+            distributor2a = _Pubsub(),
+            distributor2b = _Pubsub(),
+            publisher = _Pubsub(),
             subscriptionsExecuted = [];
 
         let calledDistributionStoppedFunction,
@@ -6129,7 +6117,7 @@ describe('pubsub', () => {
 
         publisher.defineEvent('testEvent', {
             distributionStoppedFunction (event) {
-                expect(event).to.equal(eventObject);
+                _chai.expect(event).to.equal(eventObject);
                 calledDistributionStoppedFunction = true;
             }
         });
@@ -6187,86 +6175,86 @@ describe('pubsub', () => {
             pubsub
         ]) => {
             pubsub.after('testEvent', event => {
-                expect(event).to.equal(eventObject);
-                expect(event).to.have.property('distributor', pubsub);
-                expect(event).to.have.property('publisher', publisher);
-                expect(calledDistributionStoppedFunction).to.be.true;
+                _chai.expect(event).to.equal(eventObject);
+                _chai.expect(event).to.have.property('distributor', pubsub);
+                _chai.expect(event).to.have.property('publisher', publisher);
+                _chai.expect(calledDistributionStoppedFunction).to.be.true;
                 subscriptionsExecuted.push(`${name} after 0`);
             });
 
             pubsub.after('testEvent', event => {
-                expect(event).to.equal(eventObject);
-                expect(event).to.have.property('distributor', pubsub);
-                expect(event).to.have.property('publisher', publisher);
-                expect(calledDistributionStoppedFunction).to.be.true;
+                _chai.expect(event).to.equal(eventObject);
+                _chai.expect(event).to.have.property('distributor', pubsub);
+                _chai.expect(event).to.have.property('publisher', publisher);
+                _chai.expect(calledDistributionStoppedFunction).to.be.true;
                 subscriptionsExecuted.push(`${name} after 1`);
             });
 
             pubsub.after('testEvent', event => {
-                expect(event).to.equal(eventObject);
-                expect(event).to.have.property('distributor', pubsub);
-                expect(event).to.have.property('publisher', publisher);
-                expect(calledDistributionStoppedFunction).to.be.true;
+                _chai.expect(event).to.equal(eventObject);
+                _chai.expect(event).to.have.property('distributor', pubsub);
+                _chai.expect(event).to.have.property('publisher', publisher);
+                _chai.expect(calledDistributionStoppedFunction).to.be.true;
                 subscriptionsExecuted.push(`${name} after 2`);
             });
 
             pubsub.before('testEvent', event => {
                 if (eventObject) {
-                    expect(event).to.equal(eventObject);
+                    _chai.expect(event).to.equal(eventObject);
                 } else {
                     eventObject = event;
                 }
-                expect(event).to.have.property('distributor', pubsub);
-                expect(event).to.have.property('publisher', publisher);
+                _chai.expect(event).to.have.property('distributor', pubsub);
+                _chai.expect(event).to.have.property('publisher', publisher);
                 event.stopDistribution();
-                expect(event.distributionStopped).to.be.true;
-                expect(calledDistributionStoppedFunction).to.be.undefined;
+                _chai.expect(event.distributionStopped).to.be.true;
+                _chai.expect(calledDistributionStoppedFunction).to.be.undefined;
                 subscriptionsExecuted.push(`${name} before 0`);
             });
 
             pubsub.before('testEvent', event => {
-                expect(event).to.equal(eventObject);
-                expect(event).to.have.property('distributor', pubsub);
-                expect(event).to.have.property('publisher', publisher);
-                expect(calledDistributionStoppedFunction).to.be.undefined;
+                _chai.expect(event).to.equal(eventObject);
+                _chai.expect(event).to.have.property('distributor', pubsub);
+                _chai.expect(event).to.have.property('publisher', publisher);
+                _chai.expect(calledDistributionStoppedFunction).to.be.undefined;
                 subscriptionsExecuted.push(`${name} before 1`);
             });
 
             pubsub.before('testEvent', event => {
-                expect(event).to.equal(eventObject);
-                expect(event).to.have.property('distributor', pubsub);
-                expect(event).to.have.property('publisher', publisher);
-                expect(calledDistributionStoppedFunction).to.be.undefined;
+                _chai.expect(event).to.equal(eventObject);
+                _chai.expect(event).to.have.property('distributor', pubsub);
+                _chai.expect(event).to.have.property('publisher', publisher);
+                _chai.expect(calledDistributionStoppedFunction).to.be.undefined;
                 subscriptionsExecuted.push(`${name} before 2`);
             });
 
             pubsub.on('testEvent', event => {
-                expect(event).to.equal(eventObject);
-                expect(event).to.have.property('distributor', pubsub);
-                expect(event).to.have.property('publisher', publisher);
+                _chai.expect(event).to.equal(eventObject);
+                _chai.expect(event).to.have.property('distributor', pubsub);
+                _chai.expect(event).to.have.property('publisher', publisher);
                 subscriptionsExecuted.push(`${name} on 0`);
             });
 
             pubsub.on('testEvent', event => {
-                expect(event).to.equal(eventObject);
-                expect(event).to.have.property('distributor', pubsub);
-                expect(event).to.have.property('publisher', publisher);
-                expect(calledDistributionStoppedFunction).to.be.true;
+                _chai.expect(event).to.equal(eventObject);
+                _chai.expect(event).to.have.property('distributor', pubsub);
+                _chai.expect(event).to.have.property('publisher', publisher);
+                _chai.expect(calledDistributionStoppedFunction).to.be.true;
                 subscriptionsExecuted.push(`${name} on 1`);
             });
 
             pubsub.on('testEvent', event => {
-                expect(event).to.equal(eventObject);
-                expect(event).to.have.property('distributor', pubsub);
-                expect(event).to.have.property('publisher', publisher);
-                expect(calledDistributionStoppedFunction).to.be.true;
+                _chai.expect(event).to.equal(eventObject);
+                _chai.expect(event).to.have.property('distributor', pubsub);
+                _chai.expect(event).to.have.property('publisher', publisher);
+                _chai.expect(calledDistributionStoppedFunction).to.be.true;
                 subscriptionsExecuted.push(`${name} on 2`);
             });
         });
 
         publisher.publish('testEvent');
 
-        expect(subscriptionsExecuted).to.deep.equal([
+        _chai.expect(subscriptionsExecuted).to.deep.equal([
             'publisher before 0',
             'publisher before 1',
             'publisher before 2',
@@ -6333,17 +6321,17 @@ describe('pubsub', () => {
         ]);
     });
 
-    it('should execute the event stopped lifecycle function when the event is stopped', () => {
-        const distributor0 = Pubsub(),
-            distributor0a = Pubsub(),
-            distributor0b = Pubsub(),
-            distributor1 = Pubsub(),
-            distributor1a = Pubsub(),
-            distributor1b = Pubsub(),
-            distributor2 = Pubsub(),
-            distributor2a = Pubsub(),
-            distributor2b = Pubsub(),
-            publisher = Pubsub(),
+    _mocha.it('should execute the event stopped lifecycle function when the event is stopped', () => {
+        const distributor0 = _Pubsub(),
+            distributor0a = _Pubsub(),
+            distributor0b = _Pubsub(),
+            distributor1 = _Pubsub(),
+            distributor1a = _Pubsub(),
+            distributor1b = _Pubsub(),
+            distributor2 = _Pubsub(),
+            distributor2a = _Pubsub(),
+            distributor2b = _Pubsub(),
+            publisher = _Pubsub(),
             subscriptionsExecuted = [];
 
         let calledEventStoppedFunction,
@@ -6351,7 +6339,7 @@ describe('pubsub', () => {
 
         publisher.defineEvent('testEvent', {
             eventStoppedFunction (event) {
-                expect(event).to.equal(eventObject);
+                _chai.expect(event).to.equal(eventObject);
                 calledEventStoppedFunction = true;
             }
         });
@@ -6409,87 +6397,87 @@ describe('pubsub', () => {
             pubsub
         ]) => {
             pubsub.after('testEvent', event => {
-                expect(event).to.equal(eventObject);
-                expect(event).to.have.property('distributor', pubsub);
-                expect(event).to.have.property('publisher', publisher);
-                expect(calledEventStoppedFunction).to.be.true;
+                _chai.expect(event).to.equal(eventObject);
+                _chai.expect(event).to.have.property('distributor', pubsub);
+                _chai.expect(event).to.have.property('publisher', publisher);
+                _chai.expect(calledEventStoppedFunction).to.be.true;
                 subscriptionsExecuted.push(`${name} after 0`);
             });
 
             pubsub.after('testEvent', event => {
-                expect(event).to.equal(eventObject);
-                expect(event).to.have.property('distributor', pubsub);
-                expect(event).to.have.property('publisher', publisher);
-                expect(calledEventStoppedFunction).to.be.true;
+                _chai.expect(event).to.equal(eventObject);
+                _chai.expect(event).to.have.property('distributor', pubsub);
+                _chai.expect(event).to.have.property('publisher', publisher);
+                _chai.expect(calledEventStoppedFunction).to.be.true;
                 subscriptionsExecuted.push(`${name} after 1`);
             });
 
             pubsub.after('testEvent', event => {
-                expect(event).to.equal(eventObject);
-                expect(event).to.have.property('distributor', pubsub);
-                expect(event).to.have.property('publisher', publisher);
-                expect(calledEventStoppedFunction).to.be.true;
+                _chai.expect(event).to.equal(eventObject);
+                _chai.expect(event).to.have.property('distributor', pubsub);
+                _chai.expect(event).to.have.property('publisher', publisher);
+                _chai.expect(calledEventStoppedFunction).to.be.true;
                 subscriptionsExecuted.push(`${name} after 2`);
             });
 
             pubsub.before('testEvent', event => {
                 if (eventObject) {
-                    expect(event).to.equal(eventObject);
+                    _chai.expect(event).to.equal(eventObject);
                 } else {
                     eventObject = event;
                 }
-                expect(event).to.have.property('distributor', pubsub);
-                expect(event).to.have.property('publisher', publisher);
+                _chai.expect(event).to.have.property('distributor', pubsub);
+                _chai.expect(event).to.have.property('publisher', publisher);
                 event.stopEvent();
-                expect(event.eventStopped).to.be.true;
-                expect(calledEventStoppedFunction).to.be.undefined;
+                _chai.expect(event.eventStopped).to.be.true;
+                _chai.expect(calledEventStoppedFunction).to.be.undefined;
                 subscriptionsExecuted.push(`${name} before 0`);
             });
 
             pubsub.before('testEvent', event => {
-                expect(event).to.equal(eventObject);
-                expect(event).to.have.property('distributor', pubsub);
-                expect(event).to.have.property('publisher', publisher);
-                expect(calledEventStoppedFunction).to.be.undefined;
+                _chai.expect(event).to.equal(eventObject);
+                _chai.expect(event).to.have.property('distributor', pubsub);
+                _chai.expect(event).to.have.property('publisher', publisher);
+                _chai.expect(calledEventStoppedFunction).to.be.undefined;
                 subscriptionsExecuted.push(`${name} before 1`);
             });
 
             pubsub.before('testEvent', event => {
-                expect(event).to.equal(eventObject);
-                expect(event).to.have.property('distributor', pubsub);
-                expect(event).to.have.property('publisher', publisher);
-                expect(calledEventStoppedFunction).to.be.undefined;
+                _chai.expect(event).to.equal(eventObject);
+                _chai.expect(event).to.have.property('distributor', pubsub);
+                _chai.expect(event).to.have.property('publisher', publisher);
+                _chai.expect(calledEventStoppedFunction).to.be.undefined;
                 subscriptionsExecuted.push(`${name} before 2`);
             });
 
             pubsub.on('testEvent', event => {
-                expect(event).to.equal(eventObject);
-                expect(event).to.have.property('distributor', pubsub);
-                expect(event).to.have.property('publisher', publisher);
-                expect(calledEventStoppedFunction).to.be.true;
+                _chai.expect(event).to.equal(eventObject);
+                _chai.expect(event).to.have.property('distributor', pubsub);
+                _chai.expect(event).to.have.property('publisher', publisher);
+                _chai.expect(calledEventStoppedFunction).to.be.true;
                 subscriptionsExecuted.push(`${name} on 0`);
             });
 
             pubsub.on('testEvent', event => {
-                expect(event).to.equal(eventObject);
-                expect(event).to.have.property('distributor', pubsub);
-                expect(event).to.have.property('publisher', publisher);
-                expect(calledEventStoppedFunction).to.be.true;
+                _chai.expect(event).to.equal(eventObject);
+                _chai.expect(event).to.have.property('distributor', pubsub);
+                _chai.expect(event).to.have.property('publisher', publisher);
+                _chai.expect(calledEventStoppedFunction).to.be.true;
                 subscriptionsExecuted.push(`${name} on 1`);
             });
 
             pubsub.on('testEvent', event => {
-                expect(event).to.equal(eventObject);
-                expect(event).to.have.property('distributor', pubsub);
-                expect(event).to.have.property('publisher', publisher);
-                expect(calledEventStoppedFunction).to.be.true;
+                _chai.expect(event).to.equal(eventObject);
+                _chai.expect(event).to.have.property('distributor', pubsub);
+                _chai.expect(event).to.have.property('publisher', publisher);
+                _chai.expect(calledEventStoppedFunction).to.be.true;
                 subscriptionsExecuted.push(`${name} on 2`);
             });
         });
 
         publisher.publish('testEvent');
 
-        expect(subscriptionsExecuted).to.deep.equal([
+        _chai.expect(subscriptionsExecuted).to.deep.equal([
             'publisher before 0',
             'publisher before 1',
             'publisher before 2',
@@ -6522,11 +6510,11 @@ describe('pubsub', () => {
             'distributor2b before 2'
         ]);
 
-        expect(calledEventStoppedFunction).to.be.true;
+        _chai.expect(calledEventStoppedFunction).to.be.true;
     });
 
-    it('should execute the prevented lifecycle function when the event is prevented', () => {
-        const pubsub = Pubsub(),
+    _mocha.it('should execute the prevented lifecycle function when the event is prevented', () => {
+        const pubsub = _Pubsub(),
             subscriptionsExecuted = [];
 
         let calledPreventedFunction,
@@ -6534,7 +6522,7 @@ describe('pubsub', () => {
 
         pubsub.defineEvent('testEvent', {
             preventedFunction (event) {
-                expect(event).to.equal(eventObject);
+                _chai.expect(event).to.equal(eventObject);
                 calledPreventedFunction = true;
             }
         });
@@ -6542,32 +6530,32 @@ describe('pubsub', () => {
         pubsub.before('testEvent', event => {
             eventObject = event;
             event.prevent('on');
-            expect(event.isPrevented('on')).to.be.true;
-            expect(calledPreventedFunction).to.be.undefined;
+            _chai.expect(event.isPrevented('on')).to.be.true;
+            _chai.expect(calledPreventedFunction).to.be.undefined;
             subscriptionsExecuted.push('before');
         });
 
         pubsub.on('testEvent', event => {
-            expect(event).to.equal(eventObject);
-            expect(event.defaultIsPrevented()).to.be.true;
-            expect(calledPreventedFunction).to.be.true;
+            _chai.expect(event).to.equal(eventObject);
+            _chai.expect(event.defaultIsPrevented()).to.be.true;
+            _chai.expect(calledPreventedFunction).to.be.true;
             subscriptionsExecuted.push('on');
         });
 
         pubsub.publish('testEvent');
 
-        expect(subscriptionsExecuted).to.deep.equal([
+        _chai.expect(subscriptionsExecuted).to.deep.equal([
             'before'
         ]);
 
-        expect(calledPreventedFunction).to.be.true;
+        _chai.expect(calledPreventedFunction).to.be.true;
     });
 
-    it('should execute the subscribed lifecycle function when the event is subscribed to', () => {
+    _mocha.it('should execute the subscribed lifecycle function when the event is subscribed to', () => {
         let calledSubscribedFunction,
             subscriptionExecuted;
 
-        const pubsub = Pubsub(),
+        const pubsub = _Pubsub(),
             subscriptionConfig = {
                 callbackFunction () {
                     subscriptionExecuted = true;
@@ -6579,12 +6567,12 @@ describe('pubsub', () => {
                 config,
                 dispatcher
             }) {
-                expect(config).to.have.property('callbackFunction', subscriptionConfig.callbackFunction);
-                expect(config).to.have.property('host', pubsub);
-                expect(config).to.have.property('publicSubscription', true);
-                expect(config).to.have.property('stageName', 'on');
-                expect(config.state).to.be.an('object');
-                expect(dispatcher).to.be.an.instanceOf(Dispatcher);
+                _chai.expect(config).to.have.property('callbackFunction', subscriptionConfig.callbackFunction);
+                _chai.expect(config).to.have.property('host', pubsub);
+                _chai.expect(config).to.have.property('publicSubscription', true);
+                _chai.expect(config).to.have.property('stageName', 'on');
+                _chai.expect(config.state).to.be.an('object');
+                _chai.expect(dispatcher).to.be.an.instanceOf(_pubsub.Dispatcher);
                 calledSubscribedFunction = true;
             }
         });
@@ -6592,24 +6580,24 @@ describe('pubsub', () => {
         {
             const subscription = pubsub.subscribe('on', 'testEvent', subscriptionConfig);
 
-            expect(calledSubscribedFunction).to.be.true;
+            _chai.expect(calledSubscribedFunction).to.be.true;
 
             pubsub.publish('testEvent');
 
-            expect(subscriptionExecuted).to.be.true;
+            _chai.expect(subscriptionExecuted).to.be.true;
 
             subscription.unsubscribe();
             subscriptionExecuted = false;
 
             pubsub.publish('testEvent');
 
-            expect(subscriptionExecuted).to.be.false;
+            _chai.expect(subscriptionExecuted).to.be.false;
         }
     });
 
-    it('should return the subscription object returned by the subscribed lifecycle function', () => {
+    _mocha.it('should return the subscription object returned by the subscribed lifecycle function', () => {
         const customSubscription = {},
-            pubsub = Pubsub();
+            pubsub = _Pubsub();
 
         pubsub.defineEvent('testEvent', {
             subscribedFunction () {
@@ -6620,15 +6608,15 @@ describe('pubsub', () => {
         {
             const subscription = pubsub.subscribe('on', 'testEvent', () => void null);
 
-            expect(subscription).to.equal(customSubscription);
+            _chai.expect(subscription).to.equal(customSubscription);
         }
     });
 
-    it('should execute the unsubscribed lifecycle function when the event is unsubscribed from', () => {
+    _mocha.it('should execute the unsubscribed lifecycle function when the event is unsubscribed from', () => {
         let calledUnsubscribedFunction,
             subscriptionExecuted;
 
-        const pubsub = Pubsub(),
+        const pubsub = _Pubsub(),
             subscriptionConfig = {
                 callbackFunction () {
                     subscriptionExecuted = true;
@@ -6640,12 +6628,12 @@ describe('pubsub', () => {
                 config,
                 dispatcher
             }) {
-                expect(config).to.have.property('callbackFunction', subscriptionConfig.callbackFunction);
-                expect(config).to.have.property('host', pubsub);
-                expect(config).to.have.property('publicSubscription', true);
-                expect(config).to.have.property('stageName', 'on');
-                expect(config).to.have.property('state').that.is.an('object');
-                expect(dispatcher).to.be.an.instanceOf(Dispatcher);
+                _chai.expect(config).to.have.property('callbackFunction', subscriptionConfig.callbackFunction);
+                _chai.expect(config).to.have.property('host', pubsub);
+                _chai.expect(config).to.have.property('publicSubscription', true);
+                _chai.expect(config).to.have.property('stageName', 'on');
+                _chai.expect(config).to.have.property('state').that.is.an('object');
+                _chai.expect(dispatcher).to.be.an.instanceOf(_pubsub.Dispatcher);
                 calledUnsubscribedFunction = true;
             }
         });
@@ -6655,33 +6643,33 @@ describe('pubsub', () => {
 
             pubsub.publish('testEvent');
 
-            expect(subscriptionExecuted).to.be.true;
+            _chai.expect(subscriptionExecuted).to.be.true;
 
             subscription.unsubscribe();
 
-            expect(calledUnsubscribedFunction).to.be.true;
+            _chai.expect(calledUnsubscribedFunction).to.be.true;
 
             calledUnsubscribedFunction = false;
             subscriptionExecuted = false;
 
             subscriptionConfig.callbackFunction = event => {
                 event.unsubscribe();
-                expect(calledUnsubscribedFunction).to.be.true;
+                _chai.expect(calledUnsubscribedFunction).to.be.true;
                 subscriptionExecuted = true;
             };
 
             pubsub.subscribe('on', 'testEvent', subscriptionConfig);
             pubsub.publish('testEvent');
 
-            expect(subscriptionExecuted).to.be.true;
+            _chai.expect(subscriptionExecuted).to.be.true;
         }
     });
 
-    it('should prevent unsubscription when the unsubscribed lifecycle function returns false', () => {
+    _mocha.it('should prevent unsubscription when the unsubscribed lifecycle function returns false', () => {
         let calledUnsubscribedFunction,
             subscriptionExecuted;
 
-        const pubsub = Pubsub(),
+        const pubsub = _Pubsub(),
             subscriptionConfig = {
                 callbackFunction () {
                     subscriptionExecuted = true;
@@ -6696,12 +6684,12 @@ describe('pubsub', () => {
                 config,
                 dispatcher
             }) {
-                expect(config).to.have.property('callbackFunction', subscriptionConfig.callbackFunction);
-                expect(config).to.have.property('host', pubsub);
-                expect(config).to.have.property('publicSubscription', true);
-                expect(config).to.have.property('stageName', 'on');
-                expect(config).to.have.property('state').that.is.an('object');
-                expect(dispatcher).to.be.an.instanceOf(Dispatcher);
+                _chai.expect(config).to.have.property('callbackFunction', subscriptionConfig.callbackFunction);
+                _chai.expect(config).to.have.property('host', pubsub);
+                _chai.expect(config).to.have.property('publicSubscription', true);
+                _chai.expect(config).to.have.property('stageName', 'on');
+                _chai.expect(config).to.have.property('state').that.is.an('object');
+                _chai.expect(dispatcher).to.be.an.instanceOf(_pubsub.Dispatcher);
                 calledUnsubscribedFunction = true;
                 return false;
             }
@@ -6712,40 +6700,40 @@ describe('pubsub', () => {
 
             pubsub.publish('testEvent0');
 
-            expect(subscriptionExecuted).to.be.true;
-            expect(subscription.unsubscribe()).to.be.false;
-            expect(calledUnsubscribedFunction).to.be.true;
-            expect(subscription.subscribed).to.be.true;
+            _chai.expect(subscriptionExecuted).to.be.true;
+            _chai.expect(subscription.unsubscribe()).to.be.false;
+            _chai.expect(calledUnsubscribedFunction).to.be.true;
+            _chai.expect(subscription.subscribed).to.be.true;
 
             subscriptionExecuted = false;
             pubsub.publish('testEvent0');
-            expect(subscriptionExecuted).to.be.true;
+            _chai.expect(subscriptionExecuted).to.be.true;
 
             calledUnsubscribedFunction = false;
             subscriptionExecuted = false;
 
             subscriptionConfig.callbackFunction = event => {
-                expect(event.unsubscribe()).to.be.false;
+                _chai.expect(event.unsubscribe()).to.be.false;
                 event.unsubscribe();
-                expect(calledUnsubscribedFunction).to.be.true;
+                _chai.expect(calledUnsubscribedFunction).to.be.true;
                 subscriptionExecuted = true;
             };
 
             pubsub.subscribe('on', 'testEvent1', subscriptionConfig);
             pubsub.publish('testEvent1');
-            expect(subscriptionExecuted).to.be.true;
+            _chai.expect(subscriptionExecuted).to.be.true;
 
             calledUnsubscribedFunction = false;
             subscriptionExecuted = false;
             pubsub.publish('testEvent0');
-            expect(subscriptionExecuted).to.be.true;
+            _chai.expect(subscriptionExecuted).to.be.true;
         }
     });
 
-    it('should chain static event configurations', () => {
-        const PubsubA = make(Pubsub, {
+    _mocha.it('should chain static event configurations', () => {
+        const PubsubA = _make(_Pubsub, {
                 _init (...args) {
-                    return Reflect.apply(Pubsub.prototype._init, this, args);
+                    return Reflect.apply(_Pubsub.prototype._init, this, args);
                 }
             }, {
                 _events: {
@@ -6756,7 +6744,7 @@ describe('pubsub', () => {
                     }
                 }
             }),
-            PubsubB = make(PubsubA, {
+            PubsubB = _make(PubsubA, {
                 _init (...args) {
                     return Reflect.apply(PubsubA.prototype._init, this, args);
                 }
@@ -6769,7 +6757,7 @@ describe('pubsub', () => {
                     }
                 }
             }),
-            PubsubC = make(PubsubB, {
+            PubsubC = _make(PubsubB, {
                 _init (...args) {
                     return Reflect.apply(PubsubB.prototype._init, this, args);
                 }
@@ -6791,21 +6779,21 @@ describe('pubsub', () => {
             subscriptionsExecuted = [];
 
         pubsub.on('testEventA', event => {
-            expect(event).to.have.property('data').that.deep.equals({
+            _chai.expect(event).to.have.property('data').that.deep.equals({
                 c: 'c'
             });
             subscriptionsExecuted.push('a');
         });
 
         pubsub.on('testEventB', event => {
-            expect(event).to.have.property('data').that.deep.equals({
+            _chai.expect(event).to.have.property('data').that.deep.equals({
                 b: 'b'
             });
             subscriptionsExecuted.push('b');
         });
 
         pubsub.on('testEventC', event => {
-            expect(event).to.have.property('data').that.deep.equals({
+            _chai.expect(event).to.have.property('data').that.deep.equals({
                 c: 'c'
             });
             subscriptionsExecuted.push('c');
@@ -6816,26 +6804,26 @@ describe('pubsub', () => {
             .publish('testEventB')
             .publish('testEventC');
 
-        expect(subscriptionsExecuted).to.deep.equal([
+        _chai.expect(subscriptionsExecuted).to.deep.equal([
             'a',
             'b',
             'c'
         ]);
     });
 
-    it('should allow method names as late bound subscription callback functions', () => {
+    _mocha.it('should allow method names as late bound subscription callback functions', () => {
         const subscriptionsExecuted = [],
 
             customMethodSymbol = Symbol('customMethodSymbol'),
-            CustomPubsub = make(Pubsub, {
-                _beforeTestEvent () {
-                    subscriptionsExecuted.push('before');
-                },
+            CustomPubsub = _make(_Pubsub, {
                 [customMethodSymbol] () {
                     subscriptionsExecuted.push('on');
                 },
+                _beforeTestEvent () {
+                    subscriptionsExecuted.push('before');
+                },
                 _init (...args) {
-                    return Reflect.apply(Pubsub.prototype._init, this, args);
+                    return Reflect.apply(_Pubsub.prototype._init, this, args);
                 }
             }),
             customPubsub = CustomPubsub();
@@ -6846,18 +6834,18 @@ describe('pubsub', () => {
         customPubsub.publish('testEvent');
 
         customPubsub._beforeTestEvent = function () {
-            expect(this).to.equal(customPubsub);
+            _chai.expect(this).to.equal(customPubsub);
             subscriptionsExecuted.push('different before');
         };
 
         customPubsub[customMethodSymbol] = function () {
-            expect(this).to.equal(customPubsub);
+            _chai.expect(this).to.equal(customPubsub);
             subscriptionsExecuted.push('different on');
         };
 
         customPubsub.publish('testEvent');
 
-        expect(subscriptionsExecuted).to.deep.equal([
+        _chai.expect(subscriptionsExecuted).to.deep.equal([
             'before',
             'on',
             'different before',
@@ -6865,19 +6853,19 @@ describe('pubsub', () => {
         ]);
     });
 
-    it('should allow method names as late bound once subscription callback functions', () => {
+    _mocha.it('should allow method names as late bound once subscription callback functions', () => {
         const subscriptionsExecuted = [],
 
             customMethodSymbol = Symbol('customMethodSymbol'),
-            CustomPubsub = make(Pubsub, {
-                _beforeTestEvent () {
-                    subscriptionsExecuted.push('before');
-                },
+            CustomPubsub = _make(_Pubsub, {
                 [customMethodSymbol] () {
                     subscriptionsExecuted.push('on');
                 },
+                _beforeTestEvent () {
+                    subscriptionsExecuted.push('before');
+                },
                 _init (...args) {
-                    return Reflect.apply(Pubsub.prototype._init, this, args);
+                    return Reflect.apply(_Pubsub.prototype._init, this, args);
                 }
             }),
             customPubsub = CustomPubsub();
@@ -6891,18 +6879,18 @@ describe('pubsub', () => {
         customPubsub.onceOn('testEvent', customMethodSymbol);
 
         customPubsub._beforeTestEvent = function () {
-            expect(this).to.equal(customPubsub);
+            _chai.expect(this).to.equal(customPubsub);
             subscriptionsExecuted.push('different before');
         };
 
         customPubsub[customMethodSymbol] = function () {
-            expect(this).to.equal(customPubsub);
+            _chai.expect(this).to.equal(customPubsub);
             subscriptionsExecuted.push('different on');
         };
 
         customPubsub.publish('testEvent');
 
-        expect(subscriptionsExecuted).to.deep.equal([
+        _chai.expect(subscriptionsExecuted).to.deep.equal([
             'before',
             'on',
             'different before',
@@ -6910,8 +6898,8 @@ describe('pubsub', () => {
         ]);
     });
 
-    it('should not error if late bound subscription callback functions are invalid', () => {
-        const pubsub = Pubsub();
+    _mocha.it('should not error if late bound subscription callback functions are invalid', () => {
+        const pubsub = _Pubsub();
 
         pubsub.subscribe('on', 'testEvent', 'someMethodThatDoesNotExist');
         pubsub.subscribe('on', 'testEvent', {
@@ -6933,74 +6921,74 @@ describe('pubsub', () => {
         pubsub.publish('testEvent');
     });
 
-    it('should be destroyable', () => {
+    _mocha.it('should be destroyable', () => {
         let subscriptionsExecuted = [];
 
-        const pubsub = Pubsub(),
+        const pubsub = _Pubsub(),
             testSubscription0 = pubsub.onceOn('destroy', event => {
-                expect(pubsub).to.have.property('destroyed', false);
+                _chai.expect(pubsub).to.have.property('destroyed', false);
                 subscriptionsExecuted.push('onceOnDestroy');
                 event.preventDefault();
             }),
             testSubscription1 = pubsub.on('destroy', () => {
-                expect(pubsub).to.have.property('destroyed', false);
+                _chai.expect(pubsub).to.have.property('destroyed', false);
                 subscriptionsExecuted.push('onDestroy');
             }),
             testSubscription2 = pubsub.after('destroy', () => {
-                expect(pubsub).to.have.property('destroyed', true);
+                _chai.expect(pubsub).to.have.property('destroyed', true);
                 subscriptionsExecuted.push('afterDestroy');
             }),
             testSubscription3 = pubsub.after('destroyComplete', () => {
-                expect(pubsub).to.have.property('destroyed', true);
+                _chai.expect(pubsub).to.have.property('destroyed', true);
                 subscriptionsExecuted.push('afterDestroyComplete');
             }),
             testSubscription4 = pubsub.on('destroyComplete', () => {
-                expect(pubsub).to.have.property('destroyed', true);
+                _chai.expect(pubsub).to.have.property('destroyed', true);
                 subscriptionsExecuted.push('onDestroyComplete');
             }),
             testSubscription5 = pubsub.on('anotherEvent', () => {
-                expect(pubsub).to.have.property('destroyed', false);
+                _chai.expect(pubsub).to.have.property('destroyed', false);
                 subscriptionsExecuted.push('onAnotherEvent');
             });
 
-        expect(pubsub).to.have.property('destroyed', false);
-        expect(testSubscription0).to.have.property('subscribed', true);
-        expect(testSubscription1).to.have.property('subscribed', true);
-        expect(testSubscription2).to.have.property('subscribed', true);
-        expect(testSubscription3).to.have.property('subscribed', true);
-        expect(testSubscription4).to.have.property('subscribed', true);
-        expect(testSubscription5).to.have.property('subscribed', true);
+        _chai.expect(pubsub).to.have.property('destroyed', false);
+        _chai.expect(testSubscription0).to.have.property('subscribed', true);
+        _chai.expect(testSubscription1).to.have.property('subscribed', true);
+        _chai.expect(testSubscription2).to.have.property('subscribed', true);
+        _chai.expect(testSubscription3).to.have.property('subscribed', true);
+        _chai.expect(testSubscription4).to.have.property('subscribed', true);
+        _chai.expect(testSubscription5).to.have.property('subscribed', true);
 
-        expect(() => {
+        _chai.expect(() => {
             pubsub.destroyed = true;
         }).to.throw(TypeError);
 
-        expect(pubsub).to.have.property('destroyed', false);
+        _chai.expect(pubsub).to.have.property('destroyed', false);
 
         pubsub._destroy = function (...args) {
-            expect(args).to.deep.equal([
+            _chai.expect(args).to.deep.equal([
                 'a',
                 'b',
                 'c'
             ]);
             subscriptionsExecuted.push('defaultDestroy');
-            Reflect.apply(Pubsub.prototype._destroy, this, args);
+            Reflect.apply(_Pubsub.prototype._destroy, this, args);
         };
 
         pubsub._destroyComplete = function (...args) {
-            expect(args).to.deep.equal([
+            _chai.expect(args).to.deep.equal([
                 'a',
                 'b',
                 'c'
             ]);
             subscriptionsExecuted.push('defaultDestroyComplete');
-            Reflect.apply(Pubsub.prototype._destroyComplete, this, args);
+            Reflect.apply(_Pubsub.prototype._destroyComplete, this, args);
         };
 
         pubsub.publish('anotherEvent').publish('destroy');
 
-        expect(pubsub).to.have.property('destroyed', false);
-        expect(subscriptionsExecuted).to.deep.equal([
+        _chai.expect(pubsub).to.have.property('destroyed', false);
+        _chai.expect(subscriptionsExecuted).to.deep.equal([
             'onAnotherEvent'
         ]);
 
@@ -7008,20 +6996,20 @@ describe('pubsub', () => {
 
         pubsub.publish('anotherEvent').destroy('a', 'b', 'c');
 
-        expect(pubsub).to.have.property('destroyed', false);
-        expect(subscriptionsExecuted).to.deep.equal([
+        _chai.expect(pubsub).to.have.property('destroyed', false);
+        _chai.expect(subscriptionsExecuted).to.deep.equal([
             'onAnotherEvent',
             'onceOnDestroy',
             'onDestroy'
         ]);
-        expect(testSubscription0).to.have.property('subscribed', false);
+        _chai.expect(testSubscription0).to.have.property('subscribed', false);
 
         subscriptionsExecuted = [];
 
         pubsub.publish('anotherEvent').destroy('a', 'b', 'c');
 
-        expect(pubsub).to.have.property('destroyed', true);
-        expect(subscriptionsExecuted).to.deep.equal([
+        _chai.expect(pubsub).to.have.property('destroyed', true);
+        _chai.expect(subscriptionsExecuted).to.deep.equal([
             'onAnotherEvent',
             'onDestroy',
             'defaultDestroy',
@@ -7029,34 +7017,34 @@ describe('pubsub', () => {
             'defaultDestroyComplete',
             'afterDestroyComplete'
         ]);
-        expect(testSubscription1).to.have.property('subscribed', false);
-        expect(testSubscription2).to.have.property('subscribed', false);
-        expect(testSubscription3).to.have.property('subscribed', false);
-        expect(testSubscription4).to.have.property('subscribed', false);
-        expect(testSubscription5).to.have.property('subscribed', false);
+        _chai.expect(testSubscription1).to.have.property('subscribed', false);
+        _chai.expect(testSubscription2).to.have.property('subscribed', false);
+        _chai.expect(testSubscription3).to.have.property('subscribed', false);
+        _chai.expect(testSubscription4).to.have.property('subscribed', false);
+        _chai.expect(testSubscription5).to.have.property('subscribed', false);
 
         subscriptionsExecuted = [];
 
-        expect(() => {
+        _chai.expect(() => {
             pubsub.publish('anotherEvent');
         }).to.throw(TypeError);
 
-        expect(() => {
+        _chai.expect(() => {
             pubsub.destroy('a', 'b', 'c');
         }).to.throw(TypeError);
 
-        expect(pubsub).to.have.property('destroyed', true);
-        expect(subscriptionsExecuted).to.deep.equal([]);
+        _chai.expect(pubsub).to.have.property('destroyed', true);
+        _chai.expect(subscriptionsExecuted).to.deep.equal([]);
     });
 
-    it('should work as a mixin', () => {
+    _mocha.it('should work as a mixin', () => {
         const subscriptionsExecuted = [],
 
-            PubsubA = make([
-                Pubsub
+            PubsubA = _make([
+                _Pubsub
             ], {
                 _init (...args) {
-                    return Reflect.apply(Pubsub.prototype._init, this, args);
+                    return Reflect.apply(_Pubsub.prototype._init, this, args);
                 }
             }, {
                 _events: {
@@ -7067,10 +7055,10 @@ describe('pubsub', () => {
                     }
                 },
                 _init (...args) {
-                    return Reflect.apply(Pubsub._init, this, args);
+                    return Reflect.apply(_Pubsub._init, this, args);
                 }
             }),
-            PubsubB = make(PubsubA, {
+            PubsubB = _make(PubsubA, {
                 _init (...args) {
                     return Reflect.apply(PubsubA.prototype._init, this, args);
                 }
@@ -7083,7 +7071,7 @@ describe('pubsub', () => {
                     }
                 }
             }),
-            PubsubC = make(PubsubB, {
+            PubsubC = _make(PubsubB, {
                 _destroy (string) {
                     subscriptionsExecuted.push(string);
                 },
@@ -7107,21 +7095,21 @@ describe('pubsub', () => {
             pubsub = PubsubC();
 
         pubsub.on('testEventA', event => {
-            expect(event).to.have.property('data').that.deep.equals({
+            _chai.expect(event).to.have.property('data').that.deep.equals({
                 c: 'c'
             });
             subscriptionsExecuted.push('a');
         });
 
         pubsub.on('testEventB', event => {
-            expect(event).to.have.property('data').that.deep.equals({
+            _chai.expect(event).to.have.property('data').that.deep.equals({
                 b: 'b'
             });
             subscriptionsExecuted.push('b');
         });
 
         pubsub.on('testEventC', event => {
-            expect(event).to.have.property('data').that.deep.equals({
+            _chai.expect(event).to.have.property('data').that.deep.equals({
                 c: 'c'
             });
             subscriptionsExecuted.push('c');
@@ -7138,7 +7126,7 @@ describe('pubsub', () => {
             .publish('testEventD')
             .destroy('e');
 
-        expect(subscriptionsExecuted).to.deep.equal([
+        _chai.expect(subscriptionsExecuted).to.deep.equal([
             'a',
             'b',
             'c',
@@ -7147,14 +7135,14 @@ describe('pubsub', () => {
         ]);
     });
 
-    it('should work as a mixin\'s mixin', () => {
+    _mocha.it('should work as a mixin\'s mixin', () => {
         const subscriptionsExecuted = [],
 
-            PubsubA = make([
-                Pubsub
+            PubsubA = _make([
+                _Pubsub
             ], {
                 _init (...args) {
-                    return Reflect.apply(Pubsub.prototype._init, this, args);
+                    return Reflect.apply(_Pubsub.prototype._init, this, args);
                 }
             }, {
                 _events: {
@@ -7165,10 +7153,10 @@ describe('pubsub', () => {
                     }
                 },
                 _init (...args) {
-                    return Reflect.apply(Pubsub._init, this, args);
+                    return Reflect.apply(_Pubsub._init, this, args);
                 }
             }),
-            PubsubB = make([
+            PubsubB = _make([
                 PubsubA
             ], {
                 _init (...args) {
@@ -7183,7 +7171,7 @@ describe('pubsub', () => {
                     }
                 }
             }),
-            PubsubC = make([
+            PubsubC = _make([
                 PubsubB
             ], {
                 _destroy (string) {
@@ -7209,21 +7197,21 @@ describe('pubsub', () => {
             pubsub = PubsubC();
 
         pubsub.on('testEventA', event => {
-            expect(event).to.have.property('data').that.deep.equals({
+            _chai.expect(event).to.have.property('data').that.deep.equals({
                 c: 'c'
             });
             subscriptionsExecuted.push('a');
         });
 
         pubsub.on('testEventB', event => {
-            expect(event).to.have.property('data').that.deep.equals({
+            _chai.expect(event).to.have.property('data').that.deep.equals({
                 b: 'b'
             });
             subscriptionsExecuted.push('b');
         });
 
         pubsub.on('testEventC', event => {
-            expect(event).to.have.property('data').that.deep.equals({
+            _chai.expect(event).to.have.property('data').that.deep.equals({
                 c: 'c'
             });
             subscriptionsExecuted.push('c');
@@ -7240,7 +7228,7 @@ describe('pubsub', () => {
             .publish('testEventD')
             .destroy('e');
 
-        expect(subscriptionsExecuted).to.deep.equal([
+        _chai.expect(subscriptionsExecuted).to.deep.equal([
             'a',
             'b',
             'c',
