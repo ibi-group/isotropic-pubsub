@@ -1,5 +1,4 @@
 import _defaultSymbol from './default-symbol.js';
-
 import _make from 'isotropic-make';
 
 export default _make({

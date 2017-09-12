@@ -1,9 +1,6 @@
 import _defaultSymbol from './default-symbol.js';
-
 import _Event from './event.js';
-
 import _make from 'isotropic-make';
-
 import _Subscription from './subscription.js';
 
 import Dict from 'core-js/core/dict';

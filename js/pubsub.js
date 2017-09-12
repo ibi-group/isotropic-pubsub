@@ -1,18 +1,13 @@
 import _Dispatcher, {
     Event as _Event
 } from './dispatcher.js';
-
 import _defaultSymbol from './default-symbol.js';
-
 import _make from 'isotropic-make';
-
 import _PropertyChainer from 'isotropic-property-chainer';
-
 import _Subscription from './subscription.js';
 
 import Dict from 'core-js/core/dict';
 
-/* eslint-disable indent, no-invalid-this */
 const _protectedDefineEventMethod = function ({
         config = {},
         eventName
@@ -46,7 +41,6 @@ const _protectedDefineEventMethod = function ({
 
         return this;
     },
-/* eslint-enable indent, no-invalid-this */
 
     _Pubsub = _make([
         _PropertyChainer
@@ -186,11 +180,9 @@ const _protectedDefineEventMethod = function ({
 
                         if (state) {
                             for (const subscriptions of stageName ?
-                                /* eslint-disable indent */
                                 [
                                     state.subscriptions[stageName] || new Map()
                                 ] :
-                                /* eslint-enable indent */
                                 Dict.values(state.subscriptions)) {
                                 for (const subscription of subscriptions.values()) {
                                     if (subscription.unsubscribe({
@@ -283,10 +275,9 @@ const _protectedDefineEventMethod = function ({
                 {},
                 typeof config === 'object' ?
                     config :
-                    /* eslint-disable indent */
                     {
                         callbackFunction: config
-                    }, /* eslint-enable indent */
+                    },
                 {
                     host: this,
                     publicSubscription: true,
@@ -415,11 +406,9 @@ const _protectedDefineEventMethod = function ({
 
                         if (state) {
                             for (const subscriptions of stageName ?
-                                /* eslint-disable indent */
                                 [
                                     state.subscriptions[stageName] || new Map()
                                 ] :
-                                /* eslint-enable indent */
                                 Dict.values(state.subscriptions)) {
                                 for (const subscription of subscriptions.values()) {
                                     if (subscription.unsubscribe()) {
@@ -581,10 +570,9 @@ const _protectedDefineEventMethod = function ({
                 {},
                 typeof config === 'object' ?
                     config :
-                    /* eslint-disable indent */
                     {
                         callbackFunction: config
-                    }, /* eslint-enable indent */
+                    },
                 {
                     host: this,
                     stageName,
@@ -652,7 +640,6 @@ const _protectedDefineEventMethod = function ({
         _defineEvent: _protectedDefineEventMethod,
         _Dispatcher,
         _events: new Dict({
-            [_defaultSymbol]: {},
             destroy: {
                 allowPublicPublish: false,
                 completeOnce: true,
@@ -664,7 +651,8 @@ const _protectedDefineEventMethod = function ({
                 defaultFunction: '_eventDestroyComplete',
                 Dispatcher: _Dispatcher,
                 publishOnce: true
-            }
+            },
+            [_defaultSymbol]: {}
         }),
         _init (...args) {
             Reflect.apply(_PropertyChainer._init, this, args);
