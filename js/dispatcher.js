@@ -166,6 +166,7 @@ const _Dispatcher = _make({
 
                     return Reflect.apply(callbackFunction, host, args);
                 };
+
             case 'string':
             case 'symbol':
                 return function (...args) {
@@ -188,7 +189,9 @@ const _Dispatcher = _make({
         };
     },
     _init (config = {}) {
-        config = Object.assign({}, config);
+        config = {
+            ...config
+        };
 
         if (config.allowDuplicateSubscription !== false) {
             config.allowDuplicateSubscription = true;

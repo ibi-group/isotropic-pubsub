@@ -14,9 +14,10 @@ const _protectedDefineEventMethod = function ({
     }) {
         this._events[eventName] = typeof config.newState === 'function' && typeof config.publish === 'function' && typeof config.subscribe === 'function' ?
             config :
-            (config.Dispatcher || this._Dispatcher)(Object.assign({}, config, {
+            (config.Dispatcher || this._Dispatcher)({
+                ...config,
                 name: eventName
-            }));
+            });
 
         return this;
     },
@@ -271,20 +272,17 @@ const _protectedDefineEventMethod = function ({
             return this;
         },
         subscribe (stageName, eventName, config) {
-            return this._getEvent(eventName).subscribe(Object.assign(
-                {},
-                typeof config === 'object' ?
+            return this._getEvent(eventName).subscribe({
+                ...typeof config === 'object' ?
                     config :
                     {
                         callbackFunction: config
                     },
-                {
-                    host: this,
-                    publicSubscription: true,
-                    stageName,
-                    state: this._getEventState(eventName)
-                }
-            ));
+                host: this,
+                publicSubscription: true,
+                stageName,
+                state: this._getEventState(eventName)
+            });
         },
         _bulkSubscribe (bulkConfig) {
             if (!Array.isArray(bulkConfig)) {
@@ -540,9 +538,10 @@ const _protectedDefineEventMethod = function ({
         _normalizeBulkSubscribeConfig (bulkSubscribeConfig, config = bulkSubscribeConfig.config) {
             if (bulkSubscribeConfig.once) {
                 if (typeof config === 'object') {
-                    return Object.assign({}, config, {
+                    return {
+                        ...config,
                         once: true
-                    });
+                    };
                 }
 
                 return {
@@ -566,19 +565,16 @@ const _protectedDefineEventMethod = function ({
             return this;
         },
         _subscribe (stageName, eventName, config) {
-            return this._getEvent(eventName).subscribe(Object.assign(
-                {},
-                typeof config === 'object' ?
+            return this._getEvent(eventName).subscribe({
+                ...typeof config === 'object' ?
                     config :
                     {
                         callbackFunction: config
                     },
-                {
-                    host: this,
-                    stageName,
-                    state: this._getEventState(eventName)
-                }
-            ));
+                host: this,
+                stageName,
+                state: this._getEventState(eventName)
+            });
         }
     }, {
         defineEvent: _publicDefineEventMethod,
