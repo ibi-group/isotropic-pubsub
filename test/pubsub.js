@@ -5970,15 +5970,18 @@ _mocha.describe('pubsub', () => {
                 } else {
                     eventObject = event;
                 }
+
                 _chai.expect(event).to.have.property('distributor', pubsub);
                 _chai.expect(event).to.have.property('publisher', publisher);
                 event.stopDispatch();
                 _chai.expect(event.dispatchStopped).to.be.true;
+
                 if (pubsub === publisher) {
                     _chai.expect(calledDispatchStoppedFunction).to.be.undefined;
                 } else {
                     _chai.expect(calledDispatchStoppedFunction).to.be.true;
                 }
+
                 subscriptionsExecuted.push(`${name} before 0`);
             });
 
@@ -6204,6 +6207,7 @@ _mocha.describe('pubsub', () => {
                 } else {
                     eventObject = event;
                 }
+
                 _chai.expect(event).to.have.property('distributor', pubsub);
                 _chai.expect(event).to.have.property('publisher', publisher);
                 event.stopDistribution();
@@ -6426,6 +6430,7 @@ _mocha.describe('pubsub', () => {
                 } else {
                     eventObject = event;
                 }
+
                 _chai.expect(event).to.have.property('distributor', pubsub);
                 _chai.expect(event).to.have.property('publisher', publisher);
                 event.stopEvent();
