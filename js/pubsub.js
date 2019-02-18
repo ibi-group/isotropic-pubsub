@@ -2,11 +2,10 @@ import _Dispatcher, {
     Event as _Event
 } from './dispatcher.js';
 import _defaultSymbol from './default-symbol.js';
+import _Dict from 'core-js/core/dict';
 import _make from 'isotropic-make';
 import _PropertyChainer from 'isotropic-property-chainer';
 import _Subscription from './subscription.js';
-
-import Dict from 'core-js/core/dict';
 
 const _protectedDefineEventMethod = function ({
         config = {},
@@ -145,8 +144,8 @@ const _protectedDefineEventMethod = function ({
 
             if (typeof eventName === 'undefined') {
                 if (typeof stageName === 'undefined') {
-                    for (const state of Dict.values(this._eventState)) {
-                        for (const subscriptions of Dict.values(state.subscriptions)) {
+                    for (const state of _Dict.values(this._eventState)) {
+                        for (const subscriptions of _Dict.values(state.subscriptions)) {
                             for (const subscription of subscriptions.values()) {
                                 if (subscription.unsubscribe({
                                     publicUnsubscription: true
@@ -184,7 +183,7 @@ const _protectedDefineEventMethod = function ({
                                 [
                                     state.subscriptions[stageName] || new Map()
                                 ] :
-                                Dict.values(state.subscriptions)) {
+                                _Dict.values(state.subscriptions)) {
                                 for (const subscription of subscriptions.values()) {
                                     if (subscription.unsubscribe({
                                         publicUnsubscription: true
@@ -370,8 +369,8 @@ const _protectedDefineEventMethod = function ({
 
             if (typeof eventName === 'undefined') {
                 if (typeof stageName === 'undefined') {
-                    for (const state of Dict.values(this._eventState)) {
-                        for (const subscriptions of Dict.values(state.subscriptions)) {
+                    for (const state of _Dict.values(this._eventState)) {
+                        for (const subscriptions of _Dict.values(state.subscriptions)) {
                             for (const subscription of subscriptions.values()) {
                                 if (subscription.unsubscribe()) {
                                     unsubscribed = true;
@@ -407,7 +406,7 @@ const _protectedDefineEventMethod = function ({
                                 [
                                     state.subscriptions[stageName] || new Map()
                                 ] :
-                                Dict.values(state.subscriptions)) {
+                                _Dict.values(state.subscriptions)) {
                                 for (const subscription of subscriptions.values()) {
                                     if (subscription.unsubscribe()) {
                                         unsubscribed = true;
@@ -527,7 +526,7 @@ const _protectedDefineEventMethod = function ({
 
             this._events = Object.create(this.constructor._events);
 
-            this._eventState = new Dict();
+            this._eventState = new _Dict();
 
             if (events) {
                 this.defineEvent(events);
@@ -635,7 +634,7 @@ const _protectedDefineEventMethod = function ({
         },
         _defineEvent: _protectedDefineEventMethod,
         _Dispatcher,
-        _events: new Dict({
+        _events: new _Dict({
             destroy: {
                 allowPublicPublish: false,
                 completeOnce: true,

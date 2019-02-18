@@ -1,14 +1,13 @@
 import _defaultSymbol from './default-symbol.js';
+import _Dict from 'core-js/core/dict';
 import _Event from './event.js';
 import _make from 'isotropic-make';
 import _Subscription from './subscription.js';
 
-import Dict from 'core-js/core/dict';
-
 const _Dispatcher = _make({
     newState () {
-        return new Dict({
-            subscriptions: new Dict()
+        return new _Dict({
+            subscriptions: new _Dict()
         });
     },
     publish ({
@@ -26,11 +25,11 @@ const _Dispatcher = _make({
 
         if (this._config.data) {
             data = data ?
-                Object.assign(new Dict(), this._config.data, data) :
+                Object.assign(new _Dict(), this._config.data, data) :
                 this._config.data;
         }
 
-        const config = new Dict({
+        const config = new _Dict({
                 data,
                 dispatchStoppable: this._config.dispatchStoppable,
                 distributionStoppable: this._config.distributionStoppable,
@@ -166,7 +165,6 @@ const _Dispatcher = _make({
 
                     return Reflect.apply(callbackFunction, host, args);
                 };
-
             case 'string':
             case 'symbol':
                 return function (...args) {
