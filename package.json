@@ -34,8 +34,8 @@
     ],
     "dependencies": {
         "core-js": "~2.6.5",
-        "isotropic-make": "~0.7.0",
-        "isotropic-property-chainer": "~0.7.0"
+        "isotropic-make": "~0.8.0",
+        "isotropic-property-chainer": "~0.8.0"
     },
     "description": "Pubsub event system implementation.",
     "devDependencies": {
@@ -109,5 +109,5 @@
         "pretest": "npm run lint",
         "test": "cross-env BABEL_ENV=test nyc mocha"
     },
-    "version": "0.8.0"
+    "version": "0.9.0"
 }
