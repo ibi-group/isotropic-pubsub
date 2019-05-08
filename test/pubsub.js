@@ -6816,6 +6816,193 @@ _mocha.describe('pubsub', () => {
         ]);
     });
 
+    _mocha.it('should chain static event configurations including mixins', () => {
+        let destroyed = false;
+
+        const MixinX = _make(_Pubsub, {
+                _differentDestroyComplete ({
+                    data: {
+                        args
+                    }
+                }) {
+                    destroyed = true;
+                    this._destroyComplete(...args);
+                },
+                _init (...args) {
+                    return Reflect.apply(_Pubsub.prototype._init, this, args);
+                }
+            }, {
+                _events: {
+                    destroyComplete: {
+                        allowPublicPublish: false,
+                        defaultFunction: '_differentDestroyComplete',
+                        publishOnce: true
+                    },
+                    testEventX: {
+                        data: {
+                            x: 'x'
+                        }
+                    }
+                }
+            }),
+            MixinY = _make(_Pubsub, {
+                _init (...args) {
+                    return Reflect.apply(_Pubsub.prototype._init, this, args);
+                }
+            }, {
+                _events: {
+                    testEventB: {
+                        data: {
+                            y: 'y'
+                        }
+                    },
+                    testEventY: {
+                        data: {
+                            y: 'y'
+                        }
+                    }
+                }
+            }),
+            MixinZ = _make(_Pubsub, {
+                _init (...args) {
+                    return Reflect.apply(_Pubsub.prototype._init, this, args);
+                }
+            }, {
+                _events: {
+                    testEventY: {
+                        data: {
+                            z: 'z'
+                        }
+                    },
+                    testEventZ: {
+                        data: {
+                            z: 'z'
+                        }
+                    }
+                }
+            }),
+            PubsubA = _make(_Pubsub, {
+                _init (...args) {
+                    return Reflect.apply(_Pubsub.prototype._init, this, args);
+                }
+            }, {
+                _events: {
+                    testEventA: {
+                        data: {
+                            a: 'a'
+                        }
+                    }
+                }
+            }),
+            PubsubB = _make(PubsubA, {
+                _init (...args) {
+                    return Reflect.apply(PubsubA.prototype._init, this, args);
+                }
+            }, {
+                _events: {
+                    testEventB: {
+                        data: {
+                            b: 'b'
+                        }
+                    }
+                }
+            }),
+            PubsubC = _make(PubsubB, [
+                MixinX,
+                MixinY,
+                MixinZ
+            ], {
+                _init (...args) {
+                    return Reflect.apply(PubsubB.prototype._init, this, args);
+                }
+            }, {
+                _events: {
+                    testEventA: {
+                        data: {
+                            c: 'c'
+                        }
+                    },
+                    testEventC: {
+                        data: {
+                            c: 'c'
+                        }
+                    },
+                    testEventX: {
+                        data: {
+                            c: 'c'
+                        }
+                    }
+                }
+            }),
+            pubsub = PubsubC(),
+            subscriptionsExecuted = [];
+
+        pubsub.on('testEventA', event => {
+            _chai.expect(event).to.have.property('data').that.deep.equals({
+                c: 'c'
+            });
+            subscriptionsExecuted.push('a');
+        });
+
+        pubsub.on('testEventB', event => {
+            _chai.expect(event).to.have.property('data').that.deep.equals({
+                y: 'y'
+            });
+            subscriptionsExecuted.push('b');
+        });
+
+        pubsub.on('testEventC', event => {
+            _chai.expect(event).to.have.property('data').that.deep.equals({
+                c: 'c'
+            });
+            subscriptionsExecuted.push('c');
+        });
+
+        pubsub.on('testEventX', event => {
+            _chai.expect(event).to.have.property('data').that.deep.equals({
+                c: 'c'
+            });
+            subscriptionsExecuted.push('x');
+        });
+
+        pubsub.on('testEventY', event => {
+            _chai.expect(event).to.have.property('data').that.deep.equals({
+                z: 'z'
+            });
+            subscriptionsExecuted.push('y');
+        });
+
+        pubsub.on('testEventZ', event => {
+            _chai.expect(event).to.have.property('data').that.deep.equals({
+                z: 'z'
+            });
+            subscriptionsExecuted.push('z');
+        });
+
+        pubsub
+            .publish('testEventA')
+            .publish('testEventB')
+            .publish('testEventC')
+            .publish('testEventX')
+            .publish('testEventY')
+            .publish('testEventZ');
+
+        _chai.expect(subscriptionsExecuted).to.deep.equal([
+            'a',
+            'b',
+            'c',
+            'x',
+            'y',
+            'z'
+        ]);
+
+        _chai.expect(destroyed).to.be.false;
+
+        pubsub.destroy();
+
+        _chai.expect(destroyed).to.be.true;
+    });
+
     _mocha.it('should allow method names as late bound subscription callback functions', () => {
         const subscriptionsExecuted = [],
 
