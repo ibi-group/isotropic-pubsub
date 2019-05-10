@@ -19,7 +19,6 @@ const _protectedDefineEventMethod = function ({
 
         return this;
     },
-
     _publicDefineEventMethod = function (eventName, config) {
         if (typeof eventName === 'string') {
             this._defineEvent({
@@ -40,7 +39,6 @@ const _protectedDefineEventMethod = function ({
 
         return this;
     },
-
     _Pubsub = _make([
         _PropertyChainer
     ], {

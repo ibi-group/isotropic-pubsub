@@ -1864,6 +1864,7 @@ _mocha.describe('pubsub', () => {
                     }
                 }
             }),
+
             a = A(),
             b = B();
 
@@ -5825,8 +5826,8 @@ _mocha.describe('pubsub', () => {
     // TODO: test late subscribers to once events when dispatch, distribution, and event is stopped
 
     _mocha.it('should execute the default lifecycle function during the default stage', () => {
-        const pubsub = _Pubsub(),
-            executedSubscribers = [];
+        const executedSubscribers = [],
+            pubsub = _Pubsub();
 
         let calledDefaultFunction,
             eventObject;
@@ -6780,6 +6781,7 @@ _mocha.describe('pubsub', () => {
                     }
                 }
             }),
+
             pubsub = PubsubC(),
             subscriptionsExecuted = [];
 
@@ -6934,6 +6936,7 @@ _mocha.describe('pubsub', () => {
                     }
                 }
             }),
+
             pubsub = PubsubC(),
             subscriptionsExecuted = [];
 
@@ -7284,6 +7287,7 @@ _mocha.describe('pubsub', () => {
                     }
                 }
             }),
+
             pubsub = PubsubC();
 
         pubsub.on('testEventA', event => {
@@ -7386,6 +7390,7 @@ _mocha.describe('pubsub', () => {
                     }
                 }
             }),
+
             pubsub = PubsubC();
 
         pubsub.on('testEventA', event => {
