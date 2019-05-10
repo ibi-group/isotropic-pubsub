@@ -7048,6 +7048,51 @@ _mocha.describe('pubsub', () => {
         ]);
     });
 
+    _mocha.it('should allow method names as late bound subscription callback functions with a custom host', () => {
+        const customMethodSymbol = Symbol('customMethodSymbol'),
+            pubsub = _Pubsub(),
+            subscriptionsExecuted = [],
+
+            customHost = {
+                [customMethodSymbol] () {
+                    subscriptionsExecuted.push('on');
+                },
+                _beforeTestEvent () {
+                    subscriptionsExecuted.push('before');
+                }
+            };
+
+        pubsub.before('testEvent', {
+            callbackFunction: '_beforeTestEvent',
+            host: customHost
+        });
+        pubsub.on('testEvent', {
+            callbackFunction: customMethodSymbol,
+            host: customHost
+        });
+
+        pubsub.publish('testEvent');
+
+        customHost._beforeTestEvent = function () {
+            _chai.expect(this).to.equal(customHost);
+            subscriptionsExecuted.push('different before');
+        };
+
+        customHost[customMethodSymbol] = function () {
+            _chai.expect(this).to.equal(customHost);
+            subscriptionsExecuted.push('different on');
+        };
+
+        pubsub.publish('testEvent');
+
+        _chai.expect(subscriptionsExecuted).to.deep.equal([
+            'before',
+            'on',
+            'different before',
+            'different on'
+        ]);
+    });
+
     _mocha.it('should allow method names as late bound once subscription callback functions', () => {
         const subscriptionsExecuted = [],
 
@@ -7084,6 +7129,60 @@ _mocha.describe('pubsub', () => {
         };
 
         customPubsub.publish('testEvent');
+
+        _chai.expect(subscriptionsExecuted).to.deep.equal([
+            'before',
+            'on',
+            'different before',
+            'different on'
+        ]);
+    });
+
+    _mocha.it('should allow method names as late bound once subscription callback functions with a custom host', () => {
+        const customMethodSymbol = Symbol('customMethodSymbol'),
+            pubsub = _Pubsub(),
+            subscriptionsExecuted = [],
+
+            customHost = {
+                [customMethodSymbol] () {
+                    subscriptionsExecuted.push('on');
+                },
+                _beforeTestEvent () {
+                    subscriptionsExecuted.push('before');
+                }
+            };
+
+        pubsub.onceBefore('testEvent', {
+            callbackFunction: '_beforeTestEvent',
+            host: customHost
+        });
+        pubsub.onceOn('testEvent', {
+            callbackFunction: customMethodSymbol,
+            host: customHost
+        });
+
+        pubsub.publish('testEvent');
+
+        pubsub.onceBefore('testEvent', {
+            callbackFunction: '_beforeTestEvent',
+            host: customHost
+        });
+        pubsub.onceOn('testEvent', {
+            callbackFunction: customMethodSymbol,
+            host: customHost
+        });
+
+        customHost._beforeTestEvent = function () {
+            _chai.expect(this).to.equal(customHost);
+            subscriptionsExecuted.push('different before');
+        };
+
+        customHost[customMethodSymbol] = function () {
+            _chai.expect(this).to.equal(customHost);
+            subscriptionsExecuted.push('different on');
+        };
+
+        pubsub.publish('testEvent');
 
         _chai.expect(subscriptionsExecuted).to.deep.equal([
             'before',

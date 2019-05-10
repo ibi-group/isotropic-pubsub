@@ -269,12 +269,12 @@ const _protectedDefineEventMethod = function ({
         },
         subscribe (stageName, eventName, config) {
             return this._getEvent(eventName).subscribe({
+                host: this,
                 ...typeof config === 'object' ?
                     config :
                     {
                         callbackFunction: config
                     },
-                host: this,
                 publicSubscription: true,
                 stageName,
                 state: this._getEventState(eventName)
@@ -562,12 +562,12 @@ const _protectedDefineEventMethod = function ({
         },
         _subscribe (stageName, eventName, config) {
             return this._getEvent(eventName).subscribe({
+                host: this,
                 ...typeof config === 'object' ?
                     config :
                     {
                         callbackFunction: config
                     },
-                host: this,
                 stageName,
                 state: this._getEventState(eventName)
             });
