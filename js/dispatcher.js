@@ -13,7 +13,7 @@ const _Dispatcher = _make({
         data,
         eventName,
         getDistributionPath,
-        host,
+        lifecycleHost,
         publicPublish,
         publisher,
         state
@@ -26,6 +26,10 @@ const _Dispatcher = _make({
             data = data ?
                 Object.assign(Object.create(null), this._config.data, data) :
                 this._config.data;
+        }
+
+        if (this._config.lifecycleHost) {
+            lifecycleHost = this._config.lifecycleHost;
         }
 
         const config = Object.assign(Object.create(null), {
@@ -58,7 +62,7 @@ const _Dispatcher = _make({
             config.stageName = stageName;
 
             if (event.isPrevented(stageName)) {
-                this._callLifecycleFunction('preventedFunction', host, event);
+                this._callLifecycleFunction('preventedFunction', lifecycleHost, event);
 
                 return true;
             }
@@ -77,7 +81,7 @@ const _Dispatcher = _make({
                 config.distributor = publisher;
                 config.unsubscribe = null;
 
-                this._callLifecycleFunction('defaultFunction', host, event);
+                this._callLifecycleFunction('defaultFunction', lifecycleHost, event);
             } else {
                 for (const [
                     distributor,
@@ -95,14 +99,14 @@ const _Dispatcher = _make({
                         this._callCallbackFunction(subscription.callbackFunction, subscription.host, event);
 
                         if (event.dispatchStopped) {
-                            this._callLifecycleFunction('dispatchStoppedFunction', host, event);
+                            this._callLifecycleFunction('dispatchStoppedFunction', lifecycleHost, event);
 
                             break;
                         }
                     }
 
                     if (event.distributionStopped) {
-                        this._callLifecycleFunction('distributionStoppedFunction', host, event);
+                        this._callLifecycleFunction('distributionStoppedFunction', lifecycleHost, event);
 
                         break;
                     }
@@ -110,7 +114,7 @@ const _Dispatcher = _make({
             }
 
             if (event.eventStopped) {
-                this._callLifecycleFunction('eventStoppedFunction', host, event);
+                this._callLifecycleFunction('eventStoppedFunction', lifecycleHost, event);
 
                 return true;
             }
@@ -126,9 +130,13 @@ const _Dispatcher = _make({
         return this;
     },
     subscribe (config) {
+        if (this._config.lifecycleHost) {
+            config.lifecycleHost = this._config.lifecycleHost;
+        }
+
         return config.publicSubscription && !this._config.allowPublicSubscription ?
             this._Subscription() :
-            this._callLifecycleFunction('subscribedFunction', config.host, {
+            this._callLifecycleFunction('subscribedFunction', config.lifecycleHost, {
                 config,
                 dispatcher: this
             }) || this._subscribe(config);
@@ -146,8 +154,8 @@ const _Dispatcher = _make({
                 }
         }
     },
-    _callLifecycleFunction (name, host, ...args) {
-        return this._callCallbackFunction(this._config[name], host, ...args);
+    _callLifecycleFunction (name, lifecycleHost, ...args) {
+        return this._callCallbackFunction(this._config[name], lifecycleHost, ...args);
     },
     get _Event () {
         return this._config.Event || this.constructor._Event;
@@ -297,7 +305,7 @@ const _Dispatcher = _make({
             subscription = subscriptions && subscriptions.get(config.subscriptionId);
 
         if (subscription) {
-            if (this._callLifecycleFunction('unsubscribedFunction', config.host, {
+            if (this._callLifecycleFunction('unsubscribedFunction', config.lifecycleHost, {
                 config,
                 dispatcher: this
             }) === false) {

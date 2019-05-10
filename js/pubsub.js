@@ -19,7 +19,6 @@ const _protectedDefineEventMethod = function ({
 
         return this;
     },
-
     _publicDefineEventMethod = function (eventName, config) {
         if (typeof eventName === 'string') {
             this._defineEvent({
@@ -40,7 +39,6 @@ const _protectedDefineEventMethod = function ({
 
         return this;
     },
-
     _Pubsub = _make([
         _PropertyChainer
     ], {
@@ -244,7 +242,7 @@ const _protectedDefineEventMethod = function ({
                 data,
                 eventName,
                 getDistributionPath: () => this._getDistributionPath(eventName),
-                host: this,
+                lifecycleHost: this,
                 publicPublish: true,
                 publisher: this,
                 state: this._getEventState(eventName)
@@ -271,12 +269,13 @@ const _protectedDefineEventMethod = function ({
         },
         subscribe (stageName, eventName, config) {
             return this._getEvent(eventName).subscribe({
+                host: this,
                 ...typeof config === 'object' ?
                     config :
                     {
                         callbackFunction: config
                     },
-                host: this,
+                lifecycleHost: this,
                 publicSubscription: true,
                 stageName,
                 state: this._getEventState(eventName)
@@ -555,7 +554,7 @@ const _protectedDefineEventMethod = function ({
                 data,
                 eventName,
                 getDistributionPath: () => this._getDistributionPath(eventName),
-                host: this,
+                lifecycleHost: this,
                 publisher: this,
                 state: this._getEventState(eventName)
             });
@@ -564,12 +563,13 @@ const _protectedDefineEventMethod = function ({
         },
         _subscribe (stageName, eventName, config) {
             return this._getEvent(eventName).subscribe({
+                host: this,
                 ...typeof config === 'object' ?
                     config :
                     {
                         callbackFunction: config
                     },
-                host: this,
+                lifecycleHost: this,
                 stageName,
                 state: this._getEventState(eventName)
             });
