@@ -242,7 +242,7 @@ const _protectedDefineEventMethod = function ({
                 data,
                 eventName,
                 getDistributionPath: () => this._getDistributionPath(eventName),
-                host: this,
+                lifecycleHost: this,
                 publicPublish: true,
                 publisher: this,
                 state: this._getEventState(eventName)
@@ -275,6 +275,7 @@ const _protectedDefineEventMethod = function ({
                     {
                         callbackFunction: config
                     },
+                lifecycleHost: this,
                 publicSubscription: true,
                 stageName,
                 state: this._getEventState(eventName)
@@ -553,7 +554,7 @@ const _protectedDefineEventMethod = function ({
                 data,
                 eventName,
                 getDistributionPath: () => this._getDistributionPath(eventName),
-                host: this,
+                lifecycleHost: this,
                 publisher: this,
                 state: this._getEventState(eventName)
             });
@@ -568,6 +569,7 @@ const _protectedDefineEventMethod = function ({
                     {
                         callbackFunction: config
                     },
+                lifecycleHost: this,
                 stageName,
                 state: this._getEventState(eventName)
             });
