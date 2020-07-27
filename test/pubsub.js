@@ -9211,7 +9211,7 @@ _mocha.describe('pubsub', () => {
 
         _chai.expect(() => {
             pubsub.destroyed = true;
-        }).to.throw(TypeError);
+        }).to.throw(TypeError); // eslint-disable-line no-restricted-globals -- This is testing a value provided by the runtime environment.
 
         _chai.expect(pubsub).to.have.property('destroyed', false);
 
@@ -9277,11 +9277,11 @@ _mocha.describe('pubsub', () => {
 
         _chai.expect(() => {
             pubsub.publish('anotherEvent');
-        }).to.throw(TypeError);
+        }).to.throw(TypeError); // eslint-disable-line no-restricted-globals -- This is testing a value provided by the runtime environment.
 
         _chai.expect(() => {
             pubsub.destroy('a', 'b', 'c');
-        }).to.throw(TypeError);
+        }).to.throw(TypeError); // eslint-disable-line no-restricted-globals -- This is testing a value provided by the runtime environment.
 
         _chai.expect(pubsub).to.have.property('destroyed', true);
         _chai.expect(subscriptionsExecuted).to.deep.equal([]);
