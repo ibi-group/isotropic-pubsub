@@ -26,15 +26,19 @@ const _protectedDefineEventMethod = function ({
                 eventName
             });
         } else if (Array.isArray(eventName)) {
-            eventName.forEach(eventName => this._defineEvent({
-                config,
-                eventName
-            }));
+            eventName.forEach(eventName => {
+                this._defineEvent({
+                    config,
+                    eventName
+                });
+            });
         } else {
-            Reflect.ownKeys(eventName).forEach(key => this._defineEvent({
-                config: eventName[key],
-                eventName: key
-            }));
+            Reflect.ownKeys(eventName).forEach(key => {
+                this._defineEvent({
+                    config: eventName[key],
+                    eventName: key
+                });
+            });
         }
 
         return this;
@@ -48,7 +52,9 @@ const _protectedDefineEventMethod = function ({
             }
 
             if (Array.isArray(distributor) || distributor instanceof Set) {
-                distributor.forEach(distributor => this._distributors.add(distributor));
+                distributor.forEach(distributor => {
+                    this._distributors.add(distributor);
+                });
             } else {
                 this._distributors.add(distributor);
             }
@@ -132,7 +138,9 @@ const _protectedDefineEventMethod = function ({
                     },
                     subscriptions,
                     unsubscribe () {
-                        this.subscriptions.forEach(subscription => subscription.unsubscribe());
+                        this.subscriptions.forEach(subscription => {
+                            subscription.unsubscribe();
+                        });
                     }
                 });
         },
@@ -256,7 +264,9 @@ const _protectedDefineEventMethod = function ({
             }
 
             if (Array.isArray(distributor) || distributor instanceof Set) {
-                distributor.forEach(distributor => this._distributors.delete(distributor));
+                distributor.forEach(distributor => {
+                    this._distributors.delete(distributor);
+                });
             } else {
                 this._distributors.delete(distributor);
             }
@@ -358,7 +368,9 @@ const _protectedDefineEventMethod = function ({
                     },
                     subscriptions,
                     unsubscribe () {
-                        this.subscriptions.forEach(subscription => subscription.unsubscribe());
+                        this.subscriptions.forEach(subscription => {
+                            subscription.unsubscribe();
+                        });
                     }
                 });
         },
@@ -492,7 +504,9 @@ const _protectedDefineEventMethod = function ({
 
             distributionPath.forEach((eventState, distributor) => {
                 if (distributor._distributors) {
-                    distributor._distributors.forEach(distributor => distributionPath.set(distributor, distributor._getEventState(eventName)));
+                    distributor._distributors.forEach(distributor => {
+                        distributionPath.set(distributor, distributor._getEventState(eventName));
+                    });
                 }
             });
 
