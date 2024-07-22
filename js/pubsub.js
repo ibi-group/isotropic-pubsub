@@ -678,7 +678,9 @@ const _protectedDefineDispatcherMethod = function ({
                 Dispatcher: _Dispatcher,
                 publishOnce: true
             },
-            [_defaultSymbol]: {}
+            [_defaultSymbol]: {
+                allowPublicPublish: true
+            }
         },
         _subscriptionMethods: [
             'after',
