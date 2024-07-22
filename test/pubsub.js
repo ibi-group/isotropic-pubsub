@@ -1843,7 +1843,7 @@ _mocha.describe('pubsub', () => {
                     methodsExecuted.push('a');
                 }
             }, {
-                _events: {
+                _pubsub: {
                     testEvent: {
                         defaultFunction: 'a',
                         publishOnce: true
@@ -1857,7 +1857,7 @@ _mocha.describe('pubsub', () => {
                     methodsExecuted.push('b');
                 }
             }, {
-                _events: {
+                _pubsub: {
                     testEvent: {
                         defaultFunction: 'b',
                         publishOnce: true
@@ -3100,7 +3100,7 @@ _mocha.describe('pubsub', () => {
                 subscriptionExecutionCount += 1;
             },
             pubsub = _Pubsub({
-                events: {
+                pubsub: {
                     testEvent0: {
                         allowPublicUnsubscription: false
                     },
@@ -4124,7 +4124,7 @@ _mocha.describe('pubsub', () => {
             },
             pubsub = _Pubsub();
 
-        pubsub.defineEvent('testEvent0', {
+        pubsub.defineDispatcher('testEvent0', {
             allowDuplicateSubscription: false
         });
 
@@ -4153,7 +4153,7 @@ _mocha.describe('pubsub', () => {
         const pubsub = _Pubsub(),
             subscriptionsExecuted = [];
 
-        pubsub.defineEvent('testEvent', {
+        pubsub.defineDispatcher('testEvent', {
             allowPublicPublish: false
         });
 
@@ -4186,7 +4186,7 @@ _mocha.describe('pubsub', () => {
         const pubsub = _Pubsub(),
             subscriptionsExecuted = [];
 
-        pubsub.defineEvent('testEvent', {
+        pubsub.defineDispatcher('testEvent', {
             allowPublicSubscription: false
         });
 
@@ -4231,7 +4231,7 @@ _mocha.describe('pubsub', () => {
         const pubsub = _Pubsub(),
             subscriptionsExecuted = [];
 
-        pubsub.defineEvent('testEvent', {
+        pubsub.defineDispatcher('testEvent', {
             completeOnce: true
         });
 
@@ -4278,7 +4278,7 @@ _mocha.describe('pubsub', () => {
         const pubsub = _Pubsub(),
             subscriptionsExecuted = [];
 
-        pubsub.defineEvent('testEvent', {
+        pubsub.defineDispatcher('testEvent', {
             completeOnce: true
         });
 
@@ -4318,7 +4318,7 @@ _mocha.describe('pubsub', () => {
             publisher = _Pubsub(),
             subscriptionsExecuted = [];
 
-        publisher.defineEvent('testEvent', {
+        publisher.defineDispatcher('testEvent', {
             dispatchStoppable: false
         });
 
@@ -4540,7 +4540,7 @@ _mocha.describe('pubsub', () => {
             publisher = _Pubsub(),
             subscriptionsExecuted = [];
 
-        publisher.defineEvent('testEvent', {
+        publisher.defineDispatcher('testEvent', {
             distributable: false
         });
 
@@ -4679,7 +4679,7 @@ _mocha.describe('pubsub', () => {
             publisher = _Pubsub(),
             subscriptionsExecuted = [];
 
-        publisher.defineEvent('testEvent', {
+        publisher.defineDispatcher('testEvent', {
             distributionStoppable: false
         });
 
@@ -4901,7 +4901,7 @@ _mocha.describe('pubsub', () => {
             publisher = _Pubsub(),
             subscriptionsExecuted = [];
 
-        publisher.defineEvent('testEvent', {
+        publisher.defineDispatcher('testEvent', {
             eventStoppable: false
         });
 
@@ -5114,7 +5114,7 @@ _mocha.describe('pubsub', () => {
         const pubsub = _Pubsub(),
             subscriptionsExecuted = [];
 
-        pubsub.defineEvent('testEvent', {
+        pubsub.defineDispatcher('testEvent', {
             preventable: false
         });
 
@@ -5146,7 +5146,7 @@ _mocha.describe('pubsub', () => {
         const pubsub = _Pubsub(),
             subscriptionsExecuted = [];
 
-        pubsub.defineEvent('testEvent', {
+        pubsub.defineDispatcher('testEvent', {
             preventable: false
         });
 
@@ -5177,7 +5177,7 @@ _mocha.describe('pubsub', () => {
         const pubsub = _Pubsub(),
             subscriptionsExecuted = [];
 
-        pubsub.defineEvent('testEvent', {
+        pubsub.defineDispatcher('testEvent', {
             publishOnce: true
         });
 
@@ -5215,7 +5215,7 @@ _mocha.describe('pubsub', () => {
             pubsub = _Pubsub(),
             subscriptionsExecuted = [];
 
-        pubsub.defineEvent('testEvent', {
+        pubsub.defineDispatcher('testEvent', {
             stages: [
                 'wayBefore',
                 'before',
@@ -5278,7 +5278,7 @@ _mocha.describe('pubsub', () => {
 
         let subscriptionsExecuted = [];
 
-        pubsub.defineEvent('testEvent', {
+        pubsub.defineDispatcher('testEvent', {
             preventable: new Set([
                 'b',
                 'd'
@@ -5367,7 +5367,7 @@ _mocha.describe('pubsub', () => {
             pubsub = _Pubsub(),
             subscriptionsExecuted = [];
 
-        pubsub.defineEvent('testEvent', {
+        pubsub.defineDispatcher('testEvent', {
             data
         });
 
@@ -5388,7 +5388,7 @@ _mocha.describe('pubsub', () => {
         const pubsub = _Pubsub(),
             subscriptionsExecuted = [];
 
-        pubsub.defineEvent('testEvent', {
+        pubsub.defineDispatcher('testEvent', {
             data: {
                 a: 'a',
                 b: 'b',
@@ -5421,9 +5421,9 @@ _mocha.describe('pubsub', () => {
         ]);
     });
 
-    _mocha.it('should accept event definitions as a config object', () => {
+    _mocha.it('should accept dispatcher definitions as a config object', () => {
         const pubsub = _Pubsub({
-                events: {
+                pubsub: {
                     testEvent: {
                         publishOnce: true
                     }
@@ -5448,11 +5448,11 @@ _mocha.describe('pubsub', () => {
         ]);
     });
 
-    _mocha.it('should accept a Dispatcher instance as an event config', () => {
+    _mocha.it('should accept a Dispatcher instance when defining a dispatcher', () => {
         const pubsub = _Pubsub(),
             subscriptionsExecuted = [];
 
-        pubsub.defineEvent('testEvent', _pubsub.Dispatcher({
+        pubsub.defineDispatcher('testEvent', _pubsub.Dispatcher({
             name: 'testEvent',
             publishOnce: true
         }));
@@ -5474,12 +5474,12 @@ _mocha.describe('pubsub', () => {
         ]);
     });
 
-    _mocha.it('should accept a custom dispatcher as an event config', () => {
+    _mocha.it('should accept a custom dispatcher when defining a dispatcher', () => {
         const methodsExecuted = [],
             pubsub = _Pubsub(),
             subscriptionsExecuted = [];
 
-        pubsub.defineEvent('testEvent', {
+        pubsub.defineDispatcher('testEvent', {
             newState () {
                 methodsExecuted.push('newState');
                 return {
@@ -5528,21 +5528,21 @@ _mocha.describe('pubsub', () => {
         _chai.expect(subscriptionsExecuted).to.deep.equal([]);
     });
 
-    _mocha.it('should allow static event definitions', () => {
+    _mocha.it('should allow static dispatcher definitions', () => {
         const pubsub0 = _Pubsub(),
             pubsub1 = _Pubsub();
 
         let subscriptionsExecuted = [];
 
-        pubsub0.defineEvent('testEvent0', {
+        pubsub0.defineDispatcher('testEvent0', {
             publishOnce: true
         });
 
-        pubsub1.defineEvent('testEvent1', {
+        pubsub1.defineDispatcher('testEvent1', {
             publishOnce: true
         });
 
-        _Pubsub.defineEvent('testEvent2', {
+        _Pubsub.defineDispatcher('testEvent2', {
             publishOnce: true
         });
 
@@ -5692,7 +5692,7 @@ _mocha.describe('pubsub', () => {
 
         let subscriptionsExecuted = [];
 
-        pubsub.defineEvent([
+        pubsub.defineDispatcher([
             'testEvent0',
             'testEvent1'
         ], {
@@ -5743,7 +5743,7 @@ _mocha.describe('pubsub', () => {
 
         _chai.expect(subscriptionsExecuted).to.deep.equal([]);
 
-        pubsub.defineEvent([
+        pubsub.defineDispatcher([
             'testEvent2',
             'testEvent3'
         ], {
@@ -5825,13 +5825,13 @@ _mocha.describe('pubsub', () => {
 
     // TODO: test late subscribers to once events when dispatch, distribution, and event is stopped
 
-    _mocha.it('should chain static event configurations', () => {
+    _mocha.it('should chain static dispatcher configurations', () => {
         const PubsubA = _make(_Pubsub, {
                 _init (...args) {
                     return Reflect.apply(_Pubsub.prototype._init, this, args);
                 }
             }, {
-                _events: {
+                _pubsub: {
                     testEventA: {
                         data: {
                             a: 'a'
@@ -5844,7 +5844,7 @@ _mocha.describe('pubsub', () => {
                     return Reflect.apply(PubsubA.prototype._init, this, args);
                 }
             }, {
-                _events: {
+                _pubsub: {
                     testEventB: {
                         data: {
                             b: 'b'
@@ -5857,7 +5857,7 @@ _mocha.describe('pubsub', () => {
                     return Reflect.apply(PubsubB.prototype._init, this, args);
                 }
             }, {
-                _events: {
+                _pubsub: {
                     testEventA: {
                         data: {
                             c: 'c'
@@ -5907,7 +5907,7 @@ _mocha.describe('pubsub', () => {
         ]);
     });
 
-    _mocha.it('should chain static event configurations including mixins', () => {
+    _mocha.it('should chain static dispatcher configurations including mixins', () => {
         let destroyed = false;
 
         const MixinX = _make(_Pubsub, {
@@ -5923,7 +5923,7 @@ _mocha.describe('pubsub', () => {
                     return Reflect.apply(_Pubsub.prototype._init, this, args);
                 }
             }, {
-                _events: {
+                _pubsub: {
                     destroyComplete: {
                         allowPublicPublish: false,
                         defaultFunction: '_differentDestroyComplete',
@@ -5941,7 +5941,7 @@ _mocha.describe('pubsub', () => {
                     return Reflect.apply(_Pubsub.prototype._init, this, args);
                 }
             }, {
-                _events: {
+                _pubsub: {
                     testEventB: {
                         data: {
                             y: 'y'
@@ -5959,7 +5959,7 @@ _mocha.describe('pubsub', () => {
                     return Reflect.apply(_Pubsub.prototype._init, this, args);
                 }
             }, {
-                _events: {
+                _pubsub: {
                     testEventY: {
                         data: {
                             z: 'z'
@@ -5977,7 +5977,7 @@ _mocha.describe('pubsub', () => {
                     return Reflect.apply(_Pubsub.prototype._init, this, args);
                 }
             }, {
-                _events: {
+                _pubsub: {
                     testEventA: {
                         data: {
                             a: 'a'
@@ -5990,7 +5990,7 @@ _mocha.describe('pubsub', () => {
                     return Reflect.apply(PubsubA.prototype._init, this, args);
                 }
             }, {
-                _events: {
+                _pubsub: {
                     testEventB: {
                         data: {
                             b: 'b'
@@ -6007,7 +6007,7 @@ _mocha.describe('pubsub', () => {
                     return Reflect.apply(PubsubB.prototype._init, this, args);
                 }
             }, {
-                _events: {
+                _pubsub: {
                     testEventA: {
                         data: {
                             c: 'c'
@@ -6095,6 +6095,124 @@ _mocha.describe('pubsub', () => {
         _chai.expect(destroyed).to.be.true;
     });
 
+    _mocha.it('should chain static dispatcher configurations even when an intermediate has no static dispatcher configuration', () => {
+        const PubsubA = _make(_Pubsub, {
+                _init (...args) {
+                    return Reflect.apply(_Pubsub.prototype._init, this, args);
+                }
+            }, {
+                _pubsub: {
+                    testEventA: {
+                        data: {
+                            a: 'a'
+                        }
+                    }
+                }
+            }),
+            PubsubB = _make(PubsubA, {
+                _init (...args) {
+                    return Reflect.apply(PubsubA.prototype._init, this, args);
+                }
+            }),
+            PubsubC = _make(PubsubB, {
+                _init (...args) {
+                    return Reflect.apply(PubsubB.prototype._init, this, args);
+                }
+            }, {
+                _pubsub: {
+                    testEventA: {
+                        data: {
+                            c: 'c'
+                        }
+                    },
+                    testEventC: {
+                        data: {
+                            c: 'c'
+                        }
+                    }
+                }
+            }),
+
+            pubsub = PubsubC(),
+            subscriptionsExecuted = [];
+
+        pubsub.on('testEventA', event => {
+            _chai.expect(event).to.have.property('data').that.deep.equals({
+                c: 'c'
+            });
+            subscriptionsExecuted.push('a');
+        });
+
+        pubsub.on('testEventC', event => {
+            _chai.expect(event).to.have.property('data').that.deep.equals({
+                c: 'c'
+            });
+            subscriptionsExecuted.push('c');
+        });
+
+        pubsub
+            .publish('testEventA')
+            .publish('testEventC');
+
+        _chai.expect(subscriptionsExecuted).to.deep.equal([
+            'a',
+            'c'
+        ]);
+    });
+
+    _mocha.it('should not affect a parent\'s dispatcher definitions', () => {
+        const PubsubA = _make(_Pubsub, {
+                _init (...args) {
+                    return Reflect.apply(_Pubsub.prototype._init, this, args);
+                }
+            }, {
+                _pubsub: {
+                    testEvent: {
+                        data: {
+                            testProperty: 'a'
+                        }
+                    }
+                }
+            }),
+            PubsubB = _make(PubsubA, {
+                _init (...args) {
+                    return Reflect.apply(PubsubA.prototype._init, this, args);
+                }
+            }),
+
+            pubsubA = PubsubA(),
+            pubsubB = PubsubB(),
+            subscriptionsExecuted = [];
+
+        PubsubB.defineDispatcher('testEvent', {
+            data: {
+                testProperty: 'b'
+            }
+        });
+
+        pubsubA.on('testEvent', event => {
+            _chai.expect(event).to.have.property('data').that.deep.equals({
+                testProperty: 'a'
+            });
+            subscriptionsExecuted.push('a');
+        });
+
+        pubsubB.on('testEvent', event => {
+            _chai.expect(event).to.have.property('data').that.deep.equals({
+                testProperty: 'b'
+            });
+            subscriptionsExecuted.push('b');
+        });
+
+        pubsubA.publish('testEvent');
+        pubsubB.publish('testEvent');
+
+        _chai.expect(subscriptionsExecuted).to.deep.equal([
+            'a',
+            'b'
+        ]);
+    });
+
     _mocha.it('should work as a mixin', () => {
         const subscriptionsExecuted = [],
 
@@ -6105,15 +6223,15 @@ _mocha.describe('pubsub', () => {
                     return Reflect.apply(_Pubsub.prototype._init, this, args);
                 }
             }, {
-                _events: {
+                _init (...args) {
+                    return Reflect.apply(_Pubsub._init, this, args);
+                },
+                _pubsub: {
                     testEventA: {
                         data: {
                             a: 'a'
                         }
                     }
-                },
-                _init (...args) {
-                    return Reflect.apply(_Pubsub._init, this, args);
                 }
             }),
             PubsubB = _make(PubsubA, {
@@ -6121,7 +6239,7 @@ _mocha.describe('pubsub', () => {
                     return Reflect.apply(PubsubA.prototype._init, this, args);
                 }
             }, {
-                _events: {
+                _pubsub: {
                     testEventB: {
                         data: {
                             b: 'b'
@@ -6137,7 +6255,7 @@ _mocha.describe('pubsub', () => {
                     return Reflect.apply(PubsubB.prototype._init, this, args);
                 }
             }, {
-                _events: {
+                _pubsub: {
                     testEventA: {
                         data: {
                             c: 'c'
@@ -6204,15 +6322,15 @@ _mocha.describe('pubsub', () => {
                     return Reflect.apply(_Pubsub.prototype._init, this, args);
                 }
             }, {
-                _events: {
+                _init (...args) {
+                    return Reflect.apply(_Pubsub._init, this, args);
+                },
+                _pubsub: {
                     testEventA: {
                         data: {
                             a: 'a'
                         }
                     }
-                },
-                _init (...args) {
-                    return Reflect.apply(_Pubsub._init, this, args);
                 }
             }),
             PubsubB = _make([
@@ -6222,7 +6340,7 @@ _mocha.describe('pubsub', () => {
                     return Reflect.apply(PubsubA.prototype._init, this, args);
                 }
             }, {
-                _events: {
+                _pubsub: {
                     testEventB: {
                         data: {
                             b: 'b'
@@ -6240,7 +6358,7 @@ _mocha.describe('pubsub', () => {
                     return Reflect.apply(PubsubB.prototype._init, this, args);
                 }
             }, {
-                _events: {
+                _pubsub: {
                     testEventA: {
                         data: {
                             c: 'c'
@@ -6513,7 +6631,7 @@ _mocha.describe('pubsub', () => {
         let calledDefaultFunction,
             eventObject;
 
-        pubsub.defineEvent('testEvent', {
+        pubsub.defineDispatcher('testEvent', {
             defaultFunction (event) {
                 _chai.expect(event).to.equal(eventObject);
                 calledDefaultFunction = true;
@@ -6557,7 +6675,7 @@ _mocha.describe('pubsub', () => {
                     calledDefaultFunction = true;
                 }
             }, {
-                _events: {
+                _pubsub: {
                     testEvent: {
                         defaultFunction: '_eventTestEvent'
                     }
@@ -6604,7 +6722,7 @@ _mocha.describe('pubsub', () => {
                 }
             },
             CustomPubsub = _make(_Pubsub, {}, {
-                _events: {
+                _pubsub: {
                     testEvent: {
                         defaultFunction: '_eventTestEvent',
                         lifecycleHost: customLifecycleHost
@@ -6657,7 +6775,7 @@ _mocha.describe('pubsub', () => {
         let calledDispatchStoppedFunction,
             eventObject;
 
-        publisher.defineEvent('testEvent', {
+        publisher.defineDispatcher('testEvent', {
             dispatchStoppedFunction (event) {
                 _chai.expect(event).to.equal(eventObject);
                 calledDispatchStoppedFunction = true;
@@ -6888,7 +7006,7 @@ _mocha.describe('pubsub', () => {
                     calledDispatchStoppedFunction = true;
                 }
             }, {
-                _events: {
+                _pubsub: {
                     testEvent: {
                         dispatchStoppedFunction: '_dispatchStoppedTestEvent'
                     }
@@ -7131,7 +7249,7 @@ _mocha.describe('pubsub', () => {
                 }
             },
             CustomPubsub = _make(_Pubsub, {}, {
-                _events: {
+                _pubsub: {
                     testEvent: {
                         dispatchStoppedFunction: '_dispatchStoppedTestEvent',
                         lifecycleHost: customLifecycleHost
@@ -7380,7 +7498,7 @@ _mocha.describe('pubsub', () => {
         let calledDistributionStoppedFunction,
             eventObject;
 
-        publisher.defineEvent('testEvent', {
+        publisher.defineDispatcher('testEvent', {
             distributionStoppedFunction (event) {
                 _chai.expect(event).to.equal(eventObject);
                 calledDistributionStoppedFunction = true;
@@ -7597,7 +7715,7 @@ _mocha.describe('pubsub', () => {
                     calledDistributionStoppedFunction = true;
                 }
             }, {
-                _events: {
+                _pubsub: {
                     testEvent: {
                         distributionStoppedFunction: '_distributionStoppedTestEvent'
                     }
@@ -7826,7 +7944,7 @@ _mocha.describe('pubsub', () => {
                 }
             },
             CustomPubsub = _make(_Pubsub, {}, {
-                _events: {
+                _pubsub: {
                     testEvent: {
                         distributionStoppedFunction: '_distributionStoppedTestEvent',
                         lifecycleHost: customLifecycleHost
@@ -8061,7 +8179,7 @@ _mocha.describe('pubsub', () => {
         let calledEventStoppedFunction,
             eventObject;
 
-        publisher.defineEvent('testEvent', {
+        publisher.defineDispatcher('testEvent', {
             eventStoppedFunction (event) {
                 _chai.expect(event).to.equal(eventObject);
                 calledEventStoppedFunction = true;
@@ -8248,7 +8366,7 @@ _mocha.describe('pubsub', () => {
                     calledEventStoppedFunction = true;
                 }
             }, {
-                _events: {
+                _pubsub: {
                     testEvent: {
                         eventStoppedFunction: '_eventStoppedTestEvent'
                     }
@@ -8447,7 +8565,7 @@ _mocha.describe('pubsub', () => {
                 }
             },
             CustomPubsub = _make(_Pubsub, {}, {
-                _events: {
+                _pubsub: {
                     testEvent: {
                         eventStoppedFunction: '_eventStoppedTestEvent',
                         lifecycleHost: customLifecycleHost
@@ -8643,7 +8761,7 @@ _mocha.describe('pubsub', () => {
         let calledPreventedFunction,
             eventObject;
 
-        pubsub.defineEvent('testEvent', {
+        pubsub.defineDispatcher('testEvent', {
             preventedFunction (event) {
                 _chai.expect(event).to.equal(eventObject);
                 calledPreventedFunction = true;
@@ -8684,7 +8802,7 @@ _mocha.describe('pubsub', () => {
                     calledPreventedFunction = true;
                 }
             }, {
-                _events: {
+                _pubsub: {
                     testEvent: {
                         preventedFunction: '_preventedTestEvent'
                     }
@@ -8728,7 +8846,7 @@ _mocha.describe('pubsub', () => {
                 }
             },
             CustomPubsub = _make(_Pubsub, {}, {
-                _events: {
+                _pubsub: {
                     testEvent: {
                         lifecycleHost: customLifecycleHost,
                         preventedFunction: '_preventedTestEvent'
@@ -8773,7 +8891,7 @@ _mocha.describe('pubsub', () => {
                 }
             };
 
-        pubsub.defineEvent('testEvent', {
+        pubsub.defineDispatcher('testEvent', {
             subscribedFunction ({
                 config,
                 dispatcher
@@ -8829,7 +8947,7 @@ _mocha.describe('pubsub', () => {
                     calledSubscribedFunction = true;
                 }
             }, {
-                _events: {
+                _pubsub: {
                     testEvent: {
                         subscribedFunction: '_subscribedTestEvent'
                     }
@@ -8880,7 +8998,7 @@ _mocha.describe('pubsub', () => {
                 }
             },
             CustomPubsub = _make(_Pubsub, {}, {
-                _events: {
+                _pubsub: {
                     testEvent: {
                         lifecycleHost: customLifecycleHost,
                         subscribedFunction: '_subscribedTestEvent'
@@ -8914,7 +9032,7 @@ _mocha.describe('pubsub', () => {
         const customSubscription = {},
             pubsub = _Pubsub();
 
-        pubsub.defineEvent('testEvent', {
+        pubsub.defineDispatcher('testEvent', {
             subscribedFunction () {
                 return customSubscription;
             }
@@ -8938,7 +9056,7 @@ _mocha.describe('pubsub', () => {
                 }
             };
 
-        pubsub.defineEvent('testEvent', {
+        pubsub.defineDispatcher('testEvent', {
             unsubscribedFunction ({
                 config,
                 dispatcher
@@ -9003,7 +9121,7 @@ _mocha.describe('pubsub', () => {
                     calledUnsubscribedFunction = true;
                 }
             }, {
-                _events: {
+                _pubsub: {
                     testEvent: {
                         unsubscribedFunction: '_unsubscribedTestEvent'
                     }
@@ -9063,7 +9181,7 @@ _mocha.describe('pubsub', () => {
                 }
             },
             CustomPubsub = _make(_Pubsub, {}, {
-                _events: {
+                _pubsub: {
                     testEvent: {
                         lifecycleHost: customLifecycleHost,
                         unsubscribedFunction: '_unsubscribedTestEvent'
@@ -9116,7 +9234,7 @@ _mocha.describe('pubsub', () => {
                 }
             };
 
-        pubsub.defineEvent([
+        pubsub.defineDispatcher([
             'testEvent0',
             'testEvent1'
         ], {
