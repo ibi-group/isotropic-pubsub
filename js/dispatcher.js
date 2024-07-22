@@ -202,9 +202,7 @@ const _Dispatcher = _make({
             config.allowDuplicateSubscription = true;
         }
 
-        if (config.allowPublicPublish !== false) {
-            config.allowPublicPublish = true;
-        }
+        config.allowPublicPublish = !!config.allowPublicPublish;
 
         if (config.allowPublicSubscription !== false) {
             config.allowPublicSubscription = true;
