@@ -665,11 +665,11 @@ const _protectedDefineEventMethod = function ({
         _init (...args) {
             Reflect.apply(_PropertyChainer._init, this, args);
 
-            if (this.hasOwnProperty('_events')) {
+            if (Object.hasOwn(this, '_events')) {
                 this.defineEvent(this._events);
             }
 
-            if (this.hasOwnProperty('_subscriptionMethods')) {
+            if (Object.hasOwn(this, '_subscriptionMethods')) {
                 this._addSubscriptionMethods(this._subscriptionMethods);
             }
 
