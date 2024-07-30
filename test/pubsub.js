@@ -1843,8 +1843,9 @@ _mocha.describe('pubsub', () => {
                     methodsExecuted.push('a');
                 }
             }, {
-                _events: {
+                _pubsub: {
                     testEvent: {
+                        allowPublicPublish: true,
                         defaultFunction: 'a',
                         publishOnce: true
                     }
@@ -1857,8 +1858,9 @@ _mocha.describe('pubsub', () => {
                     methodsExecuted.push('b');
                 }
             }, {
-                _events: {
+                _pubsub: {
                     testEvent: {
+                        allowPublicPublish: true,
                         defaultFunction: 'b',
                         publishOnce: true
                     }
@@ -3100,14 +3102,17 @@ _mocha.describe('pubsub', () => {
                 subscriptionExecutionCount += 1;
             },
             pubsub = _Pubsub({
-                events: {
+                pubsub: {
                     testEvent0: {
+                        allowPublicPublish: true,
                         allowPublicUnsubscription: false
                     },
                     testEvent1: {
+                        allowPublicPublish: true,
                         allowPublicUnsubscription: false
                     },
                     testEvent2: {
+                        allowPublicPublish: true,
                         allowPublicUnsubscription: false
                     }
                 }
@@ -4124,8 +4129,9 @@ _mocha.describe('pubsub', () => {
             },
             pubsub = _Pubsub();
 
-        pubsub.defineEvent('testEvent0', {
-            allowDuplicateSubscription: false
+        pubsub.defineDispatcher('testEvent0', {
+            allowDuplicateSubscription: false,
+            allowPublicPublish: true
         });
 
         pubsub.on('testEvent0', callbackFunction);
@@ -4149,13 +4155,11 @@ _mocha.describe('pubsub', () => {
         _chai.expect(subscriptionExecutionCount).to.equal(4);
     });
 
-    _mocha.it('should not allow public publish when allowPublicPublish is false', () => {
+    _mocha.it('should not allow public publish', () => {
         const pubsub = _Pubsub(),
             subscriptionsExecuted = [];
 
-        pubsub.defineEvent('testEvent', {
-            allowPublicPublish: false
-        });
+        pubsub.defineDispatcher('testEvent', {});
 
         pubsub.after('testEvent', () => {
             subscriptionsExecuted.push('after');
@@ -4182,11 +4186,52 @@ _mocha.describe('pubsub', () => {
         ]);
     });
 
+    _mocha.it('should allow public publish when allowPublicPublish is true', () => {
+        const pubsub = _Pubsub(),
+            subscriptionsExecuted = [];
+
+        pubsub.defineDispatcher('testEvent', {
+            allowPublicPublish: true
+        });
+
+        pubsub.after('testEvent', () => {
+            subscriptionsExecuted.push('after');
+        });
+
+        pubsub.before('testEvent', () => {
+            subscriptionsExecuted.push('before');
+        });
+
+        pubsub.on('testEvent', () => {
+            subscriptionsExecuted.push('on');
+        });
+
+        pubsub.publish('testEvent');
+
+        _chai.expect(subscriptionsExecuted).to.deep.equal([
+            'before',
+            'on',
+            'after'
+        ]);
+
+        pubsub._publish('testEvent');
+
+        _chai.expect(subscriptionsExecuted).to.deep.equal([
+            'before',
+            'on',
+            'after',
+            'before',
+            'on',
+            'after'
+        ]);
+    });
+
     _mocha.it('should not allow public subscribe when allowPublicSubscription is false', () => {
         const pubsub = _Pubsub(),
             subscriptionsExecuted = [];
 
-        pubsub.defineEvent('testEvent', {
+        pubsub.defineDispatcher('testEvent', {
+            allowPublicPublish: true,
             allowPublicSubscription: false
         });
 
@@ -4231,7 +4276,8 @@ _mocha.describe('pubsub', () => {
         const pubsub = _Pubsub(),
             subscriptionsExecuted = [];
 
-        pubsub.defineEvent('testEvent', {
+        pubsub.defineDispatcher('testEvent', {
+            allowPublicPublish: true,
             completeOnce: true
         });
 
@@ -4278,7 +4324,8 @@ _mocha.describe('pubsub', () => {
         const pubsub = _Pubsub(),
             subscriptionsExecuted = [];
 
-        pubsub.defineEvent('testEvent', {
+        pubsub.defineDispatcher('testEvent', {
+            allowPublicPublish: true,
             completeOnce: true
         });
 
@@ -4318,7 +4365,8 @@ _mocha.describe('pubsub', () => {
             publisher = _Pubsub(),
             subscriptionsExecuted = [];
 
-        publisher.defineEvent('testEvent', {
+        publisher.defineDispatcher('testEvent', {
+            allowPublicPublish: true,
             dispatchStoppable: false
         });
 
@@ -4540,7 +4588,8 @@ _mocha.describe('pubsub', () => {
             publisher = _Pubsub(),
             subscriptionsExecuted = [];
 
-        publisher.defineEvent('testEvent', {
+        publisher.defineDispatcher('testEvent', {
+            allowPublicPublish: true,
             distributable: false
         });
 
@@ -4679,7 +4728,8 @@ _mocha.describe('pubsub', () => {
             publisher = _Pubsub(),
             subscriptionsExecuted = [];
 
-        publisher.defineEvent('testEvent', {
+        publisher.defineDispatcher('testEvent', {
+            allowPublicPublish: true,
             distributionStoppable: false
         });
 
@@ -4901,7 +4951,8 @@ _mocha.describe('pubsub', () => {
             publisher = _Pubsub(),
             subscriptionsExecuted = [];
 
-        publisher.defineEvent('testEvent', {
+        publisher.defineDispatcher('testEvent', {
+            allowPublicPublish: true,
             eventStoppable: false
         });
 
@@ -5114,7 +5165,8 @@ _mocha.describe('pubsub', () => {
         const pubsub = _Pubsub(),
             subscriptionsExecuted = [];
 
-        pubsub.defineEvent('testEvent', {
+        pubsub.defineDispatcher('testEvent', {
+            allowPublicPublish: true,
             preventable: false
         });
 
@@ -5146,7 +5198,8 @@ _mocha.describe('pubsub', () => {
         const pubsub = _Pubsub(),
             subscriptionsExecuted = [];
 
-        pubsub.defineEvent('testEvent', {
+        pubsub.defineDispatcher('testEvent', {
+            allowPublicPublish: true,
             preventable: false
         });
 
@@ -5177,7 +5230,8 @@ _mocha.describe('pubsub', () => {
         const pubsub = _Pubsub(),
             subscriptionsExecuted = [];
 
-        pubsub.defineEvent('testEvent', {
+        pubsub.defineDispatcher('testEvent', {
+            allowPublicPublish: true,
             publishOnce: true
         });
 
@@ -5215,7 +5269,8 @@ _mocha.describe('pubsub', () => {
             pubsub = _Pubsub(),
             subscriptionsExecuted = [];
 
-        pubsub.defineEvent('testEvent', {
+        pubsub.defineDispatcher('testEvent', {
+            allowPublicPublish: true,
             stages: [
                 'wayBefore',
                 'before',
@@ -5278,7 +5333,8 @@ _mocha.describe('pubsub', () => {
 
         let subscriptionsExecuted = [];
 
-        pubsub.defineEvent('testEvent', {
+        pubsub.defineDispatcher('testEvent', {
+            allowPublicPublish: true,
             preventable: new Set([
                 'b',
                 'd'
@@ -5367,7 +5423,8 @@ _mocha.describe('pubsub', () => {
             pubsub = _Pubsub(),
             subscriptionsExecuted = [];
 
-        pubsub.defineEvent('testEvent', {
+        pubsub.defineDispatcher('testEvent', {
+            allowPublicPublish: true,
             data
         });
 
@@ -5388,7 +5445,8 @@ _mocha.describe('pubsub', () => {
         const pubsub = _Pubsub(),
             subscriptionsExecuted = [];
 
-        pubsub.defineEvent('testEvent', {
+        pubsub.defineDispatcher('testEvent', {
+            allowPublicPublish: true,
             data: {
                 a: 'a',
                 b: 'b',
@@ -5421,10 +5479,11 @@ _mocha.describe('pubsub', () => {
         ]);
     });
 
-    _mocha.it('should accept event definitions as a config object', () => {
+    _mocha.it('should accept dispatcher definitions as a config object', () => {
         const pubsub = _Pubsub({
-                events: {
+                pubsub: {
                     testEvent: {
+                        allowPublicPublish: true,
                         publishOnce: true
                     }
                 }
@@ -5448,11 +5507,12 @@ _mocha.describe('pubsub', () => {
         ]);
     });
 
-    _mocha.it('should accept a Dispatcher instance as an event config', () => {
+    _mocha.it('should accept a Dispatcher instance when defining a dispatcher', () => {
         const pubsub = _Pubsub(),
             subscriptionsExecuted = [];
 
-        pubsub.defineEvent('testEvent', _pubsub.Dispatcher({
+        pubsub.defineDispatcher('testEvent', _pubsub.Dispatcher({
+            allowPublicPublish: true,
             name: 'testEvent',
             publishOnce: true
         }));
@@ -5474,12 +5534,12 @@ _mocha.describe('pubsub', () => {
         ]);
     });
 
-    _mocha.it('should accept a custom dispatcher as an event config', () => {
+    _mocha.it('should accept a custom dispatcher when defining a dispatcher', () => {
         const methodsExecuted = [],
             pubsub = _Pubsub(),
             subscriptionsExecuted = [];
 
-        pubsub.defineEvent('testEvent', {
+        pubsub.defineDispatcher('testEvent', {
             newState () {
                 methodsExecuted.push('newState');
                 return {
@@ -5528,21 +5588,24 @@ _mocha.describe('pubsub', () => {
         _chai.expect(subscriptionsExecuted).to.deep.equal([]);
     });
 
-    _mocha.it('should allow static event definitions', () => {
+    _mocha.it('should allow static dispatcher definitions', () => {
         const pubsub0 = _Pubsub(),
             pubsub1 = _Pubsub();
 
         let subscriptionsExecuted = [];
 
-        pubsub0.defineEvent('testEvent0', {
+        pubsub0.defineDispatcher('testEvent0', {
+            allowPublicPublish: true,
             publishOnce: true
         });
 
-        pubsub1.defineEvent('testEvent1', {
+        pubsub1.defineDispatcher('testEvent1', {
+            allowPublicPublish: true,
             publishOnce: true
         });
 
-        _Pubsub.defineEvent('testEvent2', {
+        _Pubsub.defineDispatcher('testEvent2', {
+            allowPublicPublish: true,
             publishOnce: true
         });
 
@@ -5692,10 +5755,11 @@ _mocha.describe('pubsub', () => {
 
         let subscriptionsExecuted = [];
 
-        pubsub.defineEvent([
+        pubsub.defineDispatcher([
             'testEvent0',
             'testEvent1'
         ], {
+            allowPublicPublish: true,
             publishOnce: true
         });
 
@@ -5743,10 +5807,11 @@ _mocha.describe('pubsub', () => {
 
         _chai.expect(subscriptionsExecuted).to.deep.equal([]);
 
-        pubsub.defineEvent([
+        pubsub.defineDispatcher([
             'testEvent2',
             'testEvent3'
         ], {
+            allowPublicPublish: true,
             completeOnce: true
         });
 
@@ -5825,14 +5890,15 @@ _mocha.describe('pubsub', () => {
 
     // TODO: test late subscribers to once events when dispatch, distribution, and event is stopped
 
-    _mocha.it('should chain static event configurations', () => {
+    _mocha.it('should chain static dispatcher configurations', () => {
         const PubsubA = _make(_Pubsub, {
                 _init (...args) {
                     return Reflect.apply(_Pubsub.prototype._init, this, args);
                 }
             }, {
-                _events: {
+                _pubsub: {
                     testEventA: {
+                        allowPublicPublish: true,
                         data: {
                             a: 'a'
                         }
@@ -5844,8 +5910,9 @@ _mocha.describe('pubsub', () => {
                     return Reflect.apply(PubsubA.prototype._init, this, args);
                 }
             }, {
-                _events: {
+                _pubsub: {
                     testEventB: {
+                        allowPublicPublish: true,
                         data: {
                             b: 'b'
                         }
@@ -5857,13 +5924,15 @@ _mocha.describe('pubsub', () => {
                     return Reflect.apply(PubsubB.prototype._init, this, args);
                 }
             }, {
-                _events: {
+                _pubsub: {
                     testEventA: {
+                        allowPublicPublish: true,
                         data: {
                             c: 'c'
                         }
                     },
                     testEventC: {
+                        allowPublicPublish: true,
                         data: {
                             c: 'c'
                         }
@@ -5907,7 +5976,7 @@ _mocha.describe('pubsub', () => {
         ]);
     });
 
-    _mocha.it('should chain static event configurations including mixins', () => {
+    _mocha.it('should chain static dispatcher configurations including mixins', () => {
         let destroyed = false;
 
         const MixinX = _make(_Pubsub, {
@@ -5923,13 +5992,13 @@ _mocha.describe('pubsub', () => {
                     return Reflect.apply(_Pubsub.prototype._init, this, args);
                 }
             }, {
-                _events: {
+                _pubsub: {
                     destroyComplete: {
-                        allowPublicPublish: false,
                         defaultFunction: '_differentDestroyComplete',
                         publishOnce: true
                     },
                     testEventX: {
+                        allowPublicPublish: true,
                         data: {
                             x: 'x'
                         }
@@ -5941,13 +6010,15 @@ _mocha.describe('pubsub', () => {
                     return Reflect.apply(_Pubsub.prototype._init, this, args);
                 }
             }, {
-                _events: {
+                _pubsub: {
                     testEventB: {
+                        allowPublicPublish: true,
                         data: {
                             y: 'y'
                         }
                     },
                     testEventY: {
+                        allowPublicPublish: true,
                         data: {
                             y: 'y'
                         }
@@ -5959,13 +6030,15 @@ _mocha.describe('pubsub', () => {
                     return Reflect.apply(_Pubsub.prototype._init, this, args);
                 }
             }, {
-                _events: {
+                _pubsub: {
                     testEventY: {
+                        allowPublicPublish: true,
                         data: {
                             z: 'z'
                         }
                     },
                     testEventZ: {
+                        allowPublicPublish: true,
                         data: {
                             z: 'z'
                         }
@@ -5977,8 +6050,9 @@ _mocha.describe('pubsub', () => {
                     return Reflect.apply(_Pubsub.prototype._init, this, args);
                 }
             }, {
-                _events: {
+                _pubsub: {
                     testEventA: {
+                        allowPublicPublish: true,
                         data: {
                             a: 'a'
                         }
@@ -5990,8 +6064,9 @@ _mocha.describe('pubsub', () => {
                     return Reflect.apply(PubsubA.prototype._init, this, args);
                 }
             }, {
-                _events: {
+                _pubsub: {
                     testEventB: {
+                        allowPublicPublish: true,
                         data: {
                             b: 'b'
                         }
@@ -6007,18 +6082,21 @@ _mocha.describe('pubsub', () => {
                     return Reflect.apply(PubsubB.prototype._init, this, args);
                 }
             }, {
-                _events: {
+                _pubsub: {
                     testEventA: {
+                        allowPublicPublish: true,
                         data: {
                             c: 'c'
                         }
                     },
                     testEventC: {
+                        allowPublicPublish: true,
                         data: {
                             c: 'c'
                         }
                     },
                     testEventX: {
+                        allowPublicPublish: true,
                         data: {
                             c: 'c'
                         }
@@ -6095,6 +6173,129 @@ _mocha.describe('pubsub', () => {
         _chai.expect(destroyed).to.be.true;
     });
 
+    _mocha.it('should chain static dispatcher configurations even when an intermediate has no static dispatcher configuration', () => {
+        const PubsubA = _make(_Pubsub, {
+                _init (...args) {
+                    return Reflect.apply(_Pubsub.prototype._init, this, args);
+                }
+            }, {
+                _pubsub: {
+                    testEventA: {
+                        allowPublicPublish: true,
+                        data: {
+                            a: 'a'
+                        }
+                    }
+                }
+            }),
+            PubsubB = _make(PubsubA, {
+                _init (...args) {
+                    return Reflect.apply(PubsubA.prototype._init, this, args);
+                }
+            }),
+            PubsubC = _make(PubsubB, {
+                _init (...args) {
+                    return Reflect.apply(PubsubB.prototype._init, this, args);
+                }
+            }, {
+                _pubsub: {
+                    testEventA: {
+                        allowPublicPublish: true,
+                        data: {
+                            c: 'c'
+                        }
+                    },
+                    testEventC: {
+                        allowPublicPublish: true,
+                        data: {
+                            c: 'c'
+                        }
+                    }
+                }
+            }),
+
+            pubsub = PubsubC(),
+            subscriptionsExecuted = [];
+
+        pubsub.on('testEventA', event => {
+            _chai.expect(event).to.have.property('data').that.deep.equals({
+                c: 'c'
+            });
+            subscriptionsExecuted.push('a');
+        });
+
+        pubsub.on('testEventC', event => {
+            _chai.expect(event).to.have.property('data').that.deep.equals({
+                c: 'c'
+            });
+            subscriptionsExecuted.push('c');
+        });
+
+        pubsub
+            .publish('testEventA')
+            .publish('testEventC');
+
+        _chai.expect(subscriptionsExecuted).to.deep.equal([
+            'a',
+            'c'
+        ]);
+    });
+
+    _mocha.it('should not affect a parent\'s dispatcher definitions', () => {
+        const PubsubA = _make(_Pubsub, {
+                _init (...args) {
+                    return Reflect.apply(_Pubsub.prototype._init, this, args);
+                }
+            }, {
+                _pubsub: {
+                    testEvent: {
+                        allowPublicPublish: true,
+                        data: {
+                            testProperty: 'a'
+                        }
+                    }
+                }
+            }),
+            PubsubB = _make(PubsubA, {
+                _init (...args) {
+                    return Reflect.apply(PubsubA.prototype._init, this, args);
+                }
+            }),
+
+            pubsubA = PubsubA(),
+            pubsubB = PubsubB(),
+            subscriptionsExecuted = [];
+
+        PubsubB.defineDispatcher('testEvent', {
+            allowPublicPublish: true,
+            data: {
+                testProperty: 'b'
+            }
+        });
+
+        pubsubA.on('testEvent', event => {
+            _chai.expect(event).to.have.property('data').that.deep.equals({
+                testProperty: 'a'
+            });
+            subscriptionsExecuted.push('a');
+        });
+
+        pubsubB.on('testEvent', event => {
+            _chai.expect(event).to.have.property('data').that.deep.equals({
+                testProperty: 'b'
+            });
+            subscriptionsExecuted.push('b');
+        });
+
+        pubsubA.publish('testEvent');
+        pubsubB.publish('testEvent');
+
+        _chai.expect(subscriptionsExecuted).to.deep.equal([
+            'a',
+            'b'
+        ]);
+    });
+
     _mocha.it('should work as a mixin', () => {
         const subscriptionsExecuted = [],
 
@@ -6105,15 +6306,16 @@ _mocha.describe('pubsub', () => {
                     return Reflect.apply(_Pubsub.prototype._init, this, args);
                 }
             }, {
-                _events: {
+                _init (...args) {
+                    return Reflect.apply(_Pubsub._init, this, args);
+                },
+                _pubsub: {
                     testEventA: {
+                        allowPublicPublish: true,
                         data: {
                             a: 'a'
                         }
                     }
-                },
-                _init (...args) {
-                    return Reflect.apply(_Pubsub._init, this, args);
                 }
             }),
             PubsubB = _make(PubsubA, {
@@ -6121,8 +6323,9 @@ _mocha.describe('pubsub', () => {
                     return Reflect.apply(PubsubA.prototype._init, this, args);
                 }
             }, {
-                _events: {
+                _pubsub: {
                     testEventB: {
+                        allowPublicPublish: true,
                         data: {
                             b: 'b'
                         }
@@ -6137,13 +6340,15 @@ _mocha.describe('pubsub', () => {
                     return Reflect.apply(PubsubB.prototype._init, this, args);
                 }
             }, {
-                _events: {
+                _pubsub: {
                     testEventA: {
+                        allowPublicPublish: true,
                         data: {
                             c: 'c'
                         }
                     },
                     testEventC: {
+                        allowPublicPublish: true,
                         data: {
                             c: 'c'
                         }
@@ -6204,15 +6409,16 @@ _mocha.describe('pubsub', () => {
                     return Reflect.apply(_Pubsub.prototype._init, this, args);
                 }
             }, {
-                _events: {
+                _init (...args) {
+                    return Reflect.apply(_Pubsub._init, this, args);
+                },
+                _pubsub: {
                     testEventA: {
+                        allowPublicPublish: true,
                         data: {
                             a: 'a'
                         }
                     }
-                },
-                _init (...args) {
-                    return Reflect.apply(_Pubsub._init, this, args);
                 }
             }),
             PubsubB = _make([
@@ -6222,8 +6428,9 @@ _mocha.describe('pubsub', () => {
                     return Reflect.apply(PubsubA.prototype._init, this, args);
                 }
             }, {
-                _events: {
+                _pubsub: {
                     testEventB: {
+                        allowPublicPublish: true,
                         data: {
                             b: 'b'
                         }
@@ -6240,13 +6447,15 @@ _mocha.describe('pubsub', () => {
                     return Reflect.apply(PubsubB.prototype._init, this, args);
                 }
             }, {
-                _events: {
+                _pubsub: {
                     testEventA: {
+                        allowPublicPublish: true,
                         data: {
                             c: 'c'
                         }
                     },
                     testEventC: {
+                        allowPublicPublish: true,
                         data: {
                             c: 'c'
                         }
@@ -6513,7 +6722,8 @@ _mocha.describe('pubsub', () => {
         let calledDefaultFunction,
             eventObject;
 
-        pubsub.defineEvent('testEvent', {
+        pubsub.defineDispatcher('testEvent', {
+            allowPublicPublish: true,
             defaultFunction (event) {
                 _chai.expect(event).to.equal(eventObject);
                 calledDefaultFunction = true;
@@ -6557,8 +6767,9 @@ _mocha.describe('pubsub', () => {
                     calledDefaultFunction = true;
                 }
             }, {
-                _events: {
+                _pubsub: {
                     testEvent: {
+                        allowPublicPublish: true,
                         defaultFunction: '_eventTestEvent'
                     }
                 }
@@ -6604,8 +6815,9 @@ _mocha.describe('pubsub', () => {
                 }
             },
             CustomPubsub = _make(_Pubsub, {}, {
-                _events: {
+                _pubsub: {
                     testEvent: {
+                        allowPublicPublish: true,
                         defaultFunction: '_eventTestEvent',
                         lifecycleHost: customLifecycleHost
                     }
@@ -6657,7 +6869,8 @@ _mocha.describe('pubsub', () => {
         let calledDispatchStoppedFunction,
             eventObject;
 
-        publisher.defineEvent('testEvent', {
+        publisher.defineDispatcher('testEvent', {
+            allowPublicPublish: true,
             dispatchStoppedFunction (event) {
                 _chai.expect(event).to.equal(eventObject);
                 calledDispatchStoppedFunction = true;
@@ -6888,8 +7101,9 @@ _mocha.describe('pubsub', () => {
                     calledDispatchStoppedFunction = true;
                 }
             }, {
-                _events: {
+                _pubsub: {
                     testEvent: {
+                        allowPublicPublish: true,
                         dispatchStoppedFunction: '_dispatchStoppedTestEvent'
                     }
                 }
@@ -7131,8 +7345,9 @@ _mocha.describe('pubsub', () => {
                 }
             },
             CustomPubsub = _make(_Pubsub, {}, {
-                _events: {
+                _pubsub: {
                     testEvent: {
+                        allowPublicPublish: true,
                         dispatchStoppedFunction: '_dispatchStoppedTestEvent',
                         lifecycleHost: customLifecycleHost
                     }
@@ -7380,7 +7595,8 @@ _mocha.describe('pubsub', () => {
         let calledDistributionStoppedFunction,
             eventObject;
 
-        publisher.defineEvent('testEvent', {
+        publisher.defineDispatcher('testEvent', {
+            allowPublicPublish: true,
             distributionStoppedFunction (event) {
                 _chai.expect(event).to.equal(eventObject);
                 calledDistributionStoppedFunction = true;
@@ -7597,8 +7813,9 @@ _mocha.describe('pubsub', () => {
                     calledDistributionStoppedFunction = true;
                 }
             }, {
-                _events: {
+                _pubsub: {
                     testEvent: {
+                        allowPublicPublish: true,
                         distributionStoppedFunction: '_distributionStoppedTestEvent'
                     }
                 }
@@ -7826,8 +8043,9 @@ _mocha.describe('pubsub', () => {
                 }
             },
             CustomPubsub = _make(_Pubsub, {}, {
-                _events: {
+                _pubsub: {
                     testEvent: {
+                        allowPublicPublish: true,
                         distributionStoppedFunction: '_distributionStoppedTestEvent',
                         lifecycleHost: customLifecycleHost
                     }
@@ -8061,7 +8279,8 @@ _mocha.describe('pubsub', () => {
         let calledEventStoppedFunction,
             eventObject;
 
-        publisher.defineEvent('testEvent', {
+        publisher.defineDispatcher('testEvent', {
+            allowPublicPublish: true,
             eventStoppedFunction (event) {
                 _chai.expect(event).to.equal(eventObject);
                 calledEventStoppedFunction = true;
@@ -8248,8 +8467,9 @@ _mocha.describe('pubsub', () => {
                     calledEventStoppedFunction = true;
                 }
             }, {
-                _events: {
+                _pubsub: {
                     testEvent: {
+                        allowPublicPublish: true,
                         eventStoppedFunction: '_eventStoppedTestEvent'
                     }
                 }
@@ -8447,8 +8667,9 @@ _mocha.describe('pubsub', () => {
                 }
             },
             CustomPubsub = _make(_Pubsub, {}, {
-                _events: {
+                _pubsub: {
                     testEvent: {
+                        allowPublicPublish: true,
                         eventStoppedFunction: '_eventStoppedTestEvent',
                         lifecycleHost: customLifecycleHost
                     }
@@ -8643,7 +8864,8 @@ _mocha.describe('pubsub', () => {
         let calledPreventedFunction,
             eventObject;
 
-        pubsub.defineEvent('testEvent', {
+        pubsub.defineDispatcher('testEvent', {
+            allowPublicPublish: true,
             preventedFunction (event) {
                 _chai.expect(event).to.equal(eventObject);
                 calledPreventedFunction = true;
@@ -8684,8 +8906,9 @@ _mocha.describe('pubsub', () => {
                     calledPreventedFunction = true;
                 }
             }, {
-                _events: {
+                _pubsub: {
                     testEvent: {
+                        allowPublicPublish: true,
                         preventedFunction: '_preventedTestEvent'
                     }
                 }
@@ -8728,8 +8951,9 @@ _mocha.describe('pubsub', () => {
                 }
             },
             CustomPubsub = _make(_Pubsub, {}, {
-                _events: {
+                _pubsub: {
                     testEvent: {
+                        allowPublicPublish: true,
                         lifecycleHost: customLifecycleHost,
                         preventedFunction: '_preventedTestEvent'
                     }
@@ -8773,7 +8997,8 @@ _mocha.describe('pubsub', () => {
                 }
             };
 
-        pubsub.defineEvent('testEvent', {
+        pubsub.defineDispatcher('testEvent', {
+            allowPublicPublish: true,
             subscribedFunction ({
                 config,
                 dispatcher
@@ -8829,8 +9054,9 @@ _mocha.describe('pubsub', () => {
                     calledSubscribedFunction = true;
                 }
             }, {
-                _events: {
+                _pubsub: {
                     testEvent: {
+                        allowPublicPublish: true,
                         subscribedFunction: '_subscribedTestEvent'
                     }
                 }
@@ -8880,8 +9106,9 @@ _mocha.describe('pubsub', () => {
                 }
             },
             CustomPubsub = _make(_Pubsub, {}, {
-                _events: {
+                _pubsub: {
                     testEvent: {
+                        allowPublicPublish: true,
                         lifecycleHost: customLifecycleHost,
                         subscribedFunction: '_subscribedTestEvent'
                     }
@@ -8914,7 +9141,7 @@ _mocha.describe('pubsub', () => {
         const customSubscription = {},
             pubsub = _Pubsub();
 
-        pubsub.defineEvent('testEvent', {
+        pubsub.defineDispatcher('testEvent', {
             subscribedFunction () {
                 return customSubscription;
             }
@@ -8938,7 +9165,8 @@ _mocha.describe('pubsub', () => {
                 }
             };
 
-        pubsub.defineEvent('testEvent', {
+        pubsub.defineDispatcher('testEvent', {
+            allowPublicPublish: true,
             unsubscribedFunction ({
                 config,
                 dispatcher
@@ -9003,8 +9231,9 @@ _mocha.describe('pubsub', () => {
                     calledUnsubscribedFunction = true;
                 }
             }, {
-                _events: {
+                _pubsub: {
                     testEvent: {
+                        allowPublicPublish: true,
                         unsubscribedFunction: '_unsubscribedTestEvent'
                     }
                 }
@@ -9063,8 +9292,9 @@ _mocha.describe('pubsub', () => {
                 }
             },
             CustomPubsub = _make(_Pubsub, {}, {
-                _events: {
+                _pubsub: {
                     testEvent: {
+                        allowPublicPublish: true,
                         lifecycleHost: customLifecycleHost,
                         unsubscribedFunction: '_unsubscribedTestEvent'
                     }
@@ -9116,10 +9346,11 @@ _mocha.describe('pubsub', () => {
                 }
             };
 
-        pubsub.defineEvent([
+        pubsub.defineDispatcher([
             'testEvent0',
             'testEvent1'
         ], {
+            allowPublicPublish: true,
             unsubscribedFunction ({
                 config,
                 dispatcher
