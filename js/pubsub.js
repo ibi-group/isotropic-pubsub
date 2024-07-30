@@ -6,11 +6,11 @@ import _make from 'isotropic-make';
 import _PropertyChainer from 'isotropic-property-chainer';
 import _Subscription from './subscription.js';
 
-const _protectedDefineEventMethod = function ({
+const _protectedDefineDispatcherMethod = function ({
         config = {},
         eventName
     }) {
-        this._events[eventName] = typeof config.newState === 'function' && typeof config.publish === 'function' && typeof config.subscribe === 'function' ?
+        this._dispatcherByEventName[eventName] = typeof config.newState === 'function' && typeof config.publish === 'function' && typeof config.subscribe === 'function' ?
             config :
             (config.Dispatcher || this._Dispatcher)({
                 ...config,
@@ -19,22 +19,26 @@ const _protectedDefineEventMethod = function ({
 
         return this;
     },
-    _publicDefineEventMethod = function (eventName, config) {
+    _publicDefineDispatcherMethod = function (eventName, config) {
         if (typeof eventName === 'string') {
-            this._defineEvent({
+            this._defineDispatcher({
                 config,
                 eventName
             });
         } else if (Array.isArray(eventName)) {
-            eventName.forEach(eventName => this._defineEvent({
-                config,
-                eventName
-            }));
+            eventName.forEach(eventName => {
+                this._defineDispatcher({
+                    config,
+                    eventName
+                });
+            });
         } else {
-            Reflect.ownKeys(eventName).forEach(key => this._defineEvent({
-                config: eventName[key],
-                eventName: key
-            }));
+            Reflect.ownKeys(eventName).forEach(key => {
+                this._defineDispatcher({
+                    config: eventName[key],
+                    eventName: key
+                });
+            });
         }
 
         return this;
@@ -48,7 +52,9 @@ const _protectedDefineEventMethod = function ({
             }
 
             if (Array.isArray(distributor) || distributor instanceof Set) {
-                distributor.forEach(distributor => this._distributors.add(distributor));
+                distributor.forEach(distributor => {
+                    this._distributors.add(distributor);
+                });
             } else {
                 this._distributors.add(distributor);
             }
@@ -132,7 +138,9 @@ const _protectedDefineEventMethod = function ({
                     },
                     subscriptions,
                     unsubscribe () {
-                        this.subscriptions.forEach(subscription => subscription.unsubscribe());
+                        this.subscriptions.forEach(subscription => {
+                            subscription.unsubscribe();
+                        });
                     }
                 });
         },
@@ -228,7 +236,7 @@ const _protectedDefineEventMethod = function ({
 
             return unsubscribed;
         },
-        defineEvent: _publicDefineEventMethod,
+        defineDispatcher: _publicDefineDispatcherMethod,
         destroy (...args) {
             return this._publish('destroy', {
                 args
@@ -238,7 +246,7 @@ const _protectedDefineEventMethod = function ({
             return this._destroyed;
         },
         publish (eventName, data) {
-            this._getEvent(eventName).publish({
+            this._getDispatcher(eventName).publish({
                 data,
                 eventName,
                 getDistributionPath: () => this._getDistributionPath(eventName),
@@ -256,7 +264,9 @@ const _protectedDefineEventMethod = function ({
             }
 
             if (Array.isArray(distributor) || distributor instanceof Set) {
-                distributor.forEach(distributor => this._distributors.delete(distributor));
+                distributor.forEach(distributor => {
+                    this._distributors.delete(distributor);
+                });
             } else {
                 this._distributors.delete(distributor);
             }
@@ -268,7 +278,7 @@ const _protectedDefineEventMethod = function ({
             return this;
         },
         subscribe (stageName, eventName, config) {
-            return this._getEvent(eventName).subscribe({
+            return this._getDispatcher(eventName).subscribe({
                 host: this,
                 ...typeof config === 'object' ?
                     config :
@@ -358,7 +368,9 @@ const _protectedDefineEventMethod = function ({
                     },
                     subscriptions,
                     unsubscribe () {
-                        this.subscriptions.forEach(subscription => subscription.unsubscribe());
+                        this.subscriptions.forEach(subscription => {
+                            subscription.unsubscribe();
+                        });
                     }
                 });
         },
@@ -448,7 +460,7 @@ const _protectedDefineEventMethod = function ({
 
             return unsubscribed;
         },
-        _defineEvent: _protectedDefineEventMethod,
+        _defineDispatcher: _protectedDefineDispatcherMethod,
         _destroy (...args) {
             this._destroyed = true;
 
@@ -458,9 +470,9 @@ const _protectedDefineEventMethod = function ({
 
             this._bulkUnsubscribe();
 
-            this._distributors = void null;
+            this._dispatcherByEventName = void null;
 
-            this._events = void null;
+            this._distributors = void null;
 
             this._eventState = void null;
         },
@@ -484,6 +496,9 @@ const _protectedDefineEventMethod = function ({
         }) {
             this._destroyComplete(...args);
         },
+        _getDispatcher (eventName) {
+            return this._dispatcherByEventName[eventName] || this._dispatcherByEventName[_defaultSymbol];
+        },
         _getDistributionPath (eventName) {
             const distributionPath = new Map([[
                 this,
@@ -492,20 +507,19 @@ const _protectedDefineEventMethod = function ({
 
             distributionPath.forEach((eventState, distributor) => {
                 if (distributor._distributors) {
-                    distributor._distributors.forEach(distributor => distributionPath.set(distributor, distributor._getEventState(eventName)));
+                    distributor._distributors.forEach(distributor => {
+                        distributionPath.set(distributor, distributor._getEventState(eventName));
+                    });
                 }
             });
 
             return distributionPath;
         },
-        _getEvent (eventName) {
-            return this._events[eventName] || this._events[_defaultSymbol];
-        },
         _getEventState (eventName) {
             let eventState = this._eventState[eventName];
 
             if (!eventState) {
-                eventState = this._getEvent(eventName).newState();
+                eventState = this._getDispatcher(eventName).newState();
                 this._eventState[eventName] = eventState;
             }
 
@@ -513,21 +527,21 @@ const _protectedDefineEventMethod = function ({
         },
         _init (...args) {
             const [{
-                events
+                pubsub
             } = {}] = args;
 
             Reflect.apply(_PropertyChainer.prototype._init, this, args);
 
             this._destroyed = false;
 
-            this._distributors = null;
+            this._dispatcherByEventName = Object.create(this.constructor._dispatcherByEventName);
 
-            this._events = Object.create(this.constructor._events);
+            this._distributors = null;
 
             this._eventState = Object.create(null);
 
-            if (events) {
-                this.defineEvent(events);
+            if (pubsub) {
+                this.defineDispatcher(pubsub);
             }
 
             return this;
@@ -550,7 +564,7 @@ const _protectedDefineEventMethod = function ({
             return config;
         },
         _publish (eventName, data) {
-            this._getEvent(eventName).publish({
+            this._getDispatcher(eventName).publish({
                 data,
                 eventName,
                 getDistributionPath: () => this._getDistributionPath(eventName),
@@ -562,7 +576,7 @@ const _protectedDefineEventMethod = function ({
             return this;
         },
         _subscribe (stageName, eventName, config) {
-            return this._getEvent(eventName).subscribe({
+            return this._getDispatcher(eventName).subscribe({
                 host: this,
                 ...typeof config === 'object' ?
                     config :
@@ -575,7 +589,7 @@ const _protectedDefineEventMethod = function ({
             });
         }
     }, {
-        defineEvent: _publicDefineEventMethod,
+        defineDispatcher: _publicDefineDispatcherMethod,
         _addSubscriptionMethods (subscriptionMethods) {
             if (!Array.isArray(subscriptionMethods)) {
                 subscriptionMethods = [
@@ -631,9 +645,27 @@ const _protectedDefineEventMethod = function ({
                 }
             });
         },
-        _defineEvent: _protectedDefineEventMethod,
+        _defineDispatcher: _protectedDefineDispatcherMethod,
         _Dispatcher,
-        _events: Object.assign(Object.create(null), {
+        _init (...args) {
+            this._dispatcherByEventName = Object.create(null);
+
+            Reflect.apply(_PropertyChainer._init, this, args);
+
+            if (Object.hasOwn(this, '_pubsub')) {
+                this.defineDispatcher(this._pubsub);
+            }
+
+            if (Object.hasOwn(this, '_subscriptionMethods')) {
+                this._addSubscriptionMethods(this._subscriptionMethods);
+            }
+
+            return this;
+        },
+        _propertyChains: new Set([
+            '_dispatcherByEventName'
+        ]),
+        _pubsub: {
             destroy: {
                 allowPublicPublish: false,
                 completeOnce: true,
@@ -646,24 +678,10 @@ const _protectedDefineEventMethod = function ({
                 Dispatcher: _Dispatcher,
                 publishOnce: true
             },
-            [_defaultSymbol]: {}
-        }),
-        _init (...args) {
-            Reflect.apply(_PropertyChainer._init, this, args);
-
-            if (this.hasOwnProperty('_events')) {
-                this.defineEvent(this._events);
+            [_defaultSymbol]: {
+                allowPublicPublish: true
             }
-
-            if (this.hasOwnProperty('_subscriptionMethods')) {
-                this._addSubscriptionMethods(this._subscriptionMethods);
-            }
-
-            return this;
         },
-        _propertyChains: new Set([
-            '_events'
-        ]),
         _subscriptionMethods: [
             'after',
             'before',
