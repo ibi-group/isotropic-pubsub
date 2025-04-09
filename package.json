@@ -28,7 +28,7 @@
         "build": "cross-env BABEL_ENV=node-minify-no-mangle babel --config-file ./node_modules/isotropic-dev-dependencies/config/babel.json js -d lib --delete-dir-on-start",
         "lint": "eslint js test",
         "postprepare": "node ./node_modules/isotropic-dev-dependencies/lib/install-git-hooks.js",
-        "posttest": "[ -z \"$npm_config_coverage\" ] || c8 -c ./node_modules/isotropic-dev-dependencies/config/c8.json check-coverage --branches 99 --lines 99 --statements 99",
+        "posttest": "[ -z \"$npm_config_coverage\" ] || c8 -c ./node_modules/isotropic-dev-dependencies/config/c8.json check-coverage",
         "prepare": "npm run build",
         "prepublishOnly": "npm test --coverage",
         "pretest": "npm run lint",

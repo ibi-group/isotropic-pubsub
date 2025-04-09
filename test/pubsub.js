@@ -1,5 +1,6 @@
 import _chai from 'isotropic-dev-dependencies/lib/chai.js';
 import _Dispatcher from '../js/dispatcher.js';
+import _Event from '../js/event.js';
 import _make from 'isotropic-make';
 import _mocha from 'isotropic-dev-dependencies/lib/mocha.js';
 import _Pubsub from '../js/pubsub.js';
@@ -9518,5 +9519,71 @@ _mocha.describe('pubsub', () => {
 
         _chai.expect(pubsub).to.have.property('destroyed', true);
         _chai.expect(subscriptionsExecuted).to.deep.equal([]);
+    });
+
+    _mocha.it('should return false when unsubscribing from an event with an invalid internal unsubscribe function', () => {
+        const event = _Event();
+
+        _chai.expect(event.unsubscribe()).to.be.false;
+    });
+
+    _mocha.it('should return false when unsubscribing from a subscription with an invalid internal unsubscribe function', () => {
+        const subscription = _Subscription({
+            subscribed: true
+        });
+
+        _chai.expect(subscription.unsubscribe()).to.be.false;
+    });
+
+    _mocha.it('should allow custom stage subscription shortcut methods', () => {
+        const pubsub = _make(_Pubsub, {}, {
+                _pubsub: {
+                    testEvent: {
+                        allowPublicPublish: true,
+                        stages: [
+                            'custom',
+                            'complete'
+                        ]
+                    }
+                },
+                _subscriptionMethods: 'custom'
+            })(),
+            subscriptionsExecuted = [];
+
+        pubsub.custom('testEvent', () => {
+            subscriptionsExecuted.push('public custom');
+        });
+
+        pubsub._custom('testEvent', () => {
+            subscriptionsExecuted.push('protected custom');
+        });
+
+        pubsub.onceCustom('testEvent', () => {
+            subscriptionsExecuted.push('once public custom');
+        });
+
+        pubsub._onceCustom('testEvent', () => {
+            subscriptionsExecuted.push('once protected custom');
+        });
+
+        pubsub.publish('testEvent');
+
+        _chai.expect(subscriptionsExecuted).to.deep.equal([
+            'public custom',
+            'protected custom',
+            'once public custom',
+            'once protected custom'
+        ]);
+
+        pubsub.publish('testEvent');
+
+        _chai.expect(subscriptionsExecuted).to.deep.equal([
+            'public custom',
+            'protected custom',
+            'once public custom',
+            'once protected custom',
+            'public custom',
+            'protected custom'
+        ]);
     });
 });

@@ -3,7 +3,7 @@
 [![npm version](https://img.shields.io/npm/v/isotropic-pubsub.svg)](https://www.npmjs.com/package/isotropic-pubsub)
 [![License](https://img.shields.io/npm/l/isotropic-pubsub.svg)](https://github.com/ibi-group/isotropic-pubsub/blob/main/LICENSE)
 ![](https://img.shields.io/badge/tests-passing-brightgreen.svg)
-![](https://img.shields.io/badge/coverage-90%25-brightgreen.svg)
+![](https://img.shields.io/badge/coverage-100%25-brightgreen.svg)
 
 A powerful and flexible event system for JavaScript applications that implements the publish-subscribe pattern with advanced lifecycle features.
 
