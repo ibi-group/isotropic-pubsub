@@ -291,6 +291,216 @@ const _DataStore = _make([
 }
 ```
 
+## Advanced Event Subscription
+
+When subscribing to events in `isotropic-pubsub`, you have several options for specifying callbacks and controlling their execution context.
+
+### Callback Functions and Host Context
+
+You can specify a callback function in three ways:
+
+1. **Direct function reference**:
+```javascript
+pubsub.on('dataChanged', event => {
+    console.log(`Data changed: ${event.data.key}`);
+});
+```
+
+2. **Configuration object with function reference**:
+```javascript
+pubsub.on('dataChanged', {
+    callbackFunction: event => {
+        console.log(`Data changed: ${event.data.key}`);
+    }
+});
+```
+
+3. **Method name as string or symbol**:
+```javascript
+// Using a string method name
+pubsub.on('dataChanged', {
+    callbackFunction: 'handleDataChange',
+    host: this
+});
+
+// Or using a Symbol
+const dataChangeHandlerSymbol = Symbol('dataChangeHandler');
+
+this[dataChangeHandlerSymbol] = event => {
+    console.log(`Data changed: ${event.data.key}`);
+};
+
+pubsub.on('dataChanged', {
+    callbackFunction: dataChangeHandlerSymbol,
+    host: this
+});
+```
+
+The `host` parameter is particularly useful when you want to execute the callback in a specific context. If not specified, the host defaults to the dispatcher itself. The host becomes the value of `this` within the callback function.
+
+```javascript
+import _make from 'isotropic-make';
+import _Pubsub from 'isotropic-pubsub';
+
+// The DataStore class
+const _DataStore = _make([
+    _Pubsub
+], {
+    handleDataChange (event) {
+        // 'this' refers to the DataStore instance
+        console.log(`Data changed in ${this.name}: ${event.data.key}`);
+    },
+    _init (config) {
+        this.name = config.name || 'DefaultStore';
+
+        // Subscribe using method name and this as host
+        this.on('dataChanged', 'handleDataChange');
+
+        return this;
+    }
+});
+```
+
+### The Binding Pattern
+
+In some cases, you might need to bind a function to a specific context, especially when using callbacks in event handlers:
+
+```javascript
+const logger = _Logger(),
+    store = _DataStore();
+
+// Bind the logger's log method to the logger instance
+store.on('dataChanged', logger.log.bind(logger));
+```
+
+This pattern is useful when working with libraries or objects that expect their methods to be called with a specific `this` context. The `host` does not need to be provided when the function is already bound.
+
+## Return Values from Event Handlers
+
+When you subscribe to an event in `isotropic-pubsub`, the subscription methods return a subscription object that allows you to manage that subscription.
+
+### Subscription Objects
+
+Subscription objects have the following structure:
+
+```javascript
+{
+    subscribed: true,  // Boolean indicating if the subscription is active
+    unsubscribe: Function  // Method to cancel the subscription
+}
+```
+
+Here's how to use subscription objects:
+
+```javascript
+// Create a subscription
+const subscription = pubsub.on('dataChanged', event => {
+    console.log('Data changed:', event.data);
+});
+
+// Check if the subscription is active
+console.log(subscription.subscribed); // true
+
+// Unsubscribe when done
+subscription.unsubscribe();
+
+// The subscription is no longer active
+console.log(subscription.subscribed); // false
+```
+
+### Bulk Subscription Returns
+
+When using `bulkSubscribe`, the return value depends on how many subscriptions were created:
+
+```javascript
+// Single subscription in bulk form
+const singleSub = pubsub.bulkSubscribe({
+    eventName: 'event1',
+    stageName: 'on',
+    config: callback
+});
+// Returns a single subscription object
+
+// Multiple subscriptions
+const multiSub = pubsub.bulkSubscribe([
+    {
+        eventName: 'event1',
+        stageName: 'on',
+        config: callback1
+    },
+    {
+        eventName: 'event2',
+        stageName: 'before',
+        config: callback2
+    }
+]);
+// Returns a composite subscription object
+```
+
+The composite subscription object from multiple subscriptions has:
+
+```javascript
+{
+    subscribed: true,  // True if ANY of the subscriptions are active
+    subscriptions: [/* array of individual subscription objects */],
+    unsubscribe: Function  // Unsubscribes ALL contained subscriptions
+}
+```
+
+### Unsubscribing Within Handlers
+
+You can unsubscribe a handler from within itself using the event object:
+
+```javascript
+// One-time handler that unsubscribes itself
+pubsub.on('notification', event => {
+    console.log('Got notification:', event.data);
+
+    // Unsubscribe this handler
+    event.unsubscribe();
+});
+
+// Equivalent to using the built-in once methods
+pubsub.onceOn('notification', callback);
+```
+
+### Managing Subscriptions Lifecycle
+
+It's a good practice to store subscription objects for later cleanup, especially in components with a lifecycle:
+
+```javascript
+import _make from 'isotropic-make';
+import _Pubsub from 'isotropic-pubsub';
+
+const _Component = _make([
+    _Pubsub
+], {
+    _destroy (...args) {
+        // Clean up all subscriptions
+        this._subscriptions.forEach(subscription => subscription.unsubscribe());
+        this._subscriptions = [];
+
+        // Call parent destroy
+        Reflect.apply(_Pubsub.prototype._destroy, this, args);
+    },
+    _init (...args) {
+        // Call parent _init
+        Reflect.apply(_Pubsub.prototype._init, this, args);
+
+        // Store subscriptions
+        this._subscriptions = [];
+
+        // Add subscriptions
+        this._subscriptions.push(
+            this.on('event1', '_handleEvent1'),
+            this.on('event2', '_handleEvent2')
+        );
+
+        return this;
+    }
+});
+```
+
 ## Example Patterns
 
 ### Form Validation
@@ -837,6 +1047,102 @@ class DataService {
 }
 ```
 
+## Inheritance and Event Configuration
+
+While the examples in the previous sections show how to use `defineDispatcher` directly, the recommended approach for complex applications is to use class inheritance with `isotropic-make`. This allows for better organization and reusability of event configurations.
+
+### Using the Static `_pubsub` Property
+
+The `isotropic-pubsub` module integrates with `isotropic-property-chainer` to provide a clean inheritance pattern for event configurations:
+
+```javascript
+import _make from 'isotropic-make';
+import _Pubsub from 'isotropic-pubsub';
+
+// Base service with common event configurations
+const _BaseService = _make(_Pubsub, {
+        // Instance methods
+        _handleCreate (event) {
+            console.log('Creating resource:', event.data);
+
+            // Implementation...
+        },
+        _init (...args) {
+            Reflect.apply(_Pubsub.prototype._init, this, args);
+
+            this._before('create', '_validateCreate');
+
+            return this;
+        },
+        _validateCreate (event) {
+            if (!event.data.id) {
+                console.error('Missing ID');
+
+                event.preventDefault();
+            }
+        }
+    }, {
+        // Static properties including event configurations
+        _pubsub: {
+            // Define the 'create' event with default configuration
+            create: {
+                allowPublicPublish: true,
+                defaultFunction: '_handleCreate',
+                preventable: true
+            }
+        }
+    }),
+    // Derived service with additional event configurations
+    _UserService = _make(_BaseService, {
+        // Instance methods
+        _handleLogin (event) {
+            console.log('New login:', event.data);
+
+            // Implementation...
+        },
+        _init (...args) {
+            Reflect.apply(_BaseService.prototype._init, this, args);
+
+            this._before('create', '_validateEmail');
+
+            return this;
+        },
+        _validateEmail (event) {
+            if (!event.data.email || !event.data.email.includes('@')) {
+                console.error('Invalid email format');
+
+                event.preventDefault();
+            }
+        }
+    }, {
+        // Static properties with extended event configurations
+        _pubsub: {
+            // The create event doesn't need to be specified again.
+            // it gets inherited from _BaseService
+
+            // Add a user-specific event
+            login: {
+                allowPublicPublish: true,
+                defaultFunction: '_handleLogin'
+            }
+        }
+    });
+```
+
+In this example:
+
+1. `_BaseService` defines a base `create` event with default configuration.
+2. `_UserService` inherits this configuration and adds another event.
+
+This inheritance pattern allows you to build complex event systems while maintaining a clean separation of concerns.
+
+### Benefits of Using the Static `_pubsub` Property
+
+1. **Automatic Inheritance**: Event configurations are automatically inherited and can be extended or overridden in derived classes.
+2. **Better Organization**: Event definitions are centralized in the class definition rather than scattered throughout instance methods.
+3. **Reusability**: Common event patterns can be defined once and reused across multiple derived classes.
+4. **Encapsulation**: Event handling logic is kept within the class that owns it.
+
 ## API Reference
 
 ### Pubsub Class
@@ -934,6 +1240,408 @@ pubsub.defineDispatcher('eventName', {
     stages: ['before', 'on', 'default', 'after']
 });
 ```
+
+### `completeOnce` vs `publishOnce`
+
+- **`publishOnce`**: When set to `true`, the event can only be published once during the lifetime of the object. Any subsequent attempts to publish the event will be ignored.
+
+```javascript
+// This event can only be published once
+pubsub.defineDispatcher('initialize', {
+    publishOnce: true
+});
+
+pubsub.publish('initialize', { data: 123 }); // Works
+pubsub.publish('initialize', { data: 456 }); // Ignored
+```
+
+- **`completeOnce`**: When set to `true`, the event can be published multiple times, but the default function (completion) will only run the first time.
+
+```javascript
+// This event can be published multiple times, but the default function only runs once
+pubsub.defineDispatcher('load', {
+    completeOnce: true,
+    defaultFunction: () => console.log('Loading resources')
+});
+
+pubsub.publish('load'); // Prints "Loading resources"
+pubsub.publish('load'); // Default function doesn't run, but subscribers still receive the event
+```
+
+For both `completeOnce` and `publishOnce`, after the event has already been completed or published, any new subscriber is executed immediately.
+
+### `lifecycleHost`
+
+The `lifecycleHost` option specifies the context (`this`) for lifecycle functions like `defaultFunction`, `preventedFunction`, etc. This is particularly useful when the event is defined in one object but the handling logic exists in another:
+
+```javascript
+// A controller that processes events but delegates handling
+const controller = {
+    handleSave (event) {
+        console.log('Saving data:', event.data, this);
+        // Saving implementation...
+    }
+};
+
+const pubsub = _Pubsub();
+
+pubsub.defineDispatcher('save', {
+    allowPublicPublish: true,
+    defaultFunction: 'handleSave',
+    lifecycleHost: controller
+});
+
+// When 'save' is published, the handleSave method is called with controller as 'this'
+pubsub.publish('save', {
+    id: 123,
+    name: 'Test'
+});
+```
+
+### Event Stages Control
+
+Various options control which stages of the event lifecycle can be controlled by handlers:
+
+- **`dispatchStoppable`**: If `true`, event handlers can call `event.stopDispatch()` to prevent further handlers in the current stage from executing.
+
+- **`distributionStoppable`**: If `true`, event handlers can call `event.stopDistribution()` to prevent the event from being distributed to other objects.
+
+- **`eventStoppable`**: If `true`, event handlers can call `event.stopEvent()` to prevent all further event processing.
+
+- **`preventable`**: Controls which stages can be prevented. Can be `true` (all stages), `false` (no stages), or a `Set` of specific stage names.
+
+```javascript
+// Fine-grained control example
+pubsub.defineDispatcher('criticalOperation', {
+    allowPublicPublish: true,
+    defaultFunction: 'performOperation',
+    dispatchStoppable: true,         // Handlers can stop further handlers
+    distributionStoppable: false,    // Must distribute to all objects
+    eventStoppable: false,           // Cannot stop the event completely
+    preventable: new Set([
+        'before' // Only the 'before' stage can be prevented
+    ])
+});
+```
+
+These configuration options give you precise control over how events flow through your application and how they can be interrupted or modified.
+
+## Synchronous Event Processing and Asynchronous Tasks
+
+All event processing in `isotropic-pubsub` is synchronous by default. Events are processed in the following order:
+
+1. Before stage handlers
+2. On stage handlers
+3. Default function (internal event handling)
+4. After stage handlers
+
+However, this doesn't prevent the default function or event handlers from performing asynchronous tasks. When an asynchronous task is started during event processing, the event flow continues synchronously:
+
+```javascript
+// Define a custom event with an asynchronous default function
+pubsub.defineDispatcher('saveData', {
+    allowPublicPublish: true,
+    defaultFunction: async event => {
+        // Start an asynchronous operation
+        try {
+            await saveToDatabase(event.data);
+        } catch (error) {
+            pubsub.publish('saveError', {
+                error
+            });
+
+            return;
+        }
+
+        // This will run after the event processing has completed
+        pubsub.publish('saveComplete', {
+            success: true
+        });
+    }
+});
+
+// After stage handlers will execute before the async task completes
+pubsub.after('saveData', () => {
+    console.log('Save operation started'); // This runs immediately
+});
+
+// To handle the completion of the async task, subscribe to a separate event
+pubsub.on('saveComplete', () => {
+    console.log('Save operation completed successfully');
+});
+
+pubsub.on('saveError', (event) => {
+    console.error('Save operation failed:', event.data.error);
+});
+```
+
+### Best Practices for Asynchronous Operations
+
+When working with asynchronous operations, follow these best practices:
+
+1. **Create separate completion events**: For asynchronous operations, publish separate events to indicate completion or failure.
+
+2. **Use event chains**: Chain events to create complex workflows with asynchronous steps.
+
+```javascript
+const _AsyncService = _make(_Pubsub, {
+    // First event in the chain
+    processData (data) {
+        return this.publish('processStart', { data });
+    },
+    _init () {
+        // Set up event chain
+        this.on('processStart', '_processStartHandler');
+        return this;
+    },
+    async _processAsync (data) {
+        // Async implementation
+    },
+    // Handle the start of processing
+    _processStartHandler (event) {
+        const {
+            data
+        } = event.data;
+
+        // Perform async processing
+        this._processAsync(data).then(result => {
+            // Publish completion event when done
+            this.publish('processComplete', {
+                result
+            });
+        }).catch(error => {
+            this.publish('processError', {
+                error
+            });
+        });
+    }
+});
+```
+
+## Event Distribution Mechanism
+
+`isotropic-pubsub` provides a powerful event distribution system that allows events to flow through object hierarchies. This enables you to build complex event-based architectures with clear separation of concerns.
+
+### How Event Distribution Works
+
+When an event is published, it is distributed through a network of related objects that have been registered as distributors:
+
+1. The event starts at the publisher object
+2. It flows to all registered distributors of the publisher
+3. Each distributor then distributes the event to its own distributors
+4. This continues recursively until all objects in the distribution network have processed the event
+
+```javascript
+// Create a hierarchy of objects
+const child1 = _Pubsub(),
+    child2 = _Pubsub(),
+    grandchild1a = _Pubsub(),
+    grandchild1b = _Pubsub(),
+    grandchild2a = _Pubsub(),
+    parent = _Pubsub();
+
+// Set up distribution relationships
+parent.addDistributor([
+    child1,
+    child2
+]);
+child1.addDistributor([
+    grandchild1a,
+    grandchild1b
+]);
+child2.addDistributor(grandchild2a);
+
+// When an event is published on parent:
+parent.publish('someEvent', {
+    data: 'value'
+});
+
+// The distribution order is:
+// 1. parent (publisher)
+// 2. child1, child2 (parent's distributors)
+// 3. grandchild1a, grandchild1b (child1's distributors)
+// 4. grandchild2a (child2's distributor)
+```
+
+Within each object, the event flows through its handlers in the standard stage order (before → on → default → after).
+
+### Distribution Order Details
+
+The exact order of event processing across distributors follows these rules:
+
+1. For each stage (before, on, default, after):
+   - First, all handlers for that stage on the publisher execute
+   - Then, all handlers for that stage on the first distributor execute
+   - Then, all handlers for that stage on all of that distributor's distributors execute (recursively)
+   - This repeats for each subsequent distributor in the order they were added
+
+This breadth-first traversal ensures predictable event flow and allows for complex event propagation patterns.
+
+### Controlling Event Distribution
+
+Event handlers can control distribution using several methods:
+
+```javascript
+// Stop distribution to further objects
+pubsub.on('someEvent', event => {
+    // Do something
+    event.stopDistribution();
+    // Event won't be distributed to other objects
+});
+
+// Remove a distributor dynamically
+pubsub.removeDistributor(child);
+// Future events won't be distributed to this object
+
+// Remove multiple distributors
+pubsub.removeDistributor([
+    child1,
+    child2
+]);
+// Or
+pubsub.removeDistributor(new Set([
+    child1,
+    child2
+]));
+```
+
+You can also configure distribution behavior at the event level:
+
+```javascript
+pubsub.defineDispatcher('localEvent', {
+    // This event won't be distributed to other objects
+    distributable: false
+});
+
+pubsub.defineDispatcher('restrictedEvent', {
+    // This event can't be stopped from distributing
+    distributionStoppable: false
+});
+```
+
+### Event Distribution Use Cases
+
+Event distribution is particularly useful for:
+
+1. **Component Hierarchies**: UI components can distribute events to their child components
+2. **Service Composition**: Services can distribute events to dependent services
+3. **Cross-Cutting Concerns**: Logging, analytics, or monitoring can be implemented by distributing events to specialized handlers
+
+## Advanced Custom Dispatchers
+
+While `isotropic-pubsub` provides a robust default dispatcher implementation, you can create completely custom dispatchers for specialized event handling needs.
+
+### Creating a Custom Dispatcher
+
+A custom dispatcher needs to implement three key methods:
+
+```javascript
+const customDispatcher = {
+    // Create a new state object for this event type
+    newState () {
+        return {
+            // Custom state properties
+            subscriptions: {},  // Required for storing subscriptions
+            customData: {}      // Any additional data you need
+        };
+    },
+    // Handle event publishing
+    publish (config) {
+        // Custom publish logic
+        console.log('Publishing event with config:', config);
+
+        // You have access to:
+        // config.data - Event data
+        // config.eventName - Event name
+        // config.getDistributionPath - Function to get distribution objects
+        // config.lifecycleHost - Execution context for lifecycle methods
+        // config.publisher - Publishing object
+        // config.state - Event state from newState()
+
+        // Implement your custom event flow
+        return this;
+    },
+    // Handle event subscription
+    subscribe (config) {
+        // Custom subscription logic
+        console.log('Subscribing with config:', config);
+
+        // Return a subscription object
+        return {
+            subscribed: true,
+            unsubscribe: () => true
+        };
+    }
+};
+```
+
+### Using a Custom Dispatcher
+
+You can use your custom dispatcher for specific events:
+
+```javascript
+pubsub.defineDispatcher('customEvent', customDispatcher);
+
+// Now when customEvent is published or subscribed to,
+// your custom dispatcher implementation will be used
+pubsub.publish('customEvent', {
+    data: 'value'
+});
+```
+
+### Custom Dispatcher Use Cases
+
+Custom dispatchers are useful for specialized event patterns such as:
+
+1. **Queued Events**: Implementing a queue for events that should be processed in order
+2. **Throttled/Debounced Events**: Limiting the frequency of event processing
+3. **Conditional Events**: Advanced filtering of events based on complex conditions
+4. **Persistent Events**: Events that need to be stored and replayed
+5. **Remote Events**: Dispatchers that transmit events over network boundaries
+6. **Completely Custom Logic**: Implement alternate event stages or distribution approaches
+
+### Example: Throttled Event Dispatcher
+
+```javascript
+// A dispatcher that limits event frequency
+const throttledDispatcher = {
+    newState () {
+        return {
+            lastFired: 0,
+            pendingSubscriptions: [],
+            subscriptions: {},
+            throttleDuration: 100  // Minimum milliseconds between events
+        };
+    },
+    publish (config) {
+        const now = Date.now(),
+            state = config.state;
+
+        // Check if enough time has passed
+        if (now - state.lastFired >= state.throttleDuration) {
+            state.lastFired = now;
+
+            // Use the standard dispatcher's publish method for actual dispatching
+            _Dispatcher.prototype.publish.call(this, config);
+        } else {
+            console.log('Event throttled');
+        }
+
+        return this;
+    },
+
+    subscribe(config) {
+        // Use the standard dispatcher's subscribe method
+        return _Dispatcher.prototype.subscribe.call(this, config);
+    }
+};
+
+// Use the throttled dispatcher for high-frequency events
+pubsub.defineDispatcher('scroll', throttledDispatcher);
+pubsub.defineDispatcher('resize', throttledDispatcher);
+```
+
+Custom dispatchers provide a powerful extension point for the event system, allowing you to tailor event behavior to your specific application needs while maintaining compatibility with the rest of the pubsub infrastructure.
 
 ## Integration with Other isotropic Modules
 
