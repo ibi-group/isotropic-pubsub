@@ -1,5 +1,4 @@
 import _chai from 'isotropic-dev-dependencies/lib/chai.js';
-import _defaultSymbol from '../js/default-symbol.js';
 import _Dispatcher from '../js/dispatcher.js';
 import _make from 'isotropic-make';
 import _mocha from 'isotropic-dev-dependencies/lib/mocha.js';
@@ -590,7 +589,7 @@ _mocha.describe('pubsub', () => {
         _chai.expect(testSubscription.unsubscribe()).to.be.true;
     });
 
-    _mocha.it('should acknowledge an event is complete after the default stage', () => {
+    _mocha.it('should acknowledge an event is complete after the complete stage', () => {
         const pubsub = _Pubsub(),
             subscriptionsExecuted = [];
 
@@ -744,13 +743,13 @@ _mocha.describe('pubsub', () => {
         });
 
         pubsub.before('testEvent', event => {
-            event.preventDefault();
-            _chai.expect(event.defaultIsPrevented()).to.be.true;
+            event.prevent();
+            _chai.expect(event.isPrevented()).to.be.true;
             subscriptionsExecuted.push('before');
         });
 
         pubsub.on('testEvent', event => {
-            _chai.expect(event.defaultIsPrevented()).to.be.true;
+            _chai.expect(event.isPrevented()).to.be.true;
             subscriptionsExecuted.push('on');
         });
 
@@ -771,14 +770,14 @@ _mocha.describe('pubsub', () => {
         });
 
         pubsub.before('testEvent', event => {
-            event.preventDefault();
-            _chai.expect(event.defaultIsPrevented()).to.be.true;
+            event.prevent();
+            _chai.expect(event.isPrevented()).to.be.true;
             subscriptionsExecuted.push('before');
         });
 
         pubsub.on('testEvent', event => {
-            event.preventDefault();
-            _chai.expect(event.defaultIsPrevented()).to.be.true;
+            event.prevent();
+            _chai.expect(event.isPrevented()).to.be.true;
             subscriptionsExecuted.push('on');
         });
 
@@ -1849,7 +1848,7 @@ _mocha.describe('pubsub', () => {
                 _pubsub: {
                     testEvent: {
                         allowPublicPublish: true,
-                        defaultFunction: 'a',
+                        completeFunction: 'a',
                         publishOnce: true
                     }
                 }
@@ -1864,7 +1863,7 @@ _mocha.describe('pubsub', () => {
                 _pubsub: {
                     testEvent: {
                         allowPublicPublish: true,
-                        defaultFunction: 'b',
+                        completeFunction: 'b',
                         publishOnce: true
                     }
                 }
@@ -4293,7 +4292,7 @@ _mocha.describe('pubsub', () => {
         });
 
         pubsub.onceBefore('testEvent', event => {
-            event.preventDefault();
+            event.prevent();
             subscriptionsExecuted.push('before');
         });
 
@@ -5178,13 +5177,13 @@ _mocha.describe('pubsub', () => {
         });
 
         pubsub.before('testEvent', event => {
-            event.preventDefault();
-            _chai.expect(event.defaultIsPrevented()).not.to.be.true;
+            event.prevent();
+            _chai.expect(event.isPrevented()).not.to.be.true;
             subscriptionsExecuted.push('before');
         });
 
         pubsub.on('testEvent', event => {
-            _chai.expect(event.defaultIsPrevented()).not.to.be.true;
+            _chai.expect(event.isPrevented()).not.to.be.true;
             subscriptionsExecuted.push('on');
         });
 
@@ -5280,7 +5279,7 @@ _mocha.describe('pubsub', () => {
                 customSymbol,
                 'on',
                 'about-to-happen',
-                _defaultSymbol,
+                'complete',
                 'it just happened!'
             ]
         });
@@ -5997,7 +5996,7 @@ _mocha.describe('pubsub', () => {
             }, {
                 _pubsub: {
                     destroyComplete: {
-                        defaultFunction: '_differentDestroyComplete',
+                        completeFunction: '_differentDestroyComplete',
                         publishOnce: true
                     },
                     testEventX: {
@@ -6718,35 +6717,35 @@ _mocha.describe('pubsub', () => {
         pubsub.publish('testEvent');
     });
 
-    _mocha.it('should execute the default lifecycle function during the default stage', () => {
+    _mocha.it('should execute the complete lifecycle function during the complete stage', () => {
         const executedSubscribers = [],
             pubsub = _Pubsub();
 
-        let calledDefaultFunction,
+        let calledCompleteFunction,
             eventObject;
 
         pubsub.defineDispatcher('testEvent', {
             allowPublicPublish: true,
-            defaultFunction (event) {
+            completeFunction (event) {
                 _chai.expect(event).to.equal(eventObject);
-                calledDefaultFunction = true;
+                calledCompleteFunction = true;
             }
         });
 
         pubsub.after('testEvent', event => {
-            _chai.expect(calledDefaultFunction).to.be.true;
+            _chai.expect(calledCompleteFunction).to.be.true;
             _chai.expect(event).to.equal(eventObject);
             executedSubscribers.push('after');
         });
 
         pubsub.before('testEvent', event => {
-            _chai.expect(calledDefaultFunction).to.be.undefined;
+            _chai.expect(calledCompleteFunction).to.be.undefined;
             eventObject = event;
             executedSubscribers.push('before');
         });
 
         pubsub.on('testEvent', event => {
-            _chai.expect(calledDefaultFunction).to.be.undefined;
+            _chai.expect(calledCompleteFunction).to.be.undefined;
             _chai.expect(event).to.equal(eventObject);
             executedSubscribers.push('on');
         });
@@ -6760,20 +6759,20 @@ _mocha.describe('pubsub', () => {
         ]);
     });
 
-    _mocha.it('should allow a method name as a late bound default lifecycle function', () => {
-        let calledDefaultFunction,
+    _mocha.it('should allow a method name as a late bound complete lifecycle function', () => {
+        let calledCompleteFunction,
             eventObject;
 
         const CustomPubsub = _make(_Pubsub, {
                 _eventTestEvent (event) {
                     _chai.expect(event).to.equal(eventObject);
-                    calledDefaultFunction = true;
+                    calledCompleteFunction = true;
                 }
             }, {
                 _pubsub: {
                     testEvent: {
                         allowPublicPublish: true,
-                        defaultFunction: '_eventTestEvent'
+                        completeFunction: '_eventTestEvent'
                     }
                 }
             }),
@@ -6781,19 +6780,19 @@ _mocha.describe('pubsub', () => {
             executedSubscribers = [];
 
         customPubsub.after('testEvent', event => {
-            _chai.expect(calledDefaultFunction).to.be.true;
+            _chai.expect(calledCompleteFunction).to.be.true;
             _chai.expect(event).to.equal(eventObject);
             executedSubscribers.push('after');
         });
 
         customPubsub.before('testEvent', event => {
-            _chai.expect(calledDefaultFunction).to.be.undefined;
+            _chai.expect(calledCompleteFunction).to.be.undefined;
             eventObject = event;
             executedSubscribers.push('before');
         });
 
         customPubsub.on('testEvent', event => {
-            _chai.expect(calledDefaultFunction).to.be.undefined;
+            _chai.expect(calledCompleteFunction).to.be.undefined;
             _chai.expect(event).to.equal(eventObject);
             executedSubscribers.push('on');
         });
@@ -6807,21 +6806,21 @@ _mocha.describe('pubsub', () => {
         ]);
     });
 
-    _mocha.it('should allow a method name as a late bound default lifecycle function with a custom lifecycle host', () => {
-        let calledDefaultFunction,
+    _mocha.it('should allow a method name as a late bound complete lifecycle function with a custom lifecycle host', () => {
+        let calledCompleteFunction,
             eventObject;
 
         const customLifecycleHost = {
                 _eventTestEvent (event) {
                     _chai.expect(event).to.equal(eventObject);
-                    calledDefaultFunction = true;
+                    calledCompleteFunction = true;
                 }
             },
             CustomPubsub = _make(_Pubsub, {}, {
                 _pubsub: {
                     testEvent: {
                         allowPublicPublish: true,
-                        defaultFunction: '_eventTestEvent',
+                        completeFunction: '_eventTestEvent',
                         lifecycleHost: customLifecycleHost
                     }
                 }
@@ -6830,19 +6829,19 @@ _mocha.describe('pubsub', () => {
             executedSubscribers = [];
 
         customPubsub.after('testEvent', event => {
-            _chai.expect(calledDefaultFunction).to.be.true;
+            _chai.expect(calledCompleteFunction).to.be.true;
             _chai.expect(event).to.equal(eventObject);
             executedSubscribers.push('after');
         });
 
         customPubsub.before('testEvent', event => {
-            _chai.expect(calledDefaultFunction).to.be.undefined;
+            _chai.expect(calledCompleteFunction).to.be.undefined;
             eventObject = event;
             executedSubscribers.push('before');
         });
 
         customPubsub.on('testEvent', event => {
-            _chai.expect(calledDefaultFunction).to.be.undefined;
+            _chai.expect(calledCompleteFunction).to.be.undefined;
             _chai.expect(event).to.equal(eventObject);
             executedSubscribers.push('on');
         });
@@ -8885,7 +8884,7 @@ _mocha.describe('pubsub', () => {
 
         pubsub.on('testEvent', event => {
             _chai.expect(event).to.equal(eventObject);
-            _chai.expect(event.defaultIsPrevented()).to.be.true;
+            _chai.expect(event.isPrevented()).to.be.true;
             _chai.expect(calledPreventedFunction).to.be.true;
             subscriptionsExecuted.push('on');
         });
@@ -8929,7 +8928,7 @@ _mocha.describe('pubsub', () => {
 
         customPubsub.on('testEvent', event => {
             _chai.expect(event).to.equal(eventObject);
-            _chai.expect(event.defaultIsPrevented()).to.be.true;
+            _chai.expect(event.isPrevented()).to.be.true;
             _chai.expect(calledPreventedFunction).to.be.true;
             subscriptionsExecuted.push('on');
         });
@@ -8975,7 +8974,7 @@ _mocha.describe('pubsub', () => {
 
         customPubsub.on('testEvent', event => {
             _chai.expect(event).to.equal(eventObject);
-            _chai.expect(event.defaultIsPrevented()).to.be.true;
+            _chai.expect(event.isPrevented()).to.be.true;
             _chai.expect(calledPreventedFunction).to.be.true;
             subscriptionsExecuted.push('on');
         });
@@ -9412,7 +9411,7 @@ _mocha.describe('pubsub', () => {
             testSubscription0 = pubsub.onceOn('destroy', event => {
                 _chai.expect(pubsub).to.have.property('destroyed', false);
                 subscriptionsExecuted.push('onceOnDestroy');
-                event.preventDefault();
+                event.prevent();
             }),
             testSubscription1 = pubsub.on('destroy', () => {
                 _chai.expect(pubsub).to.have.property('destroyed', false);
@@ -9455,7 +9454,7 @@ _mocha.describe('pubsub', () => {
                 'b',
                 'c'
             ]);
-            subscriptionsExecuted.push('defaultDestroy');
+            subscriptionsExecuted.push('completeDestroy');
             Reflect.apply(_Pubsub.prototype._destroy, this, args);
         };
 
@@ -9465,7 +9464,7 @@ _mocha.describe('pubsub', () => {
                 'b',
                 'c'
             ]);
-            subscriptionsExecuted.push('defaultDestroyComplete');
+            subscriptionsExecuted.push('completeDestroyComplete');
             Reflect.apply(_Pubsub.prototype._destroyComplete, this, args);
         };
 
@@ -9496,9 +9495,9 @@ _mocha.describe('pubsub', () => {
         _chai.expect(subscriptionsExecuted).to.deep.equal([
             'onAnotherEvent',
             'onDestroy',
-            'defaultDestroy',
+            'completeDestroy',
             'onDestroyComplete',
-            'defaultDestroyComplete',
+            'completeDestroyComplete',
             'afterDestroyComplete'
         ]);
         _chai.expect(testSubscription1).to.have.property('subscribed', false);

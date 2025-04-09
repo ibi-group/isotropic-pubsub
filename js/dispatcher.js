@@ -1,4 +1,3 @@
-import _defaultSymbol from './default-symbol.js';
 import _Event from './event.js';
 import _make from 'isotropic-make';
 import _Subscription from './subscription.js';
@@ -67,7 +66,7 @@ export default _make({
                 return true;
             }
 
-            if (stageName === _defaultSymbol) {
+            if (stageName === 'complete') {
                 if (this._config.completeOnce) {
                     if (state.event) {
                         return true;
@@ -81,7 +80,7 @@ export default _make({
                 config.distributor = publisher;
                 config.unsubscribe = null;
 
-                this._callLifecycleFunction('defaultFunction', lifecycleHost, event);
+                this._callLifecycleFunction('completeFunction', lifecycleHost, event);
             } else {
                 for (const [
                     distributor,
@@ -242,7 +241,7 @@ export default _make({
             config.stages = [
                 'before',
                 'on',
-                _defaultSymbol,
+                'complete',
                 'after'
             ];
         }

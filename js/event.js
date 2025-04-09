@@ -1,4 +1,3 @@
-import _defaultSymbol from './default-symbol.js';
 import _make from 'isotropic-make';
 
 export default _make({
@@ -7,9 +6,6 @@ export default _make({
     },
     get data () {
         return this._config.data;
-    },
-    defaultIsPrevented () {
-        return this.isPrevented(_defaultSymbol);
     },
     get dispatchStopped () {
         return this._config.dispatchStopped;
@@ -23,7 +19,7 @@ export default _make({
     get eventStopped () {
         return this._config.eventStopped;
     },
-    isPrevented (stageName) {
+    isPrevented (stageName = 'complete') {
         return this._config.prevented ?
             this._config.prevented.has(stageName) :
             false;
@@ -31,7 +27,7 @@ export default _make({
     get name () {
         return this._config.name;
     },
-    prevent (stageName) {
+    prevent (stageName = 'complete') {
         if (!this._config.preventable || this._config.preventable instanceof Set && !this._config.preventable.has(stageName)) {
             return this;
         }
@@ -43,9 +39,6 @@ export default _make({
         this._config.prevented.add(stageName);
 
         return this;
-    },
-    preventDefault () {
-        return this.prevent(_defaultSymbol);
     },
     get publisher () {
         return this._config.publisher;

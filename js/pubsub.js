@@ -666,14 +666,12 @@ export default _make([
     ]),
     _pubsub: {
         destroy: {
-            allowPublicPublish: false,
+            completeFunction: '_eventDestroy',
             completeOnce: true,
-            defaultFunction: '_eventDestroy',
             Dispatcher: _Dispatcher
         },
         destroyComplete: {
-            allowPublicPublish: false,
-            defaultFunction: '_eventDestroyComplete',
+            completeFunction: '_eventDestroyComplete',
             Dispatcher: _Dispatcher,
             publishOnce: true
         },

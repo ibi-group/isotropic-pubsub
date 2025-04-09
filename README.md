@@ -51,7 +51,7 @@ Events in isotropic-pubsub flow through distinct stages:
 
 1. **Before Stage**: Runs first - subscribers can prevent the event from continuing
 2. **On Stage**: Main event processing - the default stage for most subscribers
-3. **Default Stage**: Special internal stage that executes after the "on" stage
+3. **Complete Stage**: Special internal stage that executes after the "on" stage
 4. **After Stage**: Final stage - for cleanup or logging
 
 ### Subscription Stages
@@ -62,7 +62,7 @@ You can subscribe to any stage of an event's lifecycle:
 // Before stage - can prevent or modify the event
 pubsub.before('save', event => {
     if (!event.data.isValid) {
-        event.preventDefault(); // Prevents the default action
+        event.prevent(); // Prevents the complete stage
     }
 });
 
@@ -81,7 +81,7 @@ pubsub.after('save', event => {
 
 During event handling, subscribers can control the event flow:
 
-- `event.preventDefault()`: Prevent the default action
+- `event.prevent(stageName = 'complete')`: Prevent the complete stage, or pass in a stage name
 - `event.stopEvent()`: Stop all stages of the event
 - `event.stopDispatch()`: Stop dispatch to further handlers in current stage
 - `event.stopDistribution()`: Stop distribution to other objects
@@ -147,12 +147,12 @@ Configure custom behavior for specific event types:
 pubsub.defineDispatcher('formSubmit', {
     // Allow publish from public methods
     allowPublicPublish: true,
+    // Run this method when the event completes
+    completeFunction: 'processFormSubmit',
     // Automatically provide data to all subscribers
     data: {
         formVersion: '1.2.0'
     },
-    // Run this method when the event completes
-    defaultFunction: 'processFormSubmit',
     // Allow preventing this event
     preventable: true
 });
@@ -385,8 +385,8 @@ Subscription objects have the following structure:
 
 ```javascript
 {
-    subscribed: true,  // Boolean indicating if the subscription is active
-    unsubscribe: Function  // Method to cancel the subscription
+    subscribed: true, // Boolean indicating if the subscription is active
+    unsubscribe: Function // Method to cancel the subscription
 }
 ```
 
@@ -441,9 +441,9 @@ The composite subscription object from multiple subscriptions has:
 
 ```javascript
 {
-    subscribed: true,  // True if ANY of the subscriptions are active
+    subscribed: true, // True if ANY of the subscriptions are active
     subscriptions: [/* array of individual subscription objects */],
-    unsubscribe: Function  // Unsubscribes ALL contained subscriptions
+    unsubscribe: Function // Unsubscribes ALL contained subscriptions
 }
 ```
 
@@ -522,7 +522,7 @@ class FormController {
             if (!formData.name || !formData.email) {
                 console.error('Required fields missing');
 
-                event.preventDefault();
+                event.prevent();
                 return;
             }
 
@@ -530,7 +530,7 @@ class FormController {
             if (!/^.+@.+\..+$/.test(formData.email)) {
                 console.error('Invalid email format');
 
-                event.preventDefault();
+                event.prevent();
                 return;
             }
         });
@@ -675,7 +675,7 @@ class FileUploader {
             if (file.size > 10 * 1024 * 1024) { // 10MB
                 console.error('File too large');
 
-                event.preventDefault();
+                event.prevent();
             }
         });
 
@@ -836,22 +836,22 @@ class DataService {
         this.pubsub.defineDispatcher({
             // Create operation
             'create': {
-                defaultFunction: '_handleCreate',
+                completeFunction: '_handleCreate',
                 lifecycleHost: this
             },
             // Delete operation
             'delete': {
-                defaultFunction: '_handleDelete',
+                completeFunction: '_handleDelete',
                 lifecycleHost: this
             },
             // Read operation
             'read': {
-                defaultFunction: '_handleRead',
+                completeFunction: '_handleRead',
                 lifecycleHost: this
             },
             // Update operation
             'update': {
-                defaultFunction: '_handleUpdate',
+                completeFunction: '_handleUpdate',
                 lifecycleHost: this
             }
         });
@@ -921,7 +921,7 @@ class DataService {
         });
     }
 
-    // Default handlers
+    // Complete handlers
     _handleCreate (event) {
         const {
             data,
@@ -980,13 +980,13 @@ class DataService {
         if (this.data[id]) {
             console.error(`Id ${id} already exists`);
 
-            event.preventDefault();
+            event.prevent();
         }
 
         if (!data || typeof data !== 'object') {
             console.error(`Invalid data provided`);
 
-            event.preventDefault();
+            event.prevent();
         }
     }
 
@@ -998,7 +998,7 @@ class DataService {
         if (!this.data[id]) {
             console.error(`Id ${id} does not exist`);
 
-            event.preventDefault();
+            event.prevent();
         }
     }
 
@@ -1011,13 +1011,13 @@ class DataService {
         if (!this.data[id]) {
             console.error(`Id ${id} does not exist`);
 
-            event.preventDefault();
+            event.prevent();
         }
 
         if (!data || typeof data !== 'object') {
             console.error(`Invalid data provided`);
 
-            event.preventDefault();
+            event.prevent();
         }
     }
 }
@@ -1078,16 +1078,16 @@ const _BaseService = _make(_Pubsub, {
             if (!event.data.id) {
                 console.error('Missing ID');
 
-                event.preventDefault();
+                event.prevent();
             }
         }
     }, {
         // Static properties including event configurations
         _pubsub: {
-            // Define the 'create' event with default configuration
+            // Define the 'create' event with base configuration
             create: {
                 allowPublicPublish: true,
-                defaultFunction: '_handleCreate',
+                completeFunction: '_handleCreate',
                 preventable: true
             }
         }
@@ -1111,7 +1111,7 @@ const _BaseService = _make(_Pubsub, {
             if (!event.data.email || !event.data.email.includes('@')) {
                 console.error('Invalid email format');
 
-                event.preventDefault();
+                event.prevent();
             }
         }
     }, {
@@ -1123,7 +1123,7 @@ const _BaseService = _make(_Pubsub, {
             // Add a user-specific event
             login: {
                 allowPublicPublish: true,
-                defaultFunction: '_handleLogin'
+                completeFunction: '_handleLogin'
             }
         }
     });
@@ -1131,7 +1131,7 @@ const _BaseService = _make(_Pubsub, {
 
 In this example:
 
-1. `_BaseService` defines a base `create` event with default configuration.
+1. `_BaseService` defines a base `create` event with base configuration.
 2. `_UserService` inherits this configuration and adds another event.
 
 This inheritance pattern allows you to build complex event systems while maintaining a clean separation of concerns.
@@ -1174,7 +1174,7 @@ const pubsub = _Pubsub(options);
 
 Event objects are passed to subscribers and contain:
 
-- **completed**: Whether the event has completed its default stage
+- **completed**: Whether the event has completed its complete stage
 - **data**: Data associated with the event
 - **dispatchStopped**: Whether dispatch is stopped
 - **distributionStopped**: Whether distribution is stopped
@@ -1186,10 +1186,8 @@ Event objects are passed to subscribers and contain:
 
 #### Event Control Methods
 
-- **defaultIsPrevented()**: Returns whether the default stage is prevented
-- **isPrevented(stageName)**: Returns whether the given stage is prevented
-- **prevent(stageName)**: Prevents the given stage
-- **preventDefault()**: Prevent the default action
+- **isPrevented(stageName='complete')**: Returns whether the given stage is prevented
+- **prevent(stageName='complete')**: Prevents the given stage
 - **stopDispatch()**: Stop dispatch to further handlers in current stage
 - **stopDistribution()**: Stop distribution to other objects
 - **stopEvent()**: Stop all stages of the event
@@ -1216,12 +1214,12 @@ pubsub.defineDispatcher('eventName', {
     allowPublicSubscription: true,
     // Control whether public unsubscribe is allowed
     allowPublicUnsubscription: true,
+    // Function to run on event completion
+    completeFunction: 'functionOrMethodName',
     // Complete the event only once
     completeOnce: false,
     // Default data to merge with event data
     data: { /* ... */ },
-    // Function to run on event completion
-    defaultFunction: 'methodName',
     // Control if dispatch can be stopped
     dispatchStoppable: true,
     // Control if event should be distributed
@@ -1237,7 +1235,7 @@ pubsub.defineDispatcher('eventName', {
     // Publish the event only once
     publishOnce: false,
     // Custom event stages
-    stages: ['before', 'on', 'default', 'after']
+    stages: ['before', 'on', 'complete', 'after']
 });
 ```
 
@@ -1255,24 +1253,24 @@ pubsub.publish('initialize', { data: 123 }); // Works
 pubsub.publish('initialize', { data: 456 }); // Ignored
 ```
 
-- **`completeOnce`**: When set to `true`, the event can be published multiple times, but the default function (completion) will only run the first time.
+- **`completeOnce`**: When set to `true`, the event can be published multiple times, but the complete function will only run the first time.
 
 ```javascript
-// This event can be published multiple times, but the default function only runs once
+// This event can be published multiple times, but the complete function only runs once
 pubsub.defineDispatcher('load', {
     completeOnce: true,
-    defaultFunction: () => console.log('Loading resources')
+    completeFunction: () => console.log('Loading resources')
 });
 
 pubsub.publish('load'); // Prints "Loading resources"
-pubsub.publish('load'); // Default function doesn't run, but subscribers still receive the event
+pubsub.publish('load'); // Complete function doesn't run
 ```
 
 For both `completeOnce` and `publishOnce`, after the event has already been completed or published, any new subscriber is executed immediately.
 
 ### `lifecycleHost`
 
-The `lifecycleHost` option specifies the context (`this`) for lifecycle functions like `defaultFunction`, `preventedFunction`, etc. This is particularly useful when the event is defined in one object but the handling logic exists in another:
+The `lifecycleHost` option specifies the context (`this`) for lifecycle functions like `completeFunction`, `preventedFunction`, etc. This is particularly useful when the event is defined in one object but the handling logic exists in another:
 
 ```javascript
 // A controller that processes events but delegates handling
@@ -1287,7 +1285,7 @@ const pubsub = _Pubsub();
 
 pubsub.defineDispatcher('save', {
     allowPublicPublish: true,
-    defaultFunction: 'handleSave',
+    completeFunction: 'handleSave',
     lifecycleHost: controller
 });
 
@@ -1314,10 +1312,10 @@ Various options control which stages of the event lifecycle can be controlled by
 // Fine-grained control example
 pubsub.defineDispatcher('criticalOperation', {
     allowPublicPublish: true,
-    defaultFunction: 'performOperation',
-    dispatchStoppable: true,         // Handlers can stop further handlers
-    distributionStoppable: false,    // Must distribute to all objects
-    eventStoppable: false,           // Cannot stop the event completely
+    completeFunction: 'performOperation',
+    dispatchStoppable: true, // Handlers can stop further handlers
+    distributionStoppable: false, // Must distribute to all objects
+    eventStoppable: false, // Cannot stop the event completely
     preventable: new Set([
         'before' // Only the 'before' stage can be prevented
     ])
@@ -1332,16 +1330,16 @@ All event processing in `isotropic-pubsub` is synchronous by default. Events are
 
 1. Before stage handlers
 2. On stage handlers
-3. Default function (internal event handling)
+3. Complete function (internal event handling)
 4. After stage handlers
 
-However, this doesn't prevent the default function or event handlers from performing asynchronous tasks. When an asynchronous task is started during event processing, the event flow continues synchronously:
+However, this doesn't prevent the complete function or event handlers from performing asynchronous tasks. When an asynchronous task is started during event processing, the event flow continues synchronously:
 
 ```javascript
-// Define a custom event with an asynchronous default function
+// Define a custom event with an asynchronous complete function
 pubsub.defineDispatcher('saveData', {
     allowPublicPublish: true,
-    defaultFunction: async event => {
+    completeFunction: async event => {
         // Start an asynchronous operation
         try {
             await saveToDatabase(event.data);
@@ -1463,13 +1461,13 @@ parent.publish('someEvent', {
 // 4. grandchild2a (child2's distributor)
 ```
 
-Within each object, the event flows through its handlers in the standard stage order (before → on → default → after).
+Within each object, the event flows through its handlers in the standard stage order (before → on → complete → after).
 
 ### Distribution Order Details
 
 The exact order of event processing across distributors follows these rules:
 
-1. For each stage (before, on, default, after):
+1. For each stage (before, on, complete, after):
    - First, all handlers for that stage on the publisher execute
    - Then, all handlers for that stage on the first distributor execute
    - Then, all handlers for that stage on all of that distributor's distributors execute (recursively)
@@ -1541,8 +1539,8 @@ const customDispatcher = {
     newState () {
         return {
             // Custom state properties
-            subscriptions: {},  // Required for storing subscriptions
-            customData: {}      // Any additional data you need
+            subscriptions: {}, // Required for storing subscriptions
+            customData: {} // Any additional data you need
         };
     },
     // Handle event publishing
@@ -1610,7 +1608,7 @@ const throttledDispatcher = {
             lastFired: 0,
             pendingSubscriptions: [],
             subscriptions: {},
-            throttleDuration: 100  // Minimum milliseconds between events
+            throttleDuration: 100 // Minimum milliseconds between events
         };
     },
     publish (config) {
