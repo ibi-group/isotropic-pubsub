@@ -3,7 +3,7 @@ import _Event from './event.js';
 import _make from 'isotropic-make';
 import _Subscription from './subscription.js';
 
-const _Dispatcher = _make({
+export default _make({
     newState () {
         return Object.assign(Object.create(null), {
             subscriptions: Object.create(null)
@@ -326,9 +326,3 @@ const _Dispatcher = _make({
     _Event,
     _Subscription
 });
-
-export {
-    _Dispatcher as default,
-    _Event as Event,
-    _Subscription as Subscription
-};

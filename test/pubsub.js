@@ -1,7 +1,10 @@
-import _Pubsub, * as _pubsub from '../js/pubsub.js';
 import _chai from 'isotropic-dev-dependencies/lib/chai.js';
+import _defaultSymbol from '../js/default-symbol.js';
+import _Dispatcher from '../js/dispatcher.js';
 import _make from 'isotropic-make';
 import _mocha from 'isotropic-dev-dependencies/lib/mocha.js';
+import _Pubsub from '../js/pubsub.js';
+import _Subscription from '../js/subscription.js';
 
 _mocha.describe('pubsub', () => {
     _mocha.it('should construct pubsub objects', () => {
@@ -5277,7 +5280,7 @@ _mocha.describe('pubsub', () => {
                 customSymbol,
                 'on',
                 'about-to-happen',
-                _pubsub.defaultSymbol,
+                _defaultSymbol,
                 'it just happened!'
             ]
         });
@@ -5511,7 +5514,7 @@ _mocha.describe('pubsub', () => {
         const pubsub = _Pubsub(),
             subscriptionsExecuted = [];
 
-        pubsub.defineDispatcher('testEvent', _pubsub.Dispatcher({
+        pubsub.defineDispatcher('testEvent', _Dispatcher({
             allowPublicPublish: true,
             name: 'testEvent',
             publishOnce: true
@@ -5551,7 +5554,7 @@ _mocha.describe('pubsub', () => {
             },
             subscribe () {
                 methodsExecuted.push('subscribe');
-                return _pubsub.Subscription();
+                return _Subscription();
             }
         });
 
@@ -9009,7 +9012,7 @@ _mocha.describe('pubsub', () => {
                 _chai.expect(config).to.have.property('publicSubscription', true);
                 _chai.expect(config).to.have.property('stageName', 'on');
                 _chai.expect(config.state).to.be.an('object');
-                _chai.expect(dispatcher).to.be.an.instanceOf(_pubsub.Dispatcher);
+                _chai.expect(dispatcher).to.be.an.instanceOf(_Dispatcher);
                 calledSubscribedFunction = true;
             }
         });
@@ -9050,7 +9053,7 @@ _mocha.describe('pubsub', () => {
                     _chai.expect(config).to.have.property('publicSubscription', true);
                     _chai.expect(config).to.have.property('stageName', 'on');
                     _chai.expect(config.state).to.be.an('object');
-                    _chai.expect(dispatcher).to.be.an.instanceOf(_pubsub.Dispatcher);
+                    _chai.expect(dispatcher).to.be.an.instanceOf(_Dispatcher);
                     calledSubscribedFunction = true;
                 }
             }, {
@@ -9101,7 +9104,7 @@ _mocha.describe('pubsub', () => {
                     _chai.expect(config).to.have.property('publicSubscription', true);
                     _chai.expect(config).to.have.property('stageName', 'on');
                     _chai.expect(config.state).to.be.an('object');
-                    _chai.expect(dispatcher).to.be.an.instanceOf(_pubsub.Dispatcher);
+                    _chai.expect(dispatcher).to.be.an.instanceOf(_Dispatcher);
                     calledSubscribedFunction = true;
                 }
             },
@@ -9177,7 +9180,7 @@ _mocha.describe('pubsub', () => {
                 _chai.expect(config).to.have.property('publicSubscription', true);
                 _chai.expect(config).to.have.property('stageName', 'on');
                 _chai.expect(config).to.have.property('state').that.is.an('object');
-                _chai.expect(dispatcher).to.be.an.instanceOf(_pubsub.Dispatcher);
+                _chai.expect(dispatcher).to.be.an.instanceOf(_Dispatcher);
                 calledUnsubscribedFunction = true;
             }
         });
@@ -9227,7 +9230,7 @@ _mocha.describe('pubsub', () => {
                     _chai.expect(config).to.have.property('publicSubscription', true);
                     _chai.expect(config).to.have.property('stageName', 'on');
                     _chai.expect(config).to.have.property('state').that.is.an('object');
-                    _chai.expect(dispatcher).to.be.an.instanceOf(_pubsub.Dispatcher);
+                    _chai.expect(dispatcher).to.be.an.instanceOf(_Dispatcher);
                     calledUnsubscribedFunction = true;
                 }
             }, {
@@ -9287,7 +9290,7 @@ _mocha.describe('pubsub', () => {
                     _chai.expect(config).to.have.property('publicSubscription', true);
                     _chai.expect(config).to.have.property('stageName', 'on');
                     _chai.expect(config).to.have.property('state').that.is.an('object');
-                    _chai.expect(dispatcher).to.be.an.instanceOf(_pubsub.Dispatcher);
+                    _chai.expect(dispatcher).to.be.an.instanceOf(_Dispatcher);
                     calledUnsubscribedFunction = true;
                 }
             },
@@ -9361,7 +9364,7 @@ _mocha.describe('pubsub', () => {
                 _chai.expect(config).to.have.property('publicSubscription', true);
                 _chai.expect(config).to.have.property('stageName', 'on');
                 _chai.expect(config).to.have.property('state').that.is.an('object');
-                _chai.expect(dispatcher).to.be.an.instanceOf(_pubsub.Dispatcher);
+                _chai.expect(dispatcher).to.be.an.instanceOf(_Dispatcher);
                 calledUnsubscribedFunction = true;
                 return false;
             }
