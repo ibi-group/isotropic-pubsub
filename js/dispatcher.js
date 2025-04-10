@@ -1,9 +1,8 @@
-import _defaultSymbol from './default-symbol.js';
 import _Event from './event.js';
 import _make from 'isotropic-make';
 import _Subscription from './subscription.js';
 
-const _Dispatcher = _make({
+export default _make({
     newState () {
         return Object.assign(Object.create(null), {
             subscriptions: Object.create(null)
@@ -62,12 +61,12 @@ const _Dispatcher = _make({
             config.stageName = stageName;
 
             if (event.isPrevented(stageName)) {
-                this._callLifecycleFunction('preventedFunction', lifecycleHost, event);
+                this._callLifecycleFunction('preventFunction', lifecycleHost, event);
 
                 return true;
             }
 
-            if (stageName === _defaultSymbol) {
+            if (stageName === 'complete') {
                 if (this._config.completeOnce) {
                     if (state.event) {
                         return true;
@@ -81,7 +80,7 @@ const _Dispatcher = _make({
                 config.distributor = publisher;
                 config.unsubscribe = null;
 
-                this._callLifecycleFunction('defaultFunction', lifecycleHost, event);
+                this._callLifecycleFunction('completeFunction', lifecycleHost, event);
             } else {
                 for (const [
                     distributor,
@@ -99,14 +98,14 @@ const _Dispatcher = _make({
                         this._callCallbackFunction(subscription.callbackFunction, subscription.host, event);
 
                         if (event.dispatchStopped) {
-                            this._callLifecycleFunction('dispatchStoppedFunction', lifecycleHost, event);
+                            this._callLifecycleFunction('stopDispatchFunction', lifecycleHost, event);
 
                             break;
                         }
                     }
 
                     if (event.distributionStopped) {
-                        this._callLifecycleFunction('distributionStoppedFunction', lifecycleHost, event);
+                        this._callLifecycleFunction('stopDistributionFunction', lifecycleHost, event);
 
                         break;
                     }
@@ -114,7 +113,7 @@ const _Dispatcher = _make({
             }
 
             if (event.eventStopped) {
-                this._callLifecycleFunction('eventStoppedFunction', lifecycleHost, event);
+                this._callLifecycleFunction('stopEventFunction', lifecycleHost, event);
 
                 return true;
             }
@@ -134,12 +133,18 @@ const _Dispatcher = _make({
             config.lifecycleHost = this._config.lifecycleHost;
         }
 
-        return config.publicSubscription && !this._config.allowPublicSubscription ?
-            this._Subscription() :
-            this._callLifecycleFunction('subscribedFunction', config.lifecycleHost, {
+        if (!config.publicSubscription || this._config.allowPublicSubscription) {
+            const subscription = this._callLifecycleFunction('subscribeFunction', config.lifecycleHost, {
                 config,
                 dispatcher: this
-            }) || this._subscribe(config);
+            });
+
+            if (subscription !== false) {
+                return subscription || this._subscribe(config);
+            }
+        }
+
+        return this._Subscription();
     },
     _callCallbackFunction (callbackFunction, host = this, ...args) {
         switch (typeof callbackFunction) {
@@ -208,9 +213,7 @@ const _Dispatcher = _make({
             config.allowPublicSubscription = true;
         }
 
-        if (config.allowPublicUnsubscription !== false) {
-            config.allowPublicUnsubscription = true;
-        }
+        config.allowPublicUnsubscription = !!config.allowPublicUnsubscription;
 
         config.completeOnce = config.publishOnce ?
             false :
@@ -242,7 +245,7 @@ const _Dispatcher = _make({
             config.stages = [
                 'before',
                 'on',
-                _defaultSymbol,
+                'complete',
                 'after'
             ];
         }
@@ -303,7 +306,7 @@ const _Dispatcher = _make({
             subscription = subscriptions && subscriptions.get(config.subscriptionId);
 
         if (subscription) {
-            if (this._callLifecycleFunction('unsubscribedFunction', config.lifecycleHost, {
+            if (this._callLifecycleFunction('unsubscribeFunction', config.lifecycleHost, {
                 config,
                 dispatcher: this
             }) === false) {
@@ -326,9 +329,3 @@ const _Dispatcher = _make({
     _Event,
     _Subscription
 });
-
-export {
-    _Dispatcher as default,
-    _Event as Event,
-    _Subscription as Subscription
-};

@@ -1,7 +1,10 @@
-import _Pubsub, * as _pubsub from '../js/pubsub.js';
 import _chai from 'isotropic-dev-dependencies/lib/chai.js';
+import _Dispatcher from '../js/dispatcher.js';
+import _Event from '../js/event.js';
 import _make from 'isotropic-make';
 import _mocha from 'isotropic-dev-dependencies/lib/mocha.js';
+import _Pubsub from '../js/pubsub.js';
+import _Subscription from '../js/subscription.js';
 
 _mocha.describe('pubsub', () => {
     _mocha.it('should construct pubsub objects', () => {
@@ -587,7 +590,7 @@ _mocha.describe('pubsub', () => {
         _chai.expect(testSubscription.unsubscribe()).to.be.true;
     });
 
-    _mocha.it('should acknowledge an event is complete after the default stage', () => {
+    _mocha.it('should acknowledge an event is complete after the complete stage', () => {
         const pubsub = _Pubsub(),
             subscriptionsExecuted = [];
 
@@ -741,13 +744,13 @@ _mocha.describe('pubsub', () => {
         });
 
         pubsub.before('testEvent', event => {
-            event.preventDefault();
-            _chai.expect(event.defaultIsPrevented()).to.be.true;
+            event.prevent();
+            _chai.expect(event.isPrevented()).to.be.true;
             subscriptionsExecuted.push('before');
         });
 
         pubsub.on('testEvent', event => {
-            _chai.expect(event.defaultIsPrevented()).to.be.true;
+            _chai.expect(event.isPrevented()).to.be.true;
             subscriptionsExecuted.push('on');
         });
 
@@ -768,14 +771,14 @@ _mocha.describe('pubsub', () => {
         });
 
         pubsub.before('testEvent', event => {
-            event.preventDefault();
-            _chai.expect(event.defaultIsPrevented()).to.be.true;
+            event.prevent();
+            _chai.expect(event.isPrevented()).to.be.true;
             subscriptionsExecuted.push('before');
         });
 
         pubsub.on('testEvent', event => {
-            event.preventDefault();
-            _chai.expect(event.defaultIsPrevented()).to.be.true;
+            event.prevent();
+            _chai.expect(event.isPrevented()).to.be.true;
             subscriptionsExecuted.push('on');
         });
 
@@ -1846,7 +1849,7 @@ _mocha.describe('pubsub', () => {
                 _pubsub: {
                     testEvent: {
                         allowPublicPublish: true,
-                        defaultFunction: 'a',
+                        completeFunction: 'a',
                         publishOnce: true
                     }
                 }
@@ -1861,7 +1864,7 @@ _mocha.describe('pubsub', () => {
                 _pubsub: {
                     testEvent: {
                         allowPublicPublish: true,
-                        defaultFunction: 'b',
+                        completeFunction: 'b',
                         publishOnce: true
                     }
                 }
@@ -4290,7 +4293,7 @@ _mocha.describe('pubsub', () => {
         });
 
         pubsub.onceBefore('testEvent', event => {
-            event.preventDefault();
+            event.prevent();
             subscriptionsExecuted.push('before');
         });
 
@@ -5175,13 +5178,13 @@ _mocha.describe('pubsub', () => {
         });
 
         pubsub.before('testEvent', event => {
-            event.preventDefault();
-            _chai.expect(event.defaultIsPrevented()).not.to.be.true;
+            event.prevent();
+            _chai.expect(event.isPrevented()).not.to.be.true;
             subscriptionsExecuted.push('before');
         });
 
         pubsub.on('testEvent', event => {
-            _chai.expect(event.defaultIsPrevented()).not.to.be.true;
+            _chai.expect(event.isPrevented()).not.to.be.true;
             subscriptionsExecuted.push('on');
         });
 
@@ -5277,7 +5280,7 @@ _mocha.describe('pubsub', () => {
                 customSymbol,
                 'on',
                 'about-to-happen',
-                _pubsub.defaultSymbol,
+                'complete',
                 'it just happened!'
             ]
         });
@@ -5511,7 +5514,7 @@ _mocha.describe('pubsub', () => {
         const pubsub = _Pubsub(),
             subscriptionsExecuted = [];
 
-        pubsub.defineDispatcher('testEvent', _pubsub.Dispatcher({
+        pubsub.defineDispatcher('testEvent', _Dispatcher({
             allowPublicPublish: true,
             name: 'testEvent',
             publishOnce: true
@@ -5551,7 +5554,7 @@ _mocha.describe('pubsub', () => {
             },
             subscribe () {
                 methodsExecuted.push('subscribe');
-                return _pubsub.Subscription();
+                return _Subscription();
             }
         });
 
@@ -5994,7 +5997,7 @@ _mocha.describe('pubsub', () => {
             }, {
                 _pubsub: {
                     destroyComplete: {
-                        defaultFunction: '_differentDestroyComplete',
+                        completeFunction: '_differentDestroyComplete',
                         publishOnce: true
                     },
                     testEventX: {
@@ -6715,35 +6718,35 @@ _mocha.describe('pubsub', () => {
         pubsub.publish('testEvent');
     });
 
-    _mocha.it('should execute the default lifecycle function during the default stage', () => {
+    _mocha.it('should execute the complete lifecycle function during the complete stage', () => {
         const executedSubscribers = [],
             pubsub = _Pubsub();
 
-        let calledDefaultFunction,
+        let calledCompleteFunction,
             eventObject;
 
         pubsub.defineDispatcher('testEvent', {
             allowPublicPublish: true,
-            defaultFunction (event) {
+            completeFunction (event) {
                 _chai.expect(event).to.equal(eventObject);
-                calledDefaultFunction = true;
+                calledCompleteFunction = true;
             }
         });
 
         pubsub.after('testEvent', event => {
-            _chai.expect(calledDefaultFunction).to.be.true;
+            _chai.expect(calledCompleteFunction).to.be.true;
             _chai.expect(event).to.equal(eventObject);
             executedSubscribers.push('after');
         });
 
         pubsub.before('testEvent', event => {
-            _chai.expect(calledDefaultFunction).to.be.undefined;
+            _chai.expect(calledCompleteFunction).to.be.undefined;
             eventObject = event;
             executedSubscribers.push('before');
         });
 
         pubsub.on('testEvent', event => {
-            _chai.expect(calledDefaultFunction).to.be.undefined;
+            _chai.expect(calledCompleteFunction).to.be.undefined;
             _chai.expect(event).to.equal(eventObject);
             executedSubscribers.push('on');
         });
@@ -6757,20 +6760,20 @@ _mocha.describe('pubsub', () => {
         ]);
     });
 
-    _mocha.it('should allow a method name as a late bound default lifecycle function', () => {
-        let calledDefaultFunction,
+    _mocha.it('should allow a method name as a late bound complete lifecycle function', () => {
+        let calledCompleteFunction,
             eventObject;
 
         const CustomPubsub = _make(_Pubsub, {
                 _eventTestEvent (event) {
                     _chai.expect(event).to.equal(eventObject);
-                    calledDefaultFunction = true;
+                    calledCompleteFunction = true;
                 }
             }, {
                 _pubsub: {
                     testEvent: {
                         allowPublicPublish: true,
-                        defaultFunction: '_eventTestEvent'
+                        completeFunction: '_eventTestEvent'
                     }
                 }
             }),
@@ -6778,19 +6781,19 @@ _mocha.describe('pubsub', () => {
             executedSubscribers = [];
 
         customPubsub.after('testEvent', event => {
-            _chai.expect(calledDefaultFunction).to.be.true;
+            _chai.expect(calledCompleteFunction).to.be.true;
             _chai.expect(event).to.equal(eventObject);
             executedSubscribers.push('after');
         });
 
         customPubsub.before('testEvent', event => {
-            _chai.expect(calledDefaultFunction).to.be.undefined;
+            _chai.expect(calledCompleteFunction).to.be.undefined;
             eventObject = event;
             executedSubscribers.push('before');
         });
 
         customPubsub.on('testEvent', event => {
-            _chai.expect(calledDefaultFunction).to.be.undefined;
+            _chai.expect(calledCompleteFunction).to.be.undefined;
             _chai.expect(event).to.equal(eventObject);
             executedSubscribers.push('on');
         });
@@ -6804,21 +6807,21 @@ _mocha.describe('pubsub', () => {
         ]);
     });
 
-    _mocha.it('should allow a method name as a late bound default lifecycle function with a custom lifecycle host', () => {
-        let calledDefaultFunction,
+    _mocha.it('should allow a method name as a late bound complete lifecycle function with a custom lifecycle host', () => {
+        let calledCompleteFunction,
             eventObject;
 
         const customLifecycleHost = {
                 _eventTestEvent (event) {
                     _chai.expect(event).to.equal(eventObject);
-                    calledDefaultFunction = true;
+                    calledCompleteFunction = true;
                 }
             },
             CustomPubsub = _make(_Pubsub, {}, {
                 _pubsub: {
                     testEvent: {
                         allowPublicPublish: true,
-                        defaultFunction: '_eventTestEvent',
+                        completeFunction: '_eventTestEvent',
                         lifecycleHost: customLifecycleHost
                     }
                 }
@@ -6827,19 +6830,19 @@ _mocha.describe('pubsub', () => {
             executedSubscribers = [];
 
         customPubsub.after('testEvent', event => {
-            _chai.expect(calledDefaultFunction).to.be.true;
+            _chai.expect(calledCompleteFunction).to.be.true;
             _chai.expect(event).to.equal(eventObject);
             executedSubscribers.push('after');
         });
 
         customPubsub.before('testEvent', event => {
-            _chai.expect(calledDefaultFunction).to.be.undefined;
+            _chai.expect(calledCompleteFunction).to.be.undefined;
             eventObject = event;
             executedSubscribers.push('before');
         });
 
         customPubsub.on('testEvent', event => {
-            _chai.expect(calledDefaultFunction).to.be.undefined;
+            _chai.expect(calledCompleteFunction).to.be.undefined;
             _chai.expect(event).to.equal(eventObject);
             executedSubscribers.push('on');
         });
@@ -6853,7 +6856,7 @@ _mocha.describe('pubsub', () => {
         ]);
     });
 
-    _mocha.it('should execute the dispatch stopped lifecycle function when dispatch is stopped', () => {
+    _mocha.it('should execute the stop dispatch lifecycle function when dispatch is stopped', () => {
         const distributor0 = _Pubsub(),
             distributor0a = _Pubsub(),
             distributor0b = _Pubsub(),
@@ -6866,14 +6869,14 @@ _mocha.describe('pubsub', () => {
             publisher = _Pubsub(),
             subscriptionsExecuted = [];
 
-        let calledDispatchStoppedFunction,
+        let calledStopDispatchFunction,
             eventObject;
 
         publisher.defineDispatcher('testEvent', {
             allowPublicPublish: true,
-            dispatchStoppedFunction (event) {
+            stopDispatchFunction (event) {
                 _chai.expect(event).to.equal(eventObject);
-                calledDispatchStoppedFunction = true;
+                calledStopDispatchFunction = true;
             }
         });
 
@@ -6933,7 +6936,7 @@ _mocha.describe('pubsub', () => {
                 _chai.expect(event).to.equal(eventObject);
                 _chai.expect(event).to.have.property('distributor', pubsub);
                 _chai.expect(event).to.have.property('publisher', publisher);
-                _chai.expect(calledDispatchStoppedFunction).to.be.true;
+                _chai.expect(calledStopDispatchFunction).to.be.true;
                 subscriptionsExecuted.push(`${name} after 0`);
             });
 
@@ -6941,7 +6944,7 @@ _mocha.describe('pubsub', () => {
                 _chai.expect(event).to.equal(eventObject);
                 _chai.expect(event).to.have.property('distributor', pubsub);
                 _chai.expect(event).to.have.property('publisher', publisher);
-                _chai.expect(calledDispatchStoppedFunction).to.be.true;
+                _chai.expect(calledStopDispatchFunction).to.be.true;
                 subscriptionsExecuted.push(`${name} after 1`);
             });
 
@@ -6949,7 +6952,7 @@ _mocha.describe('pubsub', () => {
                 _chai.expect(event).to.equal(eventObject);
                 _chai.expect(event).to.have.property('distributor', pubsub);
                 _chai.expect(event).to.have.property('publisher', publisher);
-                _chai.expect(calledDispatchStoppedFunction).to.be.true;
+                _chai.expect(calledStopDispatchFunction).to.be.true;
                 subscriptionsExecuted.push(`${name} after 2`);
             });
 
@@ -6966,9 +6969,9 @@ _mocha.describe('pubsub', () => {
                 _chai.expect(event.dispatchStopped).to.be.true;
 
                 if (pubsub === publisher) {
-                    _chai.expect(calledDispatchStoppedFunction).to.be.undefined;
+                    _chai.expect(calledStopDispatchFunction).to.be.undefined;
                 } else {
-                    _chai.expect(calledDispatchStoppedFunction).to.be.true;
+                    _chai.expect(calledStopDispatchFunction).to.be.true;
                 }
 
                 subscriptionsExecuted.push(`${name} before 0`);
@@ -6978,7 +6981,7 @@ _mocha.describe('pubsub', () => {
                 _chai.expect(event).to.equal(eventObject);
                 _chai.expect(event).to.have.property('distributor', pubsub);
                 _chai.expect(event).to.have.property('publisher', publisher);
-                _chai.expect(calledDispatchStoppedFunction).to.be.true;
+                _chai.expect(calledStopDispatchFunction).to.be.true;
                 subscriptionsExecuted.push(`${name} before 1`);
             });
 
@@ -6986,7 +6989,7 @@ _mocha.describe('pubsub', () => {
                 _chai.expect(event).to.equal(eventObject);
                 _chai.expect(event).to.have.property('distributor', pubsub);
                 _chai.expect(event).to.have.property('publisher', publisher);
-                _chai.expect(calledDispatchStoppedFunction).to.be.true;
+                _chai.expect(calledStopDispatchFunction).to.be.true;
                 subscriptionsExecuted.push(`${name} before 2`);
             });
 
@@ -6994,7 +6997,7 @@ _mocha.describe('pubsub', () => {
                 _chai.expect(event).to.equal(eventObject);
                 _chai.expect(event).to.have.property('distributor', pubsub);
                 _chai.expect(event).to.have.property('publisher', publisher);
-                _chai.expect(calledDispatchStoppedFunction).to.be.true;
+                _chai.expect(calledStopDispatchFunction).to.be.true;
                 subscriptionsExecuted.push(`${name} on 0`);
             });
 
@@ -7002,7 +7005,7 @@ _mocha.describe('pubsub', () => {
                 _chai.expect(event).to.equal(eventObject);
                 _chai.expect(event).to.have.property('distributor', pubsub);
                 _chai.expect(event).to.have.property('publisher', publisher);
-                _chai.expect(calledDispatchStoppedFunction).to.be.true;
+                _chai.expect(calledStopDispatchFunction).to.be.true;
                 subscriptionsExecuted.push(`${name} on 1`);
             });
 
@@ -7010,7 +7013,7 @@ _mocha.describe('pubsub', () => {
                 _chai.expect(event).to.equal(eventObject);
                 _chai.expect(event).to.have.property('distributor', pubsub);
                 _chai.expect(event).to.have.property('publisher', publisher);
-                _chai.expect(calledDispatchStoppedFunction).to.be.true;
+                _chai.expect(calledStopDispatchFunction).to.be.true;
                 subscriptionsExecuted.push(`${name} on 2`);
             });
         });
@@ -7091,20 +7094,20 @@ _mocha.describe('pubsub', () => {
         ]);
     });
 
-    _mocha.it('should allow a method name as a late bound dispatch stopped lifecycle function', () => {
-        let calledDispatchStoppedFunction,
+    _mocha.it('should allow a method name as a late bound stop dispatch lifecycle function', () => {
+        let calledStopDispatchFunction,
             eventObject;
 
         const CustomPubsub = _make(_Pubsub, {
-                _dispatchStoppedTestEvent (event) {
+                _stopDispatchTestEvent (event) {
                     _chai.expect(event).to.equal(eventObject);
-                    calledDispatchStoppedFunction = true;
+                    calledStopDispatchFunction = true;
                 }
             }, {
                 _pubsub: {
                     testEvent: {
                         allowPublicPublish: true,
-                        dispatchStoppedFunction: '_dispatchStoppedTestEvent'
+                        stopDispatchFunction: '_stopDispatchTestEvent'
                     }
                 }
             }),
@@ -7176,7 +7179,7 @@ _mocha.describe('pubsub', () => {
                 _chai.expect(event).to.equal(eventObject);
                 _chai.expect(event).to.have.property('distributor', pubsub);
                 _chai.expect(event).to.have.property('publisher', publisher);
-                _chai.expect(calledDispatchStoppedFunction).to.be.true;
+                _chai.expect(calledStopDispatchFunction).to.be.true;
                 subscriptionsExecuted.push(`${name} after 0`);
             });
 
@@ -7184,7 +7187,7 @@ _mocha.describe('pubsub', () => {
                 _chai.expect(event).to.equal(eventObject);
                 _chai.expect(event).to.have.property('distributor', pubsub);
                 _chai.expect(event).to.have.property('publisher', publisher);
-                _chai.expect(calledDispatchStoppedFunction).to.be.true;
+                _chai.expect(calledStopDispatchFunction).to.be.true;
                 subscriptionsExecuted.push(`${name} after 1`);
             });
 
@@ -7192,7 +7195,7 @@ _mocha.describe('pubsub', () => {
                 _chai.expect(event).to.equal(eventObject);
                 _chai.expect(event).to.have.property('distributor', pubsub);
                 _chai.expect(event).to.have.property('publisher', publisher);
-                _chai.expect(calledDispatchStoppedFunction).to.be.true;
+                _chai.expect(calledStopDispatchFunction).to.be.true;
                 subscriptionsExecuted.push(`${name} after 2`);
             });
 
@@ -7209,9 +7212,9 @@ _mocha.describe('pubsub', () => {
                 _chai.expect(event.dispatchStopped).to.be.true;
 
                 if (pubsub === publisher) {
-                    _chai.expect(calledDispatchStoppedFunction).to.be.undefined;
+                    _chai.expect(calledStopDispatchFunction).to.be.undefined;
                 } else {
-                    _chai.expect(calledDispatchStoppedFunction).to.be.true;
+                    _chai.expect(calledStopDispatchFunction).to.be.true;
                 }
 
                 subscriptionsExecuted.push(`${name} before 0`);
@@ -7221,7 +7224,7 @@ _mocha.describe('pubsub', () => {
                 _chai.expect(event).to.equal(eventObject);
                 _chai.expect(event).to.have.property('distributor', pubsub);
                 _chai.expect(event).to.have.property('publisher', publisher);
-                _chai.expect(calledDispatchStoppedFunction).to.be.true;
+                _chai.expect(calledStopDispatchFunction).to.be.true;
                 subscriptionsExecuted.push(`${name} before 1`);
             });
 
@@ -7229,7 +7232,7 @@ _mocha.describe('pubsub', () => {
                 _chai.expect(event).to.equal(eventObject);
                 _chai.expect(event).to.have.property('distributor', pubsub);
                 _chai.expect(event).to.have.property('publisher', publisher);
-                _chai.expect(calledDispatchStoppedFunction).to.be.true;
+                _chai.expect(calledStopDispatchFunction).to.be.true;
                 subscriptionsExecuted.push(`${name} before 2`);
             });
 
@@ -7237,7 +7240,7 @@ _mocha.describe('pubsub', () => {
                 _chai.expect(event).to.equal(eventObject);
                 _chai.expect(event).to.have.property('distributor', pubsub);
                 _chai.expect(event).to.have.property('publisher', publisher);
-                _chai.expect(calledDispatchStoppedFunction).to.be.true;
+                _chai.expect(calledStopDispatchFunction).to.be.true;
                 subscriptionsExecuted.push(`${name} on 0`);
             });
 
@@ -7245,7 +7248,7 @@ _mocha.describe('pubsub', () => {
                 _chai.expect(event).to.equal(eventObject);
                 _chai.expect(event).to.have.property('distributor', pubsub);
                 _chai.expect(event).to.have.property('publisher', publisher);
-                _chai.expect(calledDispatchStoppedFunction).to.be.true;
+                _chai.expect(calledStopDispatchFunction).to.be.true;
                 subscriptionsExecuted.push(`${name} on 1`);
             });
 
@@ -7253,7 +7256,7 @@ _mocha.describe('pubsub', () => {
                 _chai.expect(event).to.equal(eventObject);
                 _chai.expect(event).to.have.property('distributor', pubsub);
                 _chai.expect(event).to.have.property('publisher', publisher);
-                _chai.expect(calledDispatchStoppedFunction).to.be.true;
+                _chai.expect(calledStopDispatchFunction).to.be.true;
                 subscriptionsExecuted.push(`${name} on 2`);
             });
         });
@@ -7334,1620 +7337,14 @@ _mocha.describe('pubsub', () => {
         ]);
     });
 
-    _mocha.it('should allow a method name as a late bound dispatch stopped lifecycle function with a custom lifecycle host', () => {
-        let calledDispatchStoppedFunction,
+    _mocha.it('should allow a method name as a late bound stop dispatch lifecycle function with a custom lifecycle host', () => {
+        let calledStopDispatchFunction,
             eventObject;
 
         const customLifecycleHost = {
-                _dispatchStoppedTestEvent (event) {
+                _stopDispatchTestEvent (event) {
                     _chai.expect(event).to.equal(eventObject);
-                    calledDispatchStoppedFunction = true;
-                }
-            },
-            CustomPubsub = _make(_Pubsub, {}, {
-                _pubsub: {
-                    testEvent: {
-                        allowPublicPublish: true,
-                        dispatchStoppedFunction: '_dispatchStoppedTestEvent',
-                        lifecycleHost: customLifecycleHost
-                    }
-                }
-            }),
-            distributor0 = _Pubsub(),
-            distributor0a = _Pubsub(),
-            distributor0b = _Pubsub(),
-            distributor1 = _Pubsub(),
-            distributor1a = _Pubsub(),
-            distributor1b = _Pubsub(),
-            distributor2 = _Pubsub(),
-            distributor2a = _Pubsub(),
-            distributor2b = _Pubsub(),
-            publisher = CustomPubsub(),
-            subscriptionsExecuted = [];
-
-        publisher.addDistributor([
-            distributor0,
-            distributor1,
-            distributor2
-        ]);
-
-        distributor0.addDistributor(distributor0a).addDistributor(distributor0b);
-
-        distributor1.addDistributor([
-            distributor1a,
-            distributor1b
-        ]);
-
-        distributor2.addDistributor(new Set([
-            distributor2a,
-            distributor2b
-        ]));
-
-        [[
-            'distributor0',
-            distributor0
-        ], [
-            'distributor0a',
-            distributor0a
-        ], [
-            'distributor0b',
-            distributor0b
-        ], [
-            'distributor1',
-            distributor1
-        ], [
-            'distributor1a',
-            distributor1a
-        ], [
-            'distributor1b',
-            distributor1b
-        ], [
-            'distributor2',
-            distributor2
-        ], [
-            'distributor2a',
-            distributor2a
-        ], [
-            'distributor2b',
-            distributor2b
-        ], [
-            'publisher',
-            publisher
-        ]].forEach(([
-            name,
-            pubsub
-        ]) => {
-            pubsub.after('testEvent', event => {
-                _chai.expect(event).to.equal(eventObject);
-                _chai.expect(event).to.have.property('distributor', pubsub);
-                _chai.expect(event).to.have.property('publisher', publisher);
-                _chai.expect(calledDispatchStoppedFunction).to.be.true;
-                subscriptionsExecuted.push(`${name} after 0`);
-            });
-
-            pubsub.after('testEvent', event => {
-                _chai.expect(event).to.equal(eventObject);
-                _chai.expect(event).to.have.property('distributor', pubsub);
-                _chai.expect(event).to.have.property('publisher', publisher);
-                _chai.expect(calledDispatchStoppedFunction).to.be.true;
-                subscriptionsExecuted.push(`${name} after 1`);
-            });
-
-            pubsub.after('testEvent', event => {
-                _chai.expect(event).to.equal(eventObject);
-                _chai.expect(event).to.have.property('distributor', pubsub);
-                _chai.expect(event).to.have.property('publisher', publisher);
-                _chai.expect(calledDispatchStoppedFunction).to.be.true;
-                subscriptionsExecuted.push(`${name} after 2`);
-            });
-
-            pubsub.before('testEvent', event => {
-                if (eventObject) {
-                    _chai.expect(event).to.equal(eventObject);
-                } else {
-                    eventObject = event;
-                }
-
-                _chai.expect(event).to.have.property('distributor', pubsub);
-                _chai.expect(event).to.have.property('publisher', publisher);
-                event.stopDispatch();
-                _chai.expect(event.dispatchStopped).to.be.true;
-
-                if (pubsub === publisher) {
-                    _chai.expect(calledDispatchStoppedFunction).to.be.undefined;
-                } else {
-                    _chai.expect(calledDispatchStoppedFunction).to.be.true;
-                }
-
-                subscriptionsExecuted.push(`${name} before 0`);
-            });
-
-            pubsub.before('testEvent', event => {
-                _chai.expect(event).to.equal(eventObject);
-                _chai.expect(event).to.have.property('distributor', pubsub);
-                _chai.expect(event).to.have.property('publisher', publisher);
-                _chai.expect(calledDispatchStoppedFunction).to.be.true;
-                subscriptionsExecuted.push(`${name} before 1`);
-            });
-
-            pubsub.before('testEvent', event => {
-                _chai.expect(event).to.equal(eventObject);
-                _chai.expect(event).to.have.property('distributor', pubsub);
-                _chai.expect(event).to.have.property('publisher', publisher);
-                _chai.expect(calledDispatchStoppedFunction).to.be.true;
-                subscriptionsExecuted.push(`${name} before 2`);
-            });
-
-            pubsub.on('testEvent', event => {
-                _chai.expect(event).to.equal(eventObject);
-                _chai.expect(event).to.have.property('distributor', pubsub);
-                _chai.expect(event).to.have.property('publisher', publisher);
-                _chai.expect(calledDispatchStoppedFunction).to.be.true;
-                subscriptionsExecuted.push(`${name} on 0`);
-            });
-
-            pubsub.on('testEvent', event => {
-                _chai.expect(event).to.equal(eventObject);
-                _chai.expect(event).to.have.property('distributor', pubsub);
-                _chai.expect(event).to.have.property('publisher', publisher);
-                _chai.expect(calledDispatchStoppedFunction).to.be.true;
-                subscriptionsExecuted.push(`${name} on 1`);
-            });
-
-            pubsub.on('testEvent', event => {
-                _chai.expect(event).to.equal(eventObject);
-                _chai.expect(event).to.have.property('distributor', pubsub);
-                _chai.expect(event).to.have.property('publisher', publisher);
-                _chai.expect(calledDispatchStoppedFunction).to.be.true;
-                subscriptionsExecuted.push(`${name} on 2`);
-            });
-        });
-
-        publisher.publish('testEvent');
-
-        _chai.expect(subscriptionsExecuted).to.deep.equal([
-            'publisher before 0',
-            'distributor0 before 0',
-            'distributor1 before 0',
-            'distributor2 before 0',
-            'distributor0a before 0',
-            'distributor0b before 0',
-            'distributor1a before 0',
-            'distributor1b before 0',
-            'distributor2a before 0',
-            'distributor2b before 0',
-            'publisher on 0',
-            'publisher on 1',
-            'publisher on 2',
-            'distributor0 on 0',
-            'distributor0 on 1',
-            'distributor0 on 2',
-            'distributor1 on 0',
-            'distributor1 on 1',
-            'distributor1 on 2',
-            'distributor2 on 0',
-            'distributor2 on 1',
-            'distributor2 on 2',
-            'distributor0a on 0',
-            'distributor0a on 1',
-            'distributor0a on 2',
-            'distributor0b on 0',
-            'distributor0b on 1',
-            'distributor0b on 2',
-            'distributor1a on 0',
-            'distributor1a on 1',
-            'distributor1a on 2',
-            'distributor1b on 0',
-            'distributor1b on 1',
-            'distributor1b on 2',
-            'distributor2a on 0',
-            'distributor2a on 1',
-            'distributor2a on 2',
-            'distributor2b on 0',
-            'distributor2b on 1',
-            'distributor2b on 2',
-            'publisher after 0',
-            'publisher after 1',
-            'publisher after 2',
-            'distributor0 after 0',
-            'distributor0 after 1',
-            'distributor0 after 2',
-            'distributor1 after 0',
-            'distributor1 after 1',
-            'distributor1 after 2',
-            'distributor2 after 0',
-            'distributor2 after 1',
-            'distributor2 after 2',
-            'distributor0a after 0',
-            'distributor0a after 1',
-            'distributor0a after 2',
-            'distributor0b after 0',
-            'distributor0b after 1',
-            'distributor0b after 2',
-            'distributor1a after 0',
-            'distributor1a after 1',
-            'distributor1a after 2',
-            'distributor1b after 0',
-            'distributor1b after 1',
-            'distributor1b after 2',
-            'distributor2a after 0',
-            'distributor2a after 1',
-            'distributor2a after 2',
-            'distributor2b after 0',
-            'distributor2b after 1',
-            'distributor2b after 2'
-        ]);
-    });
-
-    _mocha.it('should execute the distribution stopped lifecycle function when distribution is stopped', () => {
-        const distributor0 = _Pubsub(),
-            distributor0a = _Pubsub(),
-            distributor0b = _Pubsub(),
-            distributor1 = _Pubsub(),
-            distributor1a = _Pubsub(),
-            distributor1b = _Pubsub(),
-            distributor2 = _Pubsub(),
-            distributor2a = _Pubsub(),
-            distributor2b = _Pubsub(),
-            publisher = _Pubsub(),
-            subscriptionsExecuted = [];
-
-        let calledDistributionStoppedFunction,
-            eventObject;
-
-        publisher.defineDispatcher('testEvent', {
-            allowPublicPublish: true,
-            distributionStoppedFunction (event) {
-                _chai.expect(event).to.equal(eventObject);
-                calledDistributionStoppedFunction = true;
-            }
-        });
-
-        publisher.addDistributor([
-            distributor0,
-            distributor1,
-            distributor2
-        ]);
-
-        distributor0.addDistributor(distributor0a).addDistributor(distributor0b);
-
-        distributor1.addDistributor([
-            distributor1a,
-            distributor1b
-        ]);
-
-        distributor2.addDistributor(new Set([
-            distributor2a,
-            distributor2b
-        ]));
-
-        [[
-            'distributor0',
-            distributor0
-        ], [
-            'distributor0a',
-            distributor0a
-        ], [
-            'distributor0b',
-            distributor0b
-        ], [
-            'distributor1',
-            distributor1
-        ], [
-            'distributor1a',
-            distributor1a
-        ], [
-            'distributor1b',
-            distributor1b
-        ], [
-            'distributor2',
-            distributor2
-        ], [
-            'distributor2a',
-            distributor2a
-        ], [
-            'distributor2b',
-            distributor2b
-        ], [
-            'publisher',
-            publisher
-        ]].forEach(([
-            name,
-            pubsub
-        ]) => {
-            pubsub.after('testEvent', event => {
-                _chai.expect(event).to.equal(eventObject);
-                _chai.expect(event).to.have.property('distributor', pubsub);
-                _chai.expect(event).to.have.property('publisher', publisher);
-                _chai.expect(calledDistributionStoppedFunction).to.be.true;
-                subscriptionsExecuted.push(`${name} after 0`);
-            });
-
-            pubsub.after('testEvent', event => {
-                _chai.expect(event).to.equal(eventObject);
-                _chai.expect(event).to.have.property('distributor', pubsub);
-                _chai.expect(event).to.have.property('publisher', publisher);
-                _chai.expect(calledDistributionStoppedFunction).to.be.true;
-                subscriptionsExecuted.push(`${name} after 1`);
-            });
-
-            pubsub.after('testEvent', event => {
-                _chai.expect(event).to.equal(eventObject);
-                _chai.expect(event).to.have.property('distributor', pubsub);
-                _chai.expect(event).to.have.property('publisher', publisher);
-                _chai.expect(calledDistributionStoppedFunction).to.be.true;
-                subscriptionsExecuted.push(`${name} after 2`);
-            });
-
-            pubsub.before('testEvent', event => {
-                if (eventObject) {
-                    _chai.expect(event).to.equal(eventObject);
-                } else {
-                    eventObject = event;
-                }
-
-                _chai.expect(event).to.have.property('distributor', pubsub);
-                _chai.expect(event).to.have.property('publisher', publisher);
-                event.stopDistribution();
-                _chai.expect(event.distributionStopped).to.be.true;
-                _chai.expect(calledDistributionStoppedFunction).to.be.undefined;
-                subscriptionsExecuted.push(`${name} before 0`);
-            });
-
-            pubsub.before('testEvent', event => {
-                _chai.expect(event).to.equal(eventObject);
-                _chai.expect(event).to.have.property('distributor', pubsub);
-                _chai.expect(event).to.have.property('publisher', publisher);
-                _chai.expect(calledDistributionStoppedFunction).to.be.undefined;
-                subscriptionsExecuted.push(`${name} before 1`);
-            });
-
-            pubsub.before('testEvent', event => {
-                _chai.expect(event).to.equal(eventObject);
-                _chai.expect(event).to.have.property('distributor', pubsub);
-                _chai.expect(event).to.have.property('publisher', publisher);
-                _chai.expect(calledDistributionStoppedFunction).to.be.undefined;
-                subscriptionsExecuted.push(`${name} before 2`);
-            });
-
-            pubsub.on('testEvent', event => {
-                _chai.expect(event).to.equal(eventObject);
-                _chai.expect(event).to.have.property('distributor', pubsub);
-                _chai.expect(event).to.have.property('publisher', publisher);
-                subscriptionsExecuted.push(`${name} on 0`);
-            });
-
-            pubsub.on('testEvent', event => {
-                _chai.expect(event).to.equal(eventObject);
-                _chai.expect(event).to.have.property('distributor', pubsub);
-                _chai.expect(event).to.have.property('publisher', publisher);
-                _chai.expect(calledDistributionStoppedFunction).to.be.true;
-                subscriptionsExecuted.push(`${name} on 1`);
-            });
-
-            pubsub.on('testEvent', event => {
-                _chai.expect(event).to.equal(eventObject);
-                _chai.expect(event).to.have.property('distributor', pubsub);
-                _chai.expect(event).to.have.property('publisher', publisher);
-                _chai.expect(calledDistributionStoppedFunction).to.be.true;
-                subscriptionsExecuted.push(`${name} on 2`);
-            });
-        });
-
-        publisher.publish('testEvent');
-
-        _chai.expect(subscriptionsExecuted).to.deep.equal([
-            'publisher before 0',
-            'publisher before 1',
-            'publisher before 2',
-            'publisher on 0',
-            'publisher on 1',
-            'publisher on 2',
-            'distributor0 on 0',
-            'distributor0 on 1',
-            'distributor0 on 2',
-            'distributor1 on 0',
-            'distributor1 on 1',
-            'distributor1 on 2',
-            'distributor2 on 0',
-            'distributor2 on 1',
-            'distributor2 on 2',
-            'distributor0a on 0',
-            'distributor0a on 1',
-            'distributor0a on 2',
-            'distributor0b on 0',
-            'distributor0b on 1',
-            'distributor0b on 2',
-            'distributor1a on 0',
-            'distributor1a on 1',
-            'distributor1a on 2',
-            'distributor1b on 0',
-            'distributor1b on 1',
-            'distributor1b on 2',
-            'distributor2a on 0',
-            'distributor2a on 1',
-            'distributor2a on 2',
-            'distributor2b on 0',
-            'distributor2b on 1',
-            'distributor2b on 2',
-            'publisher after 0',
-            'publisher after 1',
-            'publisher after 2',
-            'distributor0 after 0',
-            'distributor0 after 1',
-            'distributor0 after 2',
-            'distributor1 after 0',
-            'distributor1 after 1',
-            'distributor1 after 2',
-            'distributor2 after 0',
-            'distributor2 after 1',
-            'distributor2 after 2',
-            'distributor0a after 0',
-            'distributor0a after 1',
-            'distributor0a after 2',
-            'distributor0b after 0',
-            'distributor0b after 1',
-            'distributor0b after 2',
-            'distributor1a after 0',
-            'distributor1a after 1',
-            'distributor1a after 2',
-            'distributor1b after 0',
-            'distributor1b after 1',
-            'distributor1b after 2',
-            'distributor2a after 0',
-            'distributor2a after 1',
-            'distributor2a after 2',
-            'distributor2b after 0',
-            'distributor2b after 1',
-            'distributor2b after 2'
-        ]);
-    });
-
-    _mocha.it('should allow a method name as a late bound distribution stopped lifecycle function', () => {
-        let calledDistributionStoppedFunction,
-            eventObject;
-
-        const CustomPubsub = _make(_Pubsub, {
-                _distributionStoppedTestEvent (event) {
-                    _chai.expect(event).to.equal(eventObject);
-                    calledDistributionStoppedFunction = true;
-                }
-            }, {
-                _pubsub: {
-                    testEvent: {
-                        allowPublicPublish: true,
-                        distributionStoppedFunction: '_distributionStoppedTestEvent'
-                    }
-                }
-            }),
-            distributor0 = _Pubsub(),
-            distributor0a = _Pubsub(),
-            distributor0b = _Pubsub(),
-            distributor1 = _Pubsub(),
-            distributor1a = _Pubsub(),
-            distributor1b = _Pubsub(),
-            distributor2 = _Pubsub(),
-            distributor2a = _Pubsub(),
-            distributor2b = _Pubsub(),
-            publisher = CustomPubsub(),
-            subscriptionsExecuted = [];
-
-        publisher.addDistributor([
-            distributor0,
-            distributor1,
-            distributor2
-        ]);
-
-        distributor0.addDistributor(distributor0a).addDistributor(distributor0b);
-
-        distributor1.addDistributor([
-            distributor1a,
-            distributor1b
-        ]);
-
-        distributor2.addDistributor(new Set([
-            distributor2a,
-            distributor2b
-        ]));
-
-        [[
-            'distributor0',
-            distributor0
-        ], [
-            'distributor0a',
-            distributor0a
-        ], [
-            'distributor0b',
-            distributor0b
-        ], [
-            'distributor1',
-            distributor1
-        ], [
-            'distributor1a',
-            distributor1a
-        ], [
-            'distributor1b',
-            distributor1b
-        ], [
-            'distributor2',
-            distributor2
-        ], [
-            'distributor2a',
-            distributor2a
-        ], [
-            'distributor2b',
-            distributor2b
-        ], [
-            'publisher',
-            publisher
-        ]].forEach(([
-            name,
-            pubsub
-        ]) => {
-            pubsub.after('testEvent', event => {
-                _chai.expect(event).to.equal(eventObject);
-                _chai.expect(event).to.have.property('distributor', pubsub);
-                _chai.expect(event).to.have.property('publisher', publisher);
-                _chai.expect(calledDistributionStoppedFunction).to.be.true;
-                subscriptionsExecuted.push(`${name} after 0`);
-            });
-
-            pubsub.after('testEvent', event => {
-                _chai.expect(event).to.equal(eventObject);
-                _chai.expect(event).to.have.property('distributor', pubsub);
-                _chai.expect(event).to.have.property('publisher', publisher);
-                _chai.expect(calledDistributionStoppedFunction).to.be.true;
-                subscriptionsExecuted.push(`${name} after 1`);
-            });
-
-            pubsub.after('testEvent', event => {
-                _chai.expect(event).to.equal(eventObject);
-                _chai.expect(event).to.have.property('distributor', pubsub);
-                _chai.expect(event).to.have.property('publisher', publisher);
-                _chai.expect(calledDistributionStoppedFunction).to.be.true;
-                subscriptionsExecuted.push(`${name} after 2`);
-            });
-
-            pubsub.before('testEvent', event => {
-                if (eventObject) {
-                    _chai.expect(event).to.equal(eventObject);
-                } else {
-                    eventObject = event;
-                }
-
-                _chai.expect(event).to.have.property('distributor', pubsub);
-                _chai.expect(event).to.have.property('publisher', publisher);
-                event.stopDistribution();
-                _chai.expect(event.distributionStopped).to.be.true;
-                _chai.expect(calledDistributionStoppedFunction).to.be.undefined;
-                subscriptionsExecuted.push(`${name} before 0`);
-            });
-
-            pubsub.before('testEvent', event => {
-                _chai.expect(event).to.equal(eventObject);
-                _chai.expect(event).to.have.property('distributor', pubsub);
-                _chai.expect(event).to.have.property('publisher', publisher);
-                _chai.expect(calledDistributionStoppedFunction).to.be.undefined;
-                subscriptionsExecuted.push(`${name} before 1`);
-            });
-
-            pubsub.before('testEvent', event => {
-                _chai.expect(event).to.equal(eventObject);
-                _chai.expect(event).to.have.property('distributor', pubsub);
-                _chai.expect(event).to.have.property('publisher', publisher);
-                _chai.expect(calledDistributionStoppedFunction).to.be.undefined;
-                subscriptionsExecuted.push(`${name} before 2`);
-            });
-
-            pubsub.on('testEvent', event => {
-                _chai.expect(event).to.equal(eventObject);
-                _chai.expect(event).to.have.property('distributor', pubsub);
-                _chai.expect(event).to.have.property('publisher', publisher);
-                subscriptionsExecuted.push(`${name} on 0`);
-            });
-
-            pubsub.on('testEvent', event => {
-                _chai.expect(event).to.equal(eventObject);
-                _chai.expect(event).to.have.property('distributor', pubsub);
-                _chai.expect(event).to.have.property('publisher', publisher);
-                _chai.expect(calledDistributionStoppedFunction).to.be.true;
-                subscriptionsExecuted.push(`${name} on 1`);
-            });
-
-            pubsub.on('testEvent', event => {
-                _chai.expect(event).to.equal(eventObject);
-                _chai.expect(event).to.have.property('distributor', pubsub);
-                _chai.expect(event).to.have.property('publisher', publisher);
-                _chai.expect(calledDistributionStoppedFunction).to.be.true;
-                subscriptionsExecuted.push(`${name} on 2`);
-            });
-        });
-
-        publisher.publish('testEvent');
-
-        _chai.expect(subscriptionsExecuted).to.deep.equal([
-            'publisher before 0',
-            'publisher before 1',
-            'publisher before 2',
-            'publisher on 0',
-            'publisher on 1',
-            'publisher on 2',
-            'distributor0 on 0',
-            'distributor0 on 1',
-            'distributor0 on 2',
-            'distributor1 on 0',
-            'distributor1 on 1',
-            'distributor1 on 2',
-            'distributor2 on 0',
-            'distributor2 on 1',
-            'distributor2 on 2',
-            'distributor0a on 0',
-            'distributor0a on 1',
-            'distributor0a on 2',
-            'distributor0b on 0',
-            'distributor0b on 1',
-            'distributor0b on 2',
-            'distributor1a on 0',
-            'distributor1a on 1',
-            'distributor1a on 2',
-            'distributor1b on 0',
-            'distributor1b on 1',
-            'distributor1b on 2',
-            'distributor2a on 0',
-            'distributor2a on 1',
-            'distributor2a on 2',
-            'distributor2b on 0',
-            'distributor2b on 1',
-            'distributor2b on 2',
-            'publisher after 0',
-            'publisher after 1',
-            'publisher after 2',
-            'distributor0 after 0',
-            'distributor0 after 1',
-            'distributor0 after 2',
-            'distributor1 after 0',
-            'distributor1 after 1',
-            'distributor1 after 2',
-            'distributor2 after 0',
-            'distributor2 after 1',
-            'distributor2 after 2',
-            'distributor0a after 0',
-            'distributor0a after 1',
-            'distributor0a after 2',
-            'distributor0b after 0',
-            'distributor0b after 1',
-            'distributor0b after 2',
-            'distributor1a after 0',
-            'distributor1a after 1',
-            'distributor1a after 2',
-            'distributor1b after 0',
-            'distributor1b after 1',
-            'distributor1b after 2',
-            'distributor2a after 0',
-            'distributor2a after 1',
-            'distributor2a after 2',
-            'distributor2b after 0',
-            'distributor2b after 1',
-            'distributor2b after 2'
-        ]);
-    });
-
-    _mocha.it('should allow a method name as a late bound distribution stopped lifecycle function with a custom lifecycle host', () => {
-        let calledDistributionStoppedFunction,
-            eventObject;
-
-        const customLifecycleHost = {
-                _distributionStoppedTestEvent (event) {
-                    _chai.expect(event).to.equal(eventObject);
-                    calledDistributionStoppedFunction = true;
-                }
-            },
-            CustomPubsub = _make(_Pubsub, {}, {
-                _pubsub: {
-                    testEvent: {
-                        allowPublicPublish: true,
-                        distributionStoppedFunction: '_distributionStoppedTestEvent',
-                        lifecycleHost: customLifecycleHost
-                    }
-                }
-            }),
-            distributor0 = _Pubsub(),
-            distributor0a = _Pubsub(),
-            distributor0b = _Pubsub(),
-            distributor1 = _Pubsub(),
-            distributor1a = _Pubsub(),
-            distributor1b = _Pubsub(),
-            distributor2 = _Pubsub(),
-            distributor2a = _Pubsub(),
-            distributor2b = _Pubsub(),
-            publisher = CustomPubsub(),
-            subscriptionsExecuted = [];
-
-        publisher.addDistributor([
-            distributor0,
-            distributor1,
-            distributor2
-        ]);
-
-        distributor0.addDistributor(distributor0a).addDistributor(distributor0b);
-
-        distributor1.addDistributor([
-            distributor1a,
-            distributor1b
-        ]);
-
-        distributor2.addDistributor(new Set([
-            distributor2a,
-            distributor2b
-        ]));
-
-        [[
-            'distributor0',
-            distributor0
-        ], [
-            'distributor0a',
-            distributor0a
-        ], [
-            'distributor0b',
-            distributor0b
-        ], [
-            'distributor1',
-            distributor1
-        ], [
-            'distributor1a',
-            distributor1a
-        ], [
-            'distributor1b',
-            distributor1b
-        ], [
-            'distributor2',
-            distributor2
-        ], [
-            'distributor2a',
-            distributor2a
-        ], [
-            'distributor2b',
-            distributor2b
-        ], [
-            'publisher',
-            publisher
-        ]].forEach(([
-            name,
-            pubsub
-        ]) => {
-            pubsub.after('testEvent', event => {
-                _chai.expect(event).to.equal(eventObject);
-                _chai.expect(event).to.have.property('distributor', pubsub);
-                _chai.expect(event).to.have.property('publisher', publisher);
-                _chai.expect(calledDistributionStoppedFunction).to.be.true;
-                subscriptionsExecuted.push(`${name} after 0`);
-            });
-
-            pubsub.after('testEvent', event => {
-                _chai.expect(event).to.equal(eventObject);
-                _chai.expect(event).to.have.property('distributor', pubsub);
-                _chai.expect(event).to.have.property('publisher', publisher);
-                _chai.expect(calledDistributionStoppedFunction).to.be.true;
-                subscriptionsExecuted.push(`${name} after 1`);
-            });
-
-            pubsub.after('testEvent', event => {
-                _chai.expect(event).to.equal(eventObject);
-                _chai.expect(event).to.have.property('distributor', pubsub);
-                _chai.expect(event).to.have.property('publisher', publisher);
-                _chai.expect(calledDistributionStoppedFunction).to.be.true;
-                subscriptionsExecuted.push(`${name} after 2`);
-            });
-
-            pubsub.before('testEvent', event => {
-                if (eventObject) {
-                    _chai.expect(event).to.equal(eventObject);
-                } else {
-                    eventObject = event;
-                }
-
-                _chai.expect(event).to.have.property('distributor', pubsub);
-                _chai.expect(event).to.have.property('publisher', publisher);
-                event.stopDistribution();
-                _chai.expect(event.distributionStopped).to.be.true;
-                _chai.expect(calledDistributionStoppedFunction).to.be.undefined;
-                subscriptionsExecuted.push(`${name} before 0`);
-            });
-
-            pubsub.before('testEvent', event => {
-                _chai.expect(event).to.equal(eventObject);
-                _chai.expect(event).to.have.property('distributor', pubsub);
-                _chai.expect(event).to.have.property('publisher', publisher);
-                _chai.expect(calledDistributionStoppedFunction).to.be.undefined;
-                subscriptionsExecuted.push(`${name} before 1`);
-            });
-
-            pubsub.before('testEvent', event => {
-                _chai.expect(event).to.equal(eventObject);
-                _chai.expect(event).to.have.property('distributor', pubsub);
-                _chai.expect(event).to.have.property('publisher', publisher);
-                _chai.expect(calledDistributionStoppedFunction).to.be.undefined;
-                subscriptionsExecuted.push(`${name} before 2`);
-            });
-
-            pubsub.on('testEvent', event => {
-                _chai.expect(event).to.equal(eventObject);
-                _chai.expect(event).to.have.property('distributor', pubsub);
-                _chai.expect(event).to.have.property('publisher', publisher);
-                subscriptionsExecuted.push(`${name} on 0`);
-            });
-
-            pubsub.on('testEvent', event => {
-                _chai.expect(event).to.equal(eventObject);
-                _chai.expect(event).to.have.property('distributor', pubsub);
-                _chai.expect(event).to.have.property('publisher', publisher);
-                _chai.expect(calledDistributionStoppedFunction).to.be.true;
-                subscriptionsExecuted.push(`${name} on 1`);
-            });
-
-            pubsub.on('testEvent', event => {
-                _chai.expect(event).to.equal(eventObject);
-                _chai.expect(event).to.have.property('distributor', pubsub);
-                _chai.expect(event).to.have.property('publisher', publisher);
-                _chai.expect(calledDistributionStoppedFunction).to.be.true;
-                subscriptionsExecuted.push(`${name} on 2`);
-            });
-        });
-
-        publisher.publish('testEvent');
-
-        _chai.expect(subscriptionsExecuted).to.deep.equal([
-            'publisher before 0',
-            'publisher before 1',
-            'publisher before 2',
-            'publisher on 0',
-            'publisher on 1',
-            'publisher on 2',
-            'distributor0 on 0',
-            'distributor0 on 1',
-            'distributor0 on 2',
-            'distributor1 on 0',
-            'distributor1 on 1',
-            'distributor1 on 2',
-            'distributor2 on 0',
-            'distributor2 on 1',
-            'distributor2 on 2',
-            'distributor0a on 0',
-            'distributor0a on 1',
-            'distributor0a on 2',
-            'distributor0b on 0',
-            'distributor0b on 1',
-            'distributor0b on 2',
-            'distributor1a on 0',
-            'distributor1a on 1',
-            'distributor1a on 2',
-            'distributor1b on 0',
-            'distributor1b on 1',
-            'distributor1b on 2',
-            'distributor2a on 0',
-            'distributor2a on 1',
-            'distributor2a on 2',
-            'distributor2b on 0',
-            'distributor2b on 1',
-            'distributor2b on 2',
-            'publisher after 0',
-            'publisher after 1',
-            'publisher after 2',
-            'distributor0 after 0',
-            'distributor0 after 1',
-            'distributor0 after 2',
-            'distributor1 after 0',
-            'distributor1 after 1',
-            'distributor1 after 2',
-            'distributor2 after 0',
-            'distributor2 after 1',
-            'distributor2 after 2',
-            'distributor0a after 0',
-            'distributor0a after 1',
-            'distributor0a after 2',
-            'distributor0b after 0',
-            'distributor0b after 1',
-            'distributor0b after 2',
-            'distributor1a after 0',
-            'distributor1a after 1',
-            'distributor1a after 2',
-            'distributor1b after 0',
-            'distributor1b after 1',
-            'distributor1b after 2',
-            'distributor2a after 0',
-            'distributor2a after 1',
-            'distributor2a after 2',
-            'distributor2b after 0',
-            'distributor2b after 1',
-            'distributor2b after 2'
-        ]);
-    });
-
-    _mocha.it('should execute the event stopped lifecycle function when the event is stopped', () => {
-        const distributor0 = _Pubsub(),
-            distributor0a = _Pubsub(),
-            distributor0b = _Pubsub(),
-            distributor1 = _Pubsub(),
-            distributor1a = _Pubsub(),
-            distributor1b = _Pubsub(),
-            distributor2 = _Pubsub(),
-            distributor2a = _Pubsub(),
-            distributor2b = _Pubsub(),
-            publisher = _Pubsub(),
-            subscriptionsExecuted = [];
-
-        let calledEventStoppedFunction,
-            eventObject;
-
-        publisher.defineDispatcher('testEvent', {
-            allowPublicPublish: true,
-            eventStoppedFunction (event) {
-                _chai.expect(event).to.equal(eventObject);
-                calledEventStoppedFunction = true;
-            }
-        });
-
-        publisher.addDistributor([
-            distributor0,
-            distributor1,
-            distributor2
-        ]);
-
-        distributor0.addDistributor(distributor0a).addDistributor(distributor0b);
-
-        distributor1.addDistributor([
-            distributor1a,
-            distributor1b
-        ]);
-
-        distributor2.addDistributor(new Set([
-            distributor2a,
-            distributor2b
-        ]));
-
-        [[
-            'distributor0',
-            distributor0
-        ], [
-            'distributor0a',
-            distributor0a
-        ], [
-            'distributor0b',
-            distributor0b
-        ], [
-            'distributor1',
-            distributor1
-        ], [
-            'distributor1a',
-            distributor1a
-        ], [
-            'distributor1b',
-            distributor1b
-        ], [
-            'distributor2',
-            distributor2
-        ], [
-            'distributor2a',
-            distributor2a
-        ], [
-            'distributor2b',
-            distributor2b
-        ], [
-            'publisher',
-            publisher
-        ]].forEach(([
-            name,
-            pubsub
-        ]) => {
-            pubsub.after('testEvent', event => {
-                _chai.expect(event).to.equal(eventObject);
-                _chai.expect(event).to.have.property('distributor', pubsub);
-                _chai.expect(event).to.have.property('publisher', publisher);
-                _chai.expect(calledEventStoppedFunction).to.be.true;
-                subscriptionsExecuted.push(`${name} after 0`);
-            });
-
-            pubsub.after('testEvent', event => {
-                _chai.expect(event).to.equal(eventObject);
-                _chai.expect(event).to.have.property('distributor', pubsub);
-                _chai.expect(event).to.have.property('publisher', publisher);
-                _chai.expect(calledEventStoppedFunction).to.be.true;
-                subscriptionsExecuted.push(`${name} after 1`);
-            });
-
-            pubsub.after('testEvent', event => {
-                _chai.expect(event).to.equal(eventObject);
-                _chai.expect(event).to.have.property('distributor', pubsub);
-                _chai.expect(event).to.have.property('publisher', publisher);
-                _chai.expect(calledEventStoppedFunction).to.be.true;
-                subscriptionsExecuted.push(`${name} after 2`);
-            });
-
-            pubsub.before('testEvent', event => {
-                if (eventObject) {
-                    _chai.expect(event).to.equal(eventObject);
-                } else {
-                    eventObject = event;
-                }
-
-                _chai.expect(event).to.have.property('distributor', pubsub);
-                _chai.expect(event).to.have.property('publisher', publisher);
-                event.stopEvent();
-                _chai.expect(event.eventStopped).to.be.true;
-                _chai.expect(calledEventStoppedFunction).to.be.undefined;
-                subscriptionsExecuted.push(`${name} before 0`);
-            });
-
-            pubsub.before('testEvent', event => {
-                _chai.expect(event).to.equal(eventObject);
-                _chai.expect(event).to.have.property('distributor', pubsub);
-                _chai.expect(event).to.have.property('publisher', publisher);
-                _chai.expect(calledEventStoppedFunction).to.be.undefined;
-                subscriptionsExecuted.push(`${name} before 1`);
-            });
-
-            pubsub.before('testEvent', event => {
-                _chai.expect(event).to.equal(eventObject);
-                _chai.expect(event).to.have.property('distributor', pubsub);
-                _chai.expect(event).to.have.property('publisher', publisher);
-                _chai.expect(calledEventStoppedFunction).to.be.undefined;
-                subscriptionsExecuted.push(`${name} before 2`);
-            });
-
-            pubsub.on('testEvent', event => {
-                _chai.expect(event).to.equal(eventObject);
-                _chai.expect(event).to.have.property('distributor', pubsub);
-                _chai.expect(event).to.have.property('publisher', publisher);
-                _chai.expect(calledEventStoppedFunction).to.be.true;
-                subscriptionsExecuted.push(`${name} on 0`);
-            });
-
-            pubsub.on('testEvent', event => {
-                _chai.expect(event).to.equal(eventObject);
-                _chai.expect(event).to.have.property('distributor', pubsub);
-                _chai.expect(event).to.have.property('publisher', publisher);
-                _chai.expect(calledEventStoppedFunction).to.be.true;
-                subscriptionsExecuted.push(`${name} on 1`);
-            });
-
-            pubsub.on('testEvent', event => {
-                _chai.expect(event).to.equal(eventObject);
-                _chai.expect(event).to.have.property('distributor', pubsub);
-                _chai.expect(event).to.have.property('publisher', publisher);
-                _chai.expect(calledEventStoppedFunction).to.be.true;
-                subscriptionsExecuted.push(`${name} on 2`);
-            });
-        });
-
-        publisher.publish('testEvent');
-
-        _chai.expect(subscriptionsExecuted).to.deep.equal([
-            'publisher before 0',
-            'publisher before 1',
-            'publisher before 2',
-            'distributor0 before 0',
-            'distributor0 before 1',
-            'distributor0 before 2',
-            'distributor1 before 0',
-            'distributor1 before 1',
-            'distributor1 before 2',
-            'distributor2 before 0',
-            'distributor2 before 1',
-            'distributor2 before 2',
-            'distributor0a before 0',
-            'distributor0a before 1',
-            'distributor0a before 2',
-            'distributor0b before 0',
-            'distributor0b before 1',
-            'distributor0b before 2',
-            'distributor1a before 0',
-            'distributor1a before 1',
-            'distributor1a before 2',
-            'distributor1b before 0',
-            'distributor1b before 1',
-            'distributor1b before 2',
-            'distributor2a before 0',
-            'distributor2a before 1',
-            'distributor2a before 2',
-            'distributor2b before 0',
-            'distributor2b before 1',
-            'distributor2b before 2'
-        ]);
-
-        _chai.expect(calledEventStoppedFunction).to.be.true;
-    });
-
-    _mocha.it('should allow a method name as a late bound stopped lifecycle function', () => {
-        let calledEventStoppedFunction,
-            eventObject;
-
-        const CustomPubsub = _make(_Pubsub, {
-                _eventStoppedTestEvent (event) {
-                    _chai.expect(event).to.equal(eventObject);
-                    calledEventStoppedFunction = true;
-                }
-            }, {
-                _pubsub: {
-                    testEvent: {
-                        allowPublicPublish: true,
-                        eventStoppedFunction: '_eventStoppedTestEvent'
-                    }
-                }
-            }),
-            distributor0 = _Pubsub(),
-            distributor0a = _Pubsub(),
-            distributor0b = _Pubsub(),
-            distributor1 = _Pubsub(),
-            distributor1a = _Pubsub(),
-            distributor1b = _Pubsub(),
-            distributor2 = _Pubsub(),
-            distributor2a = _Pubsub(),
-            distributor2b = _Pubsub(),
-            publisher = CustomPubsub(),
-            subscriptionsExecuted = [];
-
-        publisher.addDistributor([
-            distributor0,
-            distributor1,
-            distributor2
-        ]);
-
-        distributor0.addDistributor(distributor0a).addDistributor(distributor0b);
-
-        distributor1.addDistributor([
-            distributor1a,
-            distributor1b
-        ]);
-
-        distributor2.addDistributor(new Set([
-            distributor2a,
-            distributor2b
-        ]));
-
-        [[
-            'distributor0',
-            distributor0
-        ], [
-            'distributor0a',
-            distributor0a
-        ], [
-            'distributor0b',
-            distributor0b
-        ], [
-            'distributor1',
-            distributor1
-        ], [
-            'distributor1a',
-            distributor1a
-        ], [
-            'distributor1b',
-            distributor1b
-        ], [
-            'distributor2',
-            distributor2
-        ], [
-            'distributor2a',
-            distributor2a
-        ], [
-            'distributor2b',
-            distributor2b
-        ], [
-            'publisher',
-            publisher
-        ]].forEach(([
-            name,
-            pubsub
-        ]) => {
-            pubsub.after('testEvent', event => {
-                _chai.expect(event).to.equal(eventObject);
-                _chai.expect(event).to.have.property('distributor', pubsub);
-                _chai.expect(event).to.have.property('publisher', publisher);
-                _chai.expect(calledEventStoppedFunction).to.be.true;
-                subscriptionsExecuted.push(`${name} after 0`);
-            });
-
-            pubsub.after('testEvent', event => {
-                _chai.expect(event).to.equal(eventObject);
-                _chai.expect(event).to.have.property('distributor', pubsub);
-                _chai.expect(event).to.have.property('publisher', publisher);
-                _chai.expect(calledEventStoppedFunction).to.be.true;
-                subscriptionsExecuted.push(`${name} after 1`);
-            });
-
-            pubsub.after('testEvent', event => {
-                _chai.expect(event).to.equal(eventObject);
-                _chai.expect(event).to.have.property('distributor', pubsub);
-                _chai.expect(event).to.have.property('publisher', publisher);
-                _chai.expect(calledEventStoppedFunction).to.be.true;
-                subscriptionsExecuted.push(`${name} after 2`);
-            });
-
-            pubsub.before('testEvent', event => {
-                if (eventObject) {
-                    _chai.expect(event).to.equal(eventObject);
-                } else {
-                    eventObject = event;
-                }
-
-                _chai.expect(event).to.have.property('distributor', pubsub);
-                _chai.expect(event).to.have.property('publisher', publisher);
-                event.stopEvent();
-                _chai.expect(event.eventStopped).to.be.true;
-                _chai.expect(calledEventStoppedFunction).to.be.undefined;
-                subscriptionsExecuted.push(`${name} before 0`);
-            });
-
-            pubsub.before('testEvent', event => {
-                _chai.expect(event).to.equal(eventObject);
-                _chai.expect(event).to.have.property('distributor', pubsub);
-                _chai.expect(event).to.have.property('publisher', publisher);
-                _chai.expect(calledEventStoppedFunction).to.be.undefined;
-                subscriptionsExecuted.push(`${name} before 1`);
-            });
-
-            pubsub.before('testEvent', event => {
-                _chai.expect(event).to.equal(eventObject);
-                _chai.expect(event).to.have.property('distributor', pubsub);
-                _chai.expect(event).to.have.property('publisher', publisher);
-                _chai.expect(calledEventStoppedFunction).to.be.undefined;
-                subscriptionsExecuted.push(`${name} before 2`);
-            });
-
-            pubsub.on('testEvent', event => {
-                _chai.expect(event).to.equal(eventObject);
-                _chai.expect(event).to.have.property('distributor', pubsub);
-                _chai.expect(event).to.have.property('publisher', publisher);
-                _chai.expect(calledEventStoppedFunction).to.be.true;
-                subscriptionsExecuted.push(`${name} on 0`);
-            });
-
-            pubsub.on('testEvent', event => {
-                _chai.expect(event).to.equal(eventObject);
-                _chai.expect(event).to.have.property('distributor', pubsub);
-                _chai.expect(event).to.have.property('publisher', publisher);
-                _chai.expect(calledEventStoppedFunction).to.be.true;
-                subscriptionsExecuted.push(`${name} on 1`);
-            });
-
-            pubsub.on('testEvent', event => {
-                _chai.expect(event).to.equal(eventObject);
-                _chai.expect(event).to.have.property('distributor', pubsub);
-                _chai.expect(event).to.have.property('publisher', publisher);
-                _chai.expect(calledEventStoppedFunction).to.be.true;
-                subscriptionsExecuted.push(`${name} on 2`);
-            });
-        });
-
-        publisher.publish('testEvent');
-
-        _chai.expect(subscriptionsExecuted).to.deep.equal([
-            'publisher before 0',
-            'publisher before 1',
-            'publisher before 2',
-            'distributor0 before 0',
-            'distributor0 before 1',
-            'distributor0 before 2',
-            'distributor1 before 0',
-            'distributor1 before 1',
-            'distributor1 before 2',
-            'distributor2 before 0',
-            'distributor2 before 1',
-            'distributor2 before 2',
-            'distributor0a before 0',
-            'distributor0a before 1',
-            'distributor0a before 2',
-            'distributor0b before 0',
-            'distributor0b before 1',
-            'distributor0b before 2',
-            'distributor1a before 0',
-            'distributor1a before 1',
-            'distributor1a before 2',
-            'distributor1b before 0',
-            'distributor1b before 1',
-            'distributor1b before 2',
-            'distributor2a before 0',
-            'distributor2a before 1',
-            'distributor2a before 2',
-            'distributor2b before 0',
-            'distributor2b before 1',
-            'distributor2b before 2'
-        ]);
-
-        _chai.expect(calledEventStoppedFunction).to.be.true;
-    });
-
-    _mocha.it('should allow a method name as a late bound stopped lifecycle function with a custom lifecycle host', () => {
-        let calledEventStoppedFunction,
-            eventObject;
-
-        const customLifecycleHost = {
-                _eventStoppedTestEvent (event) {
-                    _chai.expect(event).to.equal(eventObject);
-                    calledEventStoppedFunction = true;
-                }
-            },
-            CustomPubsub = _make(_Pubsub, {}, {
-                _pubsub: {
-                    testEvent: {
-                        allowPublicPublish: true,
-                        eventStoppedFunction: '_eventStoppedTestEvent',
-                        lifecycleHost: customLifecycleHost
-                    }
-                }
-            }),
-            distributor0 = _Pubsub(),
-            distributor0a = _Pubsub(),
-            distributor0b = _Pubsub(),
-            distributor1 = _Pubsub(),
-            distributor1a = _Pubsub(),
-            distributor1b = _Pubsub(),
-            distributor2 = _Pubsub(),
-            distributor2a = _Pubsub(),
-            distributor2b = _Pubsub(),
-            publisher = CustomPubsub(),
-            subscriptionsExecuted = [];
-
-        publisher.addDistributor([
-            distributor0,
-            distributor1,
-            distributor2
-        ]);
-
-        distributor0.addDistributor(distributor0a).addDistributor(distributor0b);
-
-        distributor1.addDistributor([
-            distributor1a,
-            distributor1b
-        ]);
-
-        distributor2.addDistributor(new Set([
-            distributor2a,
-            distributor2b
-        ]));
-
-        [[
-            'distributor0',
-            distributor0
-        ], [
-            'distributor0a',
-            distributor0a
-        ], [
-            'distributor0b',
-            distributor0b
-        ], [
-            'distributor1',
-            distributor1
-        ], [
-            'distributor1a',
-            distributor1a
-        ], [
-            'distributor1b',
-            distributor1b
-        ], [
-            'distributor2',
-            distributor2
-        ], [
-            'distributor2a',
-            distributor2a
-        ], [
-            'distributor2b',
-            distributor2b
-        ], [
-            'publisher',
-            publisher
-        ]].forEach(([
-            name,
-            pubsub
-        ]) => {
-            pubsub.after('testEvent', event => {
-                _chai.expect(event).to.equal(eventObject);
-                _chai.expect(event).to.have.property('distributor', pubsub);
-                _chai.expect(event).to.have.property('publisher', publisher);
-                _chai.expect(calledEventStoppedFunction).to.be.true;
-                subscriptionsExecuted.push(`${name} after 0`);
-            });
-
-            pubsub.after('testEvent', event => {
-                _chai.expect(event).to.equal(eventObject);
-                _chai.expect(event).to.have.property('distributor', pubsub);
-                _chai.expect(event).to.have.property('publisher', publisher);
-                _chai.expect(calledEventStoppedFunction).to.be.true;
-                subscriptionsExecuted.push(`${name} after 1`);
-            });
-
-            pubsub.after('testEvent', event => {
-                _chai.expect(event).to.equal(eventObject);
-                _chai.expect(event).to.have.property('distributor', pubsub);
-                _chai.expect(event).to.have.property('publisher', publisher);
-                _chai.expect(calledEventStoppedFunction).to.be.true;
-                subscriptionsExecuted.push(`${name} after 2`);
-            });
-
-            pubsub.before('testEvent', event => {
-                if (eventObject) {
-                    _chai.expect(event).to.equal(eventObject);
-                } else {
-                    eventObject = event;
-                }
-
-                _chai.expect(event).to.have.property('distributor', pubsub);
-                _chai.expect(event).to.have.property('publisher', publisher);
-                event.stopEvent();
-                _chai.expect(event.eventStopped).to.be.true;
-                _chai.expect(calledEventStoppedFunction).to.be.undefined;
-                subscriptionsExecuted.push(`${name} before 0`);
-            });
-
-            pubsub.before('testEvent', event => {
-                _chai.expect(event).to.equal(eventObject);
-                _chai.expect(event).to.have.property('distributor', pubsub);
-                _chai.expect(event).to.have.property('publisher', publisher);
-                _chai.expect(calledEventStoppedFunction).to.be.undefined;
-                subscriptionsExecuted.push(`${name} before 1`);
-            });
-
-            pubsub.before('testEvent', event => {
-                _chai.expect(event).to.equal(eventObject);
-                _chai.expect(event).to.have.property('distributor', pubsub);
-                _chai.expect(event).to.have.property('publisher', publisher);
-                _chai.expect(calledEventStoppedFunction).to.be.undefined;
-                subscriptionsExecuted.push(`${name} before 2`);
-            });
-
-            pubsub.on('testEvent', event => {
-                _chai.expect(event).to.equal(eventObject);
-                _chai.expect(event).to.have.property('distributor', pubsub);
-                _chai.expect(event).to.have.property('publisher', publisher);
-                _chai.expect(calledEventStoppedFunction).to.be.true;
-                subscriptionsExecuted.push(`${name} on 0`);
-            });
-
-            pubsub.on('testEvent', event => {
-                _chai.expect(event).to.equal(eventObject);
-                _chai.expect(event).to.have.property('distributor', pubsub);
-                _chai.expect(event).to.have.property('publisher', publisher);
-                _chai.expect(calledEventStoppedFunction).to.be.true;
-                subscriptionsExecuted.push(`${name} on 1`);
-            });
-
-            pubsub.on('testEvent', event => {
-                _chai.expect(event).to.equal(eventObject);
-                _chai.expect(event).to.have.property('distributor', pubsub);
-                _chai.expect(event).to.have.property('publisher', publisher);
-                _chai.expect(calledEventStoppedFunction).to.be.true;
-                subscriptionsExecuted.push(`${name} on 2`);
-            });
-        });
-
-        publisher.publish('testEvent');
-
-        _chai.expect(subscriptionsExecuted).to.deep.equal([
-            'publisher before 0',
-            'publisher before 1',
-            'publisher before 2',
-            'distributor0 before 0',
-            'distributor0 before 1',
-            'distributor0 before 2',
-            'distributor1 before 0',
-            'distributor1 before 1',
-            'distributor1 before 2',
-            'distributor2 before 0',
-            'distributor2 before 1',
-            'distributor2 before 2',
-            'distributor0a before 0',
-            'distributor0a before 1',
-            'distributor0a before 2',
-            'distributor0b before 0',
-            'distributor0b before 1',
-            'distributor0b before 2',
-            'distributor1a before 0',
-            'distributor1a before 1',
-            'distributor1a before 2',
-            'distributor1b before 0',
-            'distributor1b before 1',
-            'distributor1b before 2',
-            'distributor2a before 0',
-            'distributor2a before 1',
-            'distributor2a before 2',
-            'distributor2b before 0',
-            'distributor2b before 1',
-            'distributor2b before 2'
-        ]);
-
-        _chai.expect(calledEventStoppedFunction).to.be.true;
-    });
-
-    _mocha.it('should execute the prevented lifecycle function when the event is prevented', () => {
-        const pubsub = _Pubsub(),
-            subscriptionsExecuted = [];
-
-        let calledPreventedFunction,
-            eventObject;
-
-        pubsub.defineDispatcher('testEvent', {
-            allowPublicPublish: true,
-            preventedFunction (event) {
-                _chai.expect(event).to.equal(eventObject);
-                calledPreventedFunction = true;
-            }
-        });
-
-        pubsub.before('testEvent', event => {
-            eventObject = event;
-            event.prevent('on');
-            _chai.expect(event.isPrevented('on')).to.be.true;
-            _chai.expect(calledPreventedFunction).to.be.undefined;
-            subscriptionsExecuted.push('before');
-        });
-
-        pubsub.on('testEvent', event => {
-            _chai.expect(event).to.equal(eventObject);
-            _chai.expect(event.defaultIsPrevented()).to.be.true;
-            _chai.expect(calledPreventedFunction).to.be.true;
-            subscriptionsExecuted.push('on');
-        });
-
-        pubsub.publish('testEvent');
-
-        _chai.expect(subscriptionsExecuted).to.deep.equal([
-            'before'
-        ]);
-
-        _chai.expect(calledPreventedFunction).to.be.true;
-    });
-
-    _mocha.it('should allow a method name as a late bound prevented lifecycle function', () => {
-        let calledPreventedFunction,
-            eventObject;
-
-        const CustomPubsub = _make(_Pubsub, {
-                _preventedTestEvent (event) {
-                    _chai.expect(event).to.equal(eventObject);
-                    calledPreventedFunction = true;
-                }
-            }, {
-                _pubsub: {
-                    testEvent: {
-                        allowPublicPublish: true,
-                        preventedFunction: '_preventedTestEvent'
-                    }
-                }
-            }),
-            customPubsub = CustomPubsub(),
-            subscriptionsExecuted = [];
-
-        customPubsub.before('testEvent', event => {
-            eventObject = event;
-            event.prevent('on');
-            _chai.expect(event.isPrevented('on')).to.be.true;
-            _chai.expect(calledPreventedFunction).to.be.undefined;
-            subscriptionsExecuted.push('before');
-        });
-
-        customPubsub.on('testEvent', event => {
-            _chai.expect(event).to.equal(eventObject);
-            _chai.expect(event.defaultIsPrevented()).to.be.true;
-            _chai.expect(calledPreventedFunction).to.be.true;
-            subscriptionsExecuted.push('on');
-        });
-
-        customPubsub.publish('testEvent');
-
-        _chai.expect(subscriptionsExecuted).to.deep.equal([
-            'before'
-        ]);
-
-        _chai.expect(calledPreventedFunction).to.be.true;
-    });
-
-    _mocha.it('should allow a method name as a late bound prevented lifecycle function with a custom lifecycle host', () => {
-        let calledPreventedFunction,
-            eventObject;
-
-        const customLifecycleHost = {
-                _preventedTestEvent (event) {
-                    _chai.expect(event).to.equal(eventObject);
-                    calledPreventedFunction = true;
+                    calledStopDispatchFunction = true;
                 }
             },
             CustomPubsub = _make(_Pubsub, {}, {
@@ -8955,7 +7352,1567 @@ _mocha.describe('pubsub', () => {
                     testEvent: {
                         allowPublicPublish: true,
                         lifecycleHost: customLifecycleHost,
-                        preventedFunction: '_preventedTestEvent'
+                        stopDispatchFunction: '_stopDispatchTestEvent'
+                    }
+                }
+            }),
+            distributor0 = _Pubsub(),
+            distributor0a = _Pubsub(),
+            distributor0b = _Pubsub(),
+            distributor1 = _Pubsub(),
+            distributor1a = _Pubsub(),
+            distributor1b = _Pubsub(),
+            distributor2 = _Pubsub(),
+            distributor2a = _Pubsub(),
+            distributor2b = _Pubsub(),
+            publisher = CustomPubsub(),
+            subscriptionsExecuted = [];
+
+        publisher.addDistributor([
+            distributor0,
+            distributor1,
+            distributor2
+        ]);
+
+        distributor0.addDistributor(distributor0a).addDistributor(distributor0b);
+
+        distributor1.addDistributor([
+            distributor1a,
+            distributor1b
+        ]);
+
+        distributor2.addDistributor(new Set([
+            distributor2a,
+            distributor2b
+        ]));
+
+        [[
+            'distributor0',
+            distributor0
+        ], [
+            'distributor0a',
+            distributor0a
+        ], [
+            'distributor0b',
+            distributor0b
+        ], [
+            'distributor1',
+            distributor1
+        ], [
+            'distributor1a',
+            distributor1a
+        ], [
+            'distributor1b',
+            distributor1b
+        ], [
+            'distributor2',
+            distributor2
+        ], [
+            'distributor2a',
+            distributor2a
+        ], [
+            'distributor2b',
+            distributor2b
+        ], [
+            'publisher',
+            publisher
+        ]].forEach(([
+            name,
+            pubsub
+        ]) => {
+            pubsub.after('testEvent', event => {
+                _chai.expect(event).to.equal(eventObject);
+                _chai.expect(event).to.have.property('distributor', pubsub);
+                _chai.expect(event).to.have.property('publisher', publisher);
+                _chai.expect(calledStopDispatchFunction).to.be.true;
+                subscriptionsExecuted.push(`${name} after 0`);
+            });
+
+            pubsub.after('testEvent', event => {
+                _chai.expect(event).to.equal(eventObject);
+                _chai.expect(event).to.have.property('distributor', pubsub);
+                _chai.expect(event).to.have.property('publisher', publisher);
+                _chai.expect(calledStopDispatchFunction).to.be.true;
+                subscriptionsExecuted.push(`${name} after 1`);
+            });
+
+            pubsub.after('testEvent', event => {
+                _chai.expect(event).to.equal(eventObject);
+                _chai.expect(event).to.have.property('distributor', pubsub);
+                _chai.expect(event).to.have.property('publisher', publisher);
+                _chai.expect(calledStopDispatchFunction).to.be.true;
+                subscriptionsExecuted.push(`${name} after 2`);
+            });
+
+            pubsub.before('testEvent', event => {
+                if (eventObject) {
+                    _chai.expect(event).to.equal(eventObject);
+                } else {
+                    eventObject = event;
+                }
+
+                _chai.expect(event).to.have.property('distributor', pubsub);
+                _chai.expect(event).to.have.property('publisher', publisher);
+                event.stopDispatch();
+                _chai.expect(event.dispatchStopped).to.be.true;
+
+                if (pubsub === publisher) {
+                    _chai.expect(calledStopDispatchFunction).to.be.undefined;
+                } else {
+                    _chai.expect(calledStopDispatchFunction).to.be.true;
+                }
+
+                subscriptionsExecuted.push(`${name} before 0`);
+            });
+
+            pubsub.before('testEvent', event => {
+                _chai.expect(event).to.equal(eventObject);
+                _chai.expect(event).to.have.property('distributor', pubsub);
+                _chai.expect(event).to.have.property('publisher', publisher);
+                _chai.expect(calledStopDispatchFunction).to.be.true;
+                subscriptionsExecuted.push(`${name} before 1`);
+            });
+
+            pubsub.before('testEvent', event => {
+                _chai.expect(event).to.equal(eventObject);
+                _chai.expect(event).to.have.property('distributor', pubsub);
+                _chai.expect(event).to.have.property('publisher', publisher);
+                _chai.expect(calledStopDispatchFunction).to.be.true;
+                subscriptionsExecuted.push(`${name} before 2`);
+            });
+
+            pubsub.on('testEvent', event => {
+                _chai.expect(event).to.equal(eventObject);
+                _chai.expect(event).to.have.property('distributor', pubsub);
+                _chai.expect(event).to.have.property('publisher', publisher);
+                _chai.expect(calledStopDispatchFunction).to.be.true;
+                subscriptionsExecuted.push(`${name} on 0`);
+            });
+
+            pubsub.on('testEvent', event => {
+                _chai.expect(event).to.equal(eventObject);
+                _chai.expect(event).to.have.property('distributor', pubsub);
+                _chai.expect(event).to.have.property('publisher', publisher);
+                _chai.expect(calledStopDispatchFunction).to.be.true;
+                subscriptionsExecuted.push(`${name} on 1`);
+            });
+
+            pubsub.on('testEvent', event => {
+                _chai.expect(event).to.equal(eventObject);
+                _chai.expect(event).to.have.property('distributor', pubsub);
+                _chai.expect(event).to.have.property('publisher', publisher);
+                _chai.expect(calledStopDispatchFunction).to.be.true;
+                subscriptionsExecuted.push(`${name} on 2`);
+            });
+        });
+
+        publisher.publish('testEvent');
+
+        _chai.expect(subscriptionsExecuted).to.deep.equal([
+            'publisher before 0',
+            'distributor0 before 0',
+            'distributor1 before 0',
+            'distributor2 before 0',
+            'distributor0a before 0',
+            'distributor0b before 0',
+            'distributor1a before 0',
+            'distributor1b before 0',
+            'distributor2a before 0',
+            'distributor2b before 0',
+            'publisher on 0',
+            'publisher on 1',
+            'publisher on 2',
+            'distributor0 on 0',
+            'distributor0 on 1',
+            'distributor0 on 2',
+            'distributor1 on 0',
+            'distributor1 on 1',
+            'distributor1 on 2',
+            'distributor2 on 0',
+            'distributor2 on 1',
+            'distributor2 on 2',
+            'distributor0a on 0',
+            'distributor0a on 1',
+            'distributor0a on 2',
+            'distributor0b on 0',
+            'distributor0b on 1',
+            'distributor0b on 2',
+            'distributor1a on 0',
+            'distributor1a on 1',
+            'distributor1a on 2',
+            'distributor1b on 0',
+            'distributor1b on 1',
+            'distributor1b on 2',
+            'distributor2a on 0',
+            'distributor2a on 1',
+            'distributor2a on 2',
+            'distributor2b on 0',
+            'distributor2b on 1',
+            'distributor2b on 2',
+            'publisher after 0',
+            'publisher after 1',
+            'publisher after 2',
+            'distributor0 after 0',
+            'distributor0 after 1',
+            'distributor0 after 2',
+            'distributor1 after 0',
+            'distributor1 after 1',
+            'distributor1 after 2',
+            'distributor2 after 0',
+            'distributor2 after 1',
+            'distributor2 after 2',
+            'distributor0a after 0',
+            'distributor0a after 1',
+            'distributor0a after 2',
+            'distributor0b after 0',
+            'distributor0b after 1',
+            'distributor0b after 2',
+            'distributor1a after 0',
+            'distributor1a after 1',
+            'distributor1a after 2',
+            'distributor1b after 0',
+            'distributor1b after 1',
+            'distributor1b after 2',
+            'distributor2a after 0',
+            'distributor2a after 1',
+            'distributor2a after 2',
+            'distributor2b after 0',
+            'distributor2b after 1',
+            'distributor2b after 2'
+        ]);
+    });
+
+    _mocha.it('should execute the stop distribution lifecycle function when distribution is stopped', () => {
+        const distributor0 = _Pubsub(),
+            distributor0a = _Pubsub(),
+            distributor0b = _Pubsub(),
+            distributor1 = _Pubsub(),
+            distributor1a = _Pubsub(),
+            distributor1b = _Pubsub(),
+            distributor2 = _Pubsub(),
+            distributor2a = _Pubsub(),
+            distributor2b = _Pubsub(),
+            publisher = _Pubsub(),
+            subscriptionsExecuted = [];
+
+        let calledStopDistributionFunction,
+            eventObject;
+
+        publisher.defineDispatcher('testEvent', {
+            allowPublicPublish: true,
+            stopDistributionFunction (event) {
+                _chai.expect(event).to.equal(eventObject);
+                calledStopDistributionFunction = true;
+            }
+        });
+
+        publisher.addDistributor([
+            distributor0,
+            distributor1,
+            distributor2
+        ]);
+
+        distributor0.addDistributor(distributor0a).addDistributor(distributor0b);
+
+        distributor1.addDistributor([
+            distributor1a,
+            distributor1b
+        ]);
+
+        distributor2.addDistributor(new Set([
+            distributor2a,
+            distributor2b
+        ]));
+
+        [[
+            'distributor0',
+            distributor0
+        ], [
+            'distributor0a',
+            distributor0a
+        ], [
+            'distributor0b',
+            distributor0b
+        ], [
+            'distributor1',
+            distributor1
+        ], [
+            'distributor1a',
+            distributor1a
+        ], [
+            'distributor1b',
+            distributor1b
+        ], [
+            'distributor2',
+            distributor2
+        ], [
+            'distributor2a',
+            distributor2a
+        ], [
+            'distributor2b',
+            distributor2b
+        ], [
+            'publisher',
+            publisher
+        ]].forEach(([
+            name,
+            pubsub
+        ]) => {
+            pubsub.after('testEvent', event => {
+                _chai.expect(event).to.equal(eventObject);
+                _chai.expect(event).to.have.property('distributor', pubsub);
+                _chai.expect(event).to.have.property('publisher', publisher);
+                _chai.expect(calledStopDistributionFunction).to.be.true;
+                subscriptionsExecuted.push(`${name} after 0`);
+            });
+
+            pubsub.after('testEvent', event => {
+                _chai.expect(event).to.equal(eventObject);
+                _chai.expect(event).to.have.property('distributor', pubsub);
+                _chai.expect(event).to.have.property('publisher', publisher);
+                _chai.expect(calledStopDistributionFunction).to.be.true;
+                subscriptionsExecuted.push(`${name} after 1`);
+            });
+
+            pubsub.after('testEvent', event => {
+                _chai.expect(event).to.equal(eventObject);
+                _chai.expect(event).to.have.property('distributor', pubsub);
+                _chai.expect(event).to.have.property('publisher', publisher);
+                _chai.expect(calledStopDistributionFunction).to.be.true;
+                subscriptionsExecuted.push(`${name} after 2`);
+            });
+
+            pubsub.before('testEvent', event => {
+                if (eventObject) {
+                    _chai.expect(event).to.equal(eventObject);
+                } else {
+                    eventObject = event;
+                }
+
+                _chai.expect(event).to.have.property('distributor', pubsub);
+                _chai.expect(event).to.have.property('publisher', publisher);
+                event.stopDistribution();
+                _chai.expect(event.distributionStopped).to.be.true;
+                _chai.expect(calledStopDistributionFunction).to.be.undefined;
+                subscriptionsExecuted.push(`${name} before 0`);
+            });
+
+            pubsub.before('testEvent', event => {
+                _chai.expect(event).to.equal(eventObject);
+                _chai.expect(event).to.have.property('distributor', pubsub);
+                _chai.expect(event).to.have.property('publisher', publisher);
+                _chai.expect(calledStopDistributionFunction).to.be.undefined;
+                subscriptionsExecuted.push(`${name} before 1`);
+            });
+
+            pubsub.before('testEvent', event => {
+                _chai.expect(event).to.equal(eventObject);
+                _chai.expect(event).to.have.property('distributor', pubsub);
+                _chai.expect(event).to.have.property('publisher', publisher);
+                _chai.expect(calledStopDistributionFunction).to.be.undefined;
+                subscriptionsExecuted.push(`${name} before 2`);
+            });
+
+            pubsub.on('testEvent', event => {
+                _chai.expect(event).to.equal(eventObject);
+                _chai.expect(event).to.have.property('distributor', pubsub);
+                _chai.expect(event).to.have.property('publisher', publisher);
+                subscriptionsExecuted.push(`${name} on 0`);
+            });
+
+            pubsub.on('testEvent', event => {
+                _chai.expect(event).to.equal(eventObject);
+                _chai.expect(event).to.have.property('distributor', pubsub);
+                _chai.expect(event).to.have.property('publisher', publisher);
+                _chai.expect(calledStopDistributionFunction).to.be.true;
+                subscriptionsExecuted.push(`${name} on 1`);
+            });
+
+            pubsub.on('testEvent', event => {
+                _chai.expect(event).to.equal(eventObject);
+                _chai.expect(event).to.have.property('distributor', pubsub);
+                _chai.expect(event).to.have.property('publisher', publisher);
+                _chai.expect(calledStopDistributionFunction).to.be.true;
+                subscriptionsExecuted.push(`${name} on 2`);
+            });
+        });
+
+        publisher.publish('testEvent');
+
+        _chai.expect(subscriptionsExecuted).to.deep.equal([
+            'publisher before 0',
+            'publisher before 1',
+            'publisher before 2',
+            'publisher on 0',
+            'publisher on 1',
+            'publisher on 2',
+            'distributor0 on 0',
+            'distributor0 on 1',
+            'distributor0 on 2',
+            'distributor1 on 0',
+            'distributor1 on 1',
+            'distributor1 on 2',
+            'distributor2 on 0',
+            'distributor2 on 1',
+            'distributor2 on 2',
+            'distributor0a on 0',
+            'distributor0a on 1',
+            'distributor0a on 2',
+            'distributor0b on 0',
+            'distributor0b on 1',
+            'distributor0b on 2',
+            'distributor1a on 0',
+            'distributor1a on 1',
+            'distributor1a on 2',
+            'distributor1b on 0',
+            'distributor1b on 1',
+            'distributor1b on 2',
+            'distributor2a on 0',
+            'distributor2a on 1',
+            'distributor2a on 2',
+            'distributor2b on 0',
+            'distributor2b on 1',
+            'distributor2b on 2',
+            'publisher after 0',
+            'publisher after 1',
+            'publisher after 2',
+            'distributor0 after 0',
+            'distributor0 after 1',
+            'distributor0 after 2',
+            'distributor1 after 0',
+            'distributor1 after 1',
+            'distributor1 after 2',
+            'distributor2 after 0',
+            'distributor2 after 1',
+            'distributor2 after 2',
+            'distributor0a after 0',
+            'distributor0a after 1',
+            'distributor0a after 2',
+            'distributor0b after 0',
+            'distributor0b after 1',
+            'distributor0b after 2',
+            'distributor1a after 0',
+            'distributor1a after 1',
+            'distributor1a after 2',
+            'distributor1b after 0',
+            'distributor1b after 1',
+            'distributor1b after 2',
+            'distributor2a after 0',
+            'distributor2a after 1',
+            'distributor2a after 2',
+            'distributor2b after 0',
+            'distributor2b after 1',
+            'distributor2b after 2'
+        ]);
+    });
+
+    _mocha.it('should allow a method name as a late bound stop distribution lifecycle function', () => {
+        let calledStopDistributionFunction,
+            eventObject;
+
+        const CustomPubsub = _make(_Pubsub, {
+                _stopDistributionTestEvent (event) {
+                    _chai.expect(event).to.equal(eventObject);
+                    calledStopDistributionFunction = true;
+                }
+            }, {
+                _pubsub: {
+                    testEvent: {
+                        allowPublicPublish: true,
+                        stopDistributionFunction: '_stopDistributionTestEvent'
+                    }
+                }
+            }),
+            distributor0 = _Pubsub(),
+            distributor0a = _Pubsub(),
+            distributor0b = _Pubsub(),
+            distributor1 = _Pubsub(),
+            distributor1a = _Pubsub(),
+            distributor1b = _Pubsub(),
+            distributor2 = _Pubsub(),
+            distributor2a = _Pubsub(),
+            distributor2b = _Pubsub(),
+            publisher = CustomPubsub(),
+            subscriptionsExecuted = [];
+
+        publisher.addDistributor([
+            distributor0,
+            distributor1,
+            distributor2
+        ]);
+
+        distributor0.addDistributor(distributor0a).addDistributor(distributor0b);
+
+        distributor1.addDistributor([
+            distributor1a,
+            distributor1b
+        ]);
+
+        distributor2.addDistributor(new Set([
+            distributor2a,
+            distributor2b
+        ]));
+
+        [[
+            'distributor0',
+            distributor0
+        ], [
+            'distributor0a',
+            distributor0a
+        ], [
+            'distributor0b',
+            distributor0b
+        ], [
+            'distributor1',
+            distributor1
+        ], [
+            'distributor1a',
+            distributor1a
+        ], [
+            'distributor1b',
+            distributor1b
+        ], [
+            'distributor2',
+            distributor2
+        ], [
+            'distributor2a',
+            distributor2a
+        ], [
+            'distributor2b',
+            distributor2b
+        ], [
+            'publisher',
+            publisher
+        ]].forEach(([
+            name,
+            pubsub
+        ]) => {
+            pubsub.after('testEvent', event => {
+                _chai.expect(event).to.equal(eventObject);
+                _chai.expect(event).to.have.property('distributor', pubsub);
+                _chai.expect(event).to.have.property('publisher', publisher);
+                _chai.expect(calledStopDistributionFunction).to.be.true;
+                subscriptionsExecuted.push(`${name} after 0`);
+            });
+
+            pubsub.after('testEvent', event => {
+                _chai.expect(event).to.equal(eventObject);
+                _chai.expect(event).to.have.property('distributor', pubsub);
+                _chai.expect(event).to.have.property('publisher', publisher);
+                _chai.expect(calledStopDistributionFunction).to.be.true;
+                subscriptionsExecuted.push(`${name} after 1`);
+            });
+
+            pubsub.after('testEvent', event => {
+                _chai.expect(event).to.equal(eventObject);
+                _chai.expect(event).to.have.property('distributor', pubsub);
+                _chai.expect(event).to.have.property('publisher', publisher);
+                _chai.expect(calledStopDistributionFunction).to.be.true;
+                subscriptionsExecuted.push(`${name} after 2`);
+            });
+
+            pubsub.before('testEvent', event => {
+                if (eventObject) {
+                    _chai.expect(event).to.equal(eventObject);
+                } else {
+                    eventObject = event;
+                }
+
+                _chai.expect(event).to.have.property('distributor', pubsub);
+                _chai.expect(event).to.have.property('publisher', publisher);
+                event.stopDistribution();
+                _chai.expect(event.distributionStopped).to.be.true;
+                _chai.expect(calledStopDistributionFunction).to.be.undefined;
+                subscriptionsExecuted.push(`${name} before 0`);
+            });
+
+            pubsub.before('testEvent', event => {
+                _chai.expect(event).to.equal(eventObject);
+                _chai.expect(event).to.have.property('distributor', pubsub);
+                _chai.expect(event).to.have.property('publisher', publisher);
+                _chai.expect(calledStopDistributionFunction).to.be.undefined;
+                subscriptionsExecuted.push(`${name} before 1`);
+            });
+
+            pubsub.before('testEvent', event => {
+                _chai.expect(event).to.equal(eventObject);
+                _chai.expect(event).to.have.property('distributor', pubsub);
+                _chai.expect(event).to.have.property('publisher', publisher);
+                _chai.expect(calledStopDistributionFunction).to.be.undefined;
+                subscriptionsExecuted.push(`${name} before 2`);
+            });
+
+            pubsub.on('testEvent', event => {
+                _chai.expect(event).to.equal(eventObject);
+                _chai.expect(event).to.have.property('distributor', pubsub);
+                _chai.expect(event).to.have.property('publisher', publisher);
+                subscriptionsExecuted.push(`${name} on 0`);
+            });
+
+            pubsub.on('testEvent', event => {
+                _chai.expect(event).to.equal(eventObject);
+                _chai.expect(event).to.have.property('distributor', pubsub);
+                _chai.expect(event).to.have.property('publisher', publisher);
+                _chai.expect(calledStopDistributionFunction).to.be.true;
+                subscriptionsExecuted.push(`${name} on 1`);
+            });
+
+            pubsub.on('testEvent', event => {
+                _chai.expect(event).to.equal(eventObject);
+                _chai.expect(event).to.have.property('distributor', pubsub);
+                _chai.expect(event).to.have.property('publisher', publisher);
+                _chai.expect(calledStopDistributionFunction).to.be.true;
+                subscriptionsExecuted.push(`${name} on 2`);
+            });
+        });
+
+        publisher.publish('testEvent');
+
+        _chai.expect(subscriptionsExecuted).to.deep.equal([
+            'publisher before 0',
+            'publisher before 1',
+            'publisher before 2',
+            'publisher on 0',
+            'publisher on 1',
+            'publisher on 2',
+            'distributor0 on 0',
+            'distributor0 on 1',
+            'distributor0 on 2',
+            'distributor1 on 0',
+            'distributor1 on 1',
+            'distributor1 on 2',
+            'distributor2 on 0',
+            'distributor2 on 1',
+            'distributor2 on 2',
+            'distributor0a on 0',
+            'distributor0a on 1',
+            'distributor0a on 2',
+            'distributor0b on 0',
+            'distributor0b on 1',
+            'distributor0b on 2',
+            'distributor1a on 0',
+            'distributor1a on 1',
+            'distributor1a on 2',
+            'distributor1b on 0',
+            'distributor1b on 1',
+            'distributor1b on 2',
+            'distributor2a on 0',
+            'distributor2a on 1',
+            'distributor2a on 2',
+            'distributor2b on 0',
+            'distributor2b on 1',
+            'distributor2b on 2',
+            'publisher after 0',
+            'publisher after 1',
+            'publisher after 2',
+            'distributor0 after 0',
+            'distributor0 after 1',
+            'distributor0 after 2',
+            'distributor1 after 0',
+            'distributor1 after 1',
+            'distributor1 after 2',
+            'distributor2 after 0',
+            'distributor2 after 1',
+            'distributor2 after 2',
+            'distributor0a after 0',
+            'distributor0a after 1',
+            'distributor0a after 2',
+            'distributor0b after 0',
+            'distributor0b after 1',
+            'distributor0b after 2',
+            'distributor1a after 0',
+            'distributor1a after 1',
+            'distributor1a after 2',
+            'distributor1b after 0',
+            'distributor1b after 1',
+            'distributor1b after 2',
+            'distributor2a after 0',
+            'distributor2a after 1',
+            'distributor2a after 2',
+            'distributor2b after 0',
+            'distributor2b after 1',
+            'distributor2b after 2'
+        ]);
+    });
+
+    _mocha.it('should allow a method name as a late bound stop distribution lifecycle function with a custom lifecycle host', () => {
+        let calledStopDistributionFunction,
+            eventObject;
+
+        const customLifecycleHost = {
+                _stopDistributionTestEvent (event) {
+                    _chai.expect(event).to.equal(eventObject);
+                    calledStopDistributionFunction = true;
+                }
+            },
+            CustomPubsub = _make(_Pubsub, {}, {
+                _pubsub: {
+                    testEvent: {
+                        allowPublicPublish: true,
+                        lifecycleHost: customLifecycleHost,
+                        stopDistributionFunction: '_stopDistributionTestEvent'
+                    }
+                }
+            }),
+            distributor0 = _Pubsub(),
+            distributor0a = _Pubsub(),
+            distributor0b = _Pubsub(),
+            distributor1 = _Pubsub(),
+            distributor1a = _Pubsub(),
+            distributor1b = _Pubsub(),
+            distributor2 = _Pubsub(),
+            distributor2a = _Pubsub(),
+            distributor2b = _Pubsub(),
+            publisher = CustomPubsub(),
+            subscriptionsExecuted = [];
+
+        publisher.addDistributor([
+            distributor0,
+            distributor1,
+            distributor2
+        ]);
+
+        distributor0.addDistributor(distributor0a).addDistributor(distributor0b);
+
+        distributor1.addDistributor([
+            distributor1a,
+            distributor1b
+        ]);
+
+        distributor2.addDistributor(new Set([
+            distributor2a,
+            distributor2b
+        ]));
+
+        [[
+            'distributor0',
+            distributor0
+        ], [
+            'distributor0a',
+            distributor0a
+        ], [
+            'distributor0b',
+            distributor0b
+        ], [
+            'distributor1',
+            distributor1
+        ], [
+            'distributor1a',
+            distributor1a
+        ], [
+            'distributor1b',
+            distributor1b
+        ], [
+            'distributor2',
+            distributor2
+        ], [
+            'distributor2a',
+            distributor2a
+        ], [
+            'distributor2b',
+            distributor2b
+        ], [
+            'publisher',
+            publisher
+        ]].forEach(([
+            name,
+            pubsub
+        ]) => {
+            pubsub.after('testEvent', event => {
+                _chai.expect(event).to.equal(eventObject);
+                _chai.expect(event).to.have.property('distributor', pubsub);
+                _chai.expect(event).to.have.property('publisher', publisher);
+                _chai.expect(calledStopDistributionFunction).to.be.true;
+                subscriptionsExecuted.push(`${name} after 0`);
+            });
+
+            pubsub.after('testEvent', event => {
+                _chai.expect(event).to.equal(eventObject);
+                _chai.expect(event).to.have.property('distributor', pubsub);
+                _chai.expect(event).to.have.property('publisher', publisher);
+                _chai.expect(calledStopDistributionFunction).to.be.true;
+                subscriptionsExecuted.push(`${name} after 1`);
+            });
+
+            pubsub.after('testEvent', event => {
+                _chai.expect(event).to.equal(eventObject);
+                _chai.expect(event).to.have.property('distributor', pubsub);
+                _chai.expect(event).to.have.property('publisher', publisher);
+                _chai.expect(calledStopDistributionFunction).to.be.true;
+                subscriptionsExecuted.push(`${name} after 2`);
+            });
+
+            pubsub.before('testEvent', event => {
+                if (eventObject) {
+                    _chai.expect(event).to.equal(eventObject);
+                } else {
+                    eventObject = event;
+                }
+
+                _chai.expect(event).to.have.property('distributor', pubsub);
+                _chai.expect(event).to.have.property('publisher', publisher);
+                event.stopDistribution();
+                _chai.expect(event.distributionStopped).to.be.true;
+                _chai.expect(calledStopDistributionFunction).to.be.undefined;
+                subscriptionsExecuted.push(`${name} before 0`);
+            });
+
+            pubsub.before('testEvent', event => {
+                _chai.expect(event).to.equal(eventObject);
+                _chai.expect(event).to.have.property('distributor', pubsub);
+                _chai.expect(event).to.have.property('publisher', publisher);
+                _chai.expect(calledStopDistributionFunction).to.be.undefined;
+                subscriptionsExecuted.push(`${name} before 1`);
+            });
+
+            pubsub.before('testEvent', event => {
+                _chai.expect(event).to.equal(eventObject);
+                _chai.expect(event).to.have.property('distributor', pubsub);
+                _chai.expect(event).to.have.property('publisher', publisher);
+                _chai.expect(calledStopDistributionFunction).to.be.undefined;
+                subscriptionsExecuted.push(`${name} before 2`);
+            });
+
+            pubsub.on('testEvent', event => {
+                _chai.expect(event).to.equal(eventObject);
+                _chai.expect(event).to.have.property('distributor', pubsub);
+                _chai.expect(event).to.have.property('publisher', publisher);
+                subscriptionsExecuted.push(`${name} on 0`);
+            });
+
+            pubsub.on('testEvent', event => {
+                _chai.expect(event).to.equal(eventObject);
+                _chai.expect(event).to.have.property('distributor', pubsub);
+                _chai.expect(event).to.have.property('publisher', publisher);
+                _chai.expect(calledStopDistributionFunction).to.be.true;
+                subscriptionsExecuted.push(`${name} on 1`);
+            });
+
+            pubsub.on('testEvent', event => {
+                _chai.expect(event).to.equal(eventObject);
+                _chai.expect(event).to.have.property('distributor', pubsub);
+                _chai.expect(event).to.have.property('publisher', publisher);
+                _chai.expect(calledStopDistributionFunction).to.be.true;
+                subscriptionsExecuted.push(`${name} on 2`);
+            });
+        });
+
+        publisher.publish('testEvent');
+
+        _chai.expect(subscriptionsExecuted).to.deep.equal([
+            'publisher before 0',
+            'publisher before 1',
+            'publisher before 2',
+            'publisher on 0',
+            'publisher on 1',
+            'publisher on 2',
+            'distributor0 on 0',
+            'distributor0 on 1',
+            'distributor0 on 2',
+            'distributor1 on 0',
+            'distributor1 on 1',
+            'distributor1 on 2',
+            'distributor2 on 0',
+            'distributor2 on 1',
+            'distributor2 on 2',
+            'distributor0a on 0',
+            'distributor0a on 1',
+            'distributor0a on 2',
+            'distributor0b on 0',
+            'distributor0b on 1',
+            'distributor0b on 2',
+            'distributor1a on 0',
+            'distributor1a on 1',
+            'distributor1a on 2',
+            'distributor1b on 0',
+            'distributor1b on 1',
+            'distributor1b on 2',
+            'distributor2a on 0',
+            'distributor2a on 1',
+            'distributor2a on 2',
+            'distributor2b on 0',
+            'distributor2b on 1',
+            'distributor2b on 2',
+            'publisher after 0',
+            'publisher after 1',
+            'publisher after 2',
+            'distributor0 after 0',
+            'distributor0 after 1',
+            'distributor0 after 2',
+            'distributor1 after 0',
+            'distributor1 after 1',
+            'distributor1 after 2',
+            'distributor2 after 0',
+            'distributor2 after 1',
+            'distributor2 after 2',
+            'distributor0a after 0',
+            'distributor0a after 1',
+            'distributor0a after 2',
+            'distributor0b after 0',
+            'distributor0b after 1',
+            'distributor0b after 2',
+            'distributor1a after 0',
+            'distributor1a after 1',
+            'distributor1a after 2',
+            'distributor1b after 0',
+            'distributor1b after 1',
+            'distributor1b after 2',
+            'distributor2a after 0',
+            'distributor2a after 1',
+            'distributor2a after 2',
+            'distributor2b after 0',
+            'distributor2b after 1',
+            'distributor2b after 2'
+        ]);
+    });
+
+    _mocha.it('should execute the stop event lifecycle function when the event is stopped', () => {
+        const distributor0 = _Pubsub(),
+            distributor0a = _Pubsub(),
+            distributor0b = _Pubsub(),
+            distributor1 = _Pubsub(),
+            distributor1a = _Pubsub(),
+            distributor1b = _Pubsub(),
+            distributor2 = _Pubsub(),
+            distributor2a = _Pubsub(),
+            distributor2b = _Pubsub(),
+            publisher = _Pubsub(),
+            subscriptionsExecuted = [];
+
+        let calledStopEventFunction,
+            eventObject;
+
+        publisher.defineDispatcher('testEvent', {
+            allowPublicPublish: true,
+            stopEventFunction (event) {
+                _chai.expect(event).to.equal(eventObject);
+                calledStopEventFunction = true;
+            }
+        });
+
+        publisher.addDistributor([
+            distributor0,
+            distributor1,
+            distributor2
+        ]);
+
+        distributor0.addDistributor(distributor0a).addDistributor(distributor0b);
+
+        distributor1.addDistributor([
+            distributor1a,
+            distributor1b
+        ]);
+
+        distributor2.addDistributor(new Set([
+            distributor2a,
+            distributor2b
+        ]));
+
+        [[
+            'distributor0',
+            distributor0
+        ], [
+            'distributor0a',
+            distributor0a
+        ], [
+            'distributor0b',
+            distributor0b
+        ], [
+            'distributor1',
+            distributor1
+        ], [
+            'distributor1a',
+            distributor1a
+        ], [
+            'distributor1b',
+            distributor1b
+        ], [
+            'distributor2',
+            distributor2
+        ], [
+            'distributor2a',
+            distributor2a
+        ], [
+            'distributor2b',
+            distributor2b
+        ], [
+            'publisher',
+            publisher
+        ]].forEach(([
+            name,
+            pubsub
+        ]) => {
+            pubsub.after('testEvent', event => {
+                _chai.expect(event).to.equal(eventObject);
+                _chai.expect(event).to.have.property('distributor', pubsub);
+                _chai.expect(event).to.have.property('publisher', publisher);
+                _chai.expect(calledStopEventFunction).to.be.true;
+                subscriptionsExecuted.push(`${name} after 0`);
+            });
+
+            pubsub.after('testEvent', event => {
+                _chai.expect(event).to.equal(eventObject);
+                _chai.expect(event).to.have.property('distributor', pubsub);
+                _chai.expect(event).to.have.property('publisher', publisher);
+                _chai.expect(calledStopEventFunction).to.be.true;
+                subscriptionsExecuted.push(`${name} after 1`);
+            });
+
+            pubsub.after('testEvent', event => {
+                _chai.expect(event).to.equal(eventObject);
+                _chai.expect(event).to.have.property('distributor', pubsub);
+                _chai.expect(event).to.have.property('publisher', publisher);
+                _chai.expect(calledStopEventFunction).to.be.true;
+                subscriptionsExecuted.push(`${name} after 2`);
+            });
+
+            pubsub.before('testEvent', event => {
+                if (eventObject) {
+                    _chai.expect(event).to.equal(eventObject);
+                } else {
+                    eventObject = event;
+                }
+
+                _chai.expect(event).to.have.property('distributor', pubsub);
+                _chai.expect(event).to.have.property('publisher', publisher);
+                event.stopEvent();
+                _chai.expect(event.eventStopped).to.be.true;
+                _chai.expect(calledStopEventFunction).to.be.undefined;
+                subscriptionsExecuted.push(`${name} before 0`);
+            });
+
+            pubsub.before('testEvent', event => {
+                _chai.expect(event).to.equal(eventObject);
+                _chai.expect(event).to.have.property('distributor', pubsub);
+                _chai.expect(event).to.have.property('publisher', publisher);
+                _chai.expect(calledStopEventFunction).to.be.undefined;
+                subscriptionsExecuted.push(`${name} before 1`);
+            });
+
+            pubsub.before('testEvent', event => {
+                _chai.expect(event).to.equal(eventObject);
+                _chai.expect(event).to.have.property('distributor', pubsub);
+                _chai.expect(event).to.have.property('publisher', publisher);
+                _chai.expect(calledStopEventFunction).to.be.undefined;
+                subscriptionsExecuted.push(`${name} before 2`);
+            });
+
+            pubsub.on('testEvent', event => {
+                _chai.expect(event).to.equal(eventObject);
+                _chai.expect(event).to.have.property('distributor', pubsub);
+                _chai.expect(event).to.have.property('publisher', publisher);
+                _chai.expect(calledStopEventFunction).to.be.true;
+                subscriptionsExecuted.push(`${name} on 0`);
+            });
+
+            pubsub.on('testEvent', event => {
+                _chai.expect(event).to.equal(eventObject);
+                _chai.expect(event).to.have.property('distributor', pubsub);
+                _chai.expect(event).to.have.property('publisher', publisher);
+                _chai.expect(calledStopEventFunction).to.be.true;
+                subscriptionsExecuted.push(`${name} on 1`);
+            });
+
+            pubsub.on('testEvent', event => {
+                _chai.expect(event).to.equal(eventObject);
+                _chai.expect(event).to.have.property('distributor', pubsub);
+                _chai.expect(event).to.have.property('publisher', publisher);
+                _chai.expect(calledStopEventFunction).to.be.true;
+                subscriptionsExecuted.push(`${name} on 2`);
+            });
+        });
+
+        publisher.publish('testEvent');
+
+        _chai.expect(subscriptionsExecuted).to.deep.equal([
+            'publisher before 0',
+            'publisher before 1',
+            'publisher before 2',
+            'distributor0 before 0',
+            'distributor0 before 1',
+            'distributor0 before 2',
+            'distributor1 before 0',
+            'distributor1 before 1',
+            'distributor1 before 2',
+            'distributor2 before 0',
+            'distributor2 before 1',
+            'distributor2 before 2',
+            'distributor0a before 0',
+            'distributor0a before 1',
+            'distributor0a before 2',
+            'distributor0b before 0',
+            'distributor0b before 1',
+            'distributor0b before 2',
+            'distributor1a before 0',
+            'distributor1a before 1',
+            'distributor1a before 2',
+            'distributor1b before 0',
+            'distributor1b before 1',
+            'distributor1b before 2',
+            'distributor2a before 0',
+            'distributor2a before 1',
+            'distributor2a before 2',
+            'distributor2b before 0',
+            'distributor2b before 1',
+            'distributor2b before 2'
+        ]);
+
+        _chai.expect(calledStopEventFunction).to.be.true;
+    });
+
+    _mocha.it('should allow a method name as a late bound stop event lifecycle function', () => {
+        let calledStopEventFunction,
+            eventObject;
+
+        const CustomPubsub = _make(_Pubsub, {
+                _stopEventTestEvent (event) {
+                    _chai.expect(event).to.equal(eventObject);
+                    calledStopEventFunction = true;
+                }
+            }, {
+                _pubsub: {
+                    testEvent: {
+                        allowPublicPublish: true,
+                        stopEventFunction: '_stopEventTestEvent'
+                    }
+                }
+            }),
+            distributor0 = _Pubsub(),
+            distributor0a = _Pubsub(),
+            distributor0b = _Pubsub(),
+            distributor1 = _Pubsub(),
+            distributor1a = _Pubsub(),
+            distributor1b = _Pubsub(),
+            distributor2 = _Pubsub(),
+            distributor2a = _Pubsub(),
+            distributor2b = _Pubsub(),
+            publisher = CustomPubsub(),
+            subscriptionsExecuted = [];
+
+        publisher.addDistributor([
+            distributor0,
+            distributor1,
+            distributor2
+        ]);
+
+        distributor0.addDistributor(distributor0a).addDistributor(distributor0b);
+
+        distributor1.addDistributor([
+            distributor1a,
+            distributor1b
+        ]);
+
+        distributor2.addDistributor(new Set([
+            distributor2a,
+            distributor2b
+        ]));
+
+        [[
+            'distributor0',
+            distributor0
+        ], [
+            'distributor0a',
+            distributor0a
+        ], [
+            'distributor0b',
+            distributor0b
+        ], [
+            'distributor1',
+            distributor1
+        ], [
+            'distributor1a',
+            distributor1a
+        ], [
+            'distributor1b',
+            distributor1b
+        ], [
+            'distributor2',
+            distributor2
+        ], [
+            'distributor2a',
+            distributor2a
+        ], [
+            'distributor2b',
+            distributor2b
+        ], [
+            'publisher',
+            publisher
+        ]].forEach(([
+            name,
+            pubsub
+        ]) => {
+            pubsub.after('testEvent', event => {
+                _chai.expect(event).to.equal(eventObject);
+                _chai.expect(event).to.have.property('distributor', pubsub);
+                _chai.expect(event).to.have.property('publisher', publisher);
+                _chai.expect(calledStopEventFunction).to.be.true;
+                subscriptionsExecuted.push(`${name} after 0`);
+            });
+
+            pubsub.after('testEvent', event => {
+                _chai.expect(event).to.equal(eventObject);
+                _chai.expect(event).to.have.property('distributor', pubsub);
+                _chai.expect(event).to.have.property('publisher', publisher);
+                _chai.expect(calledStopEventFunction).to.be.true;
+                subscriptionsExecuted.push(`${name} after 1`);
+            });
+
+            pubsub.after('testEvent', event => {
+                _chai.expect(event).to.equal(eventObject);
+                _chai.expect(event).to.have.property('distributor', pubsub);
+                _chai.expect(event).to.have.property('publisher', publisher);
+                _chai.expect(calledStopEventFunction).to.be.true;
+                subscriptionsExecuted.push(`${name} after 2`);
+            });
+
+            pubsub.before('testEvent', event => {
+                if (eventObject) {
+                    _chai.expect(event).to.equal(eventObject);
+                } else {
+                    eventObject = event;
+                }
+
+                _chai.expect(event).to.have.property('distributor', pubsub);
+                _chai.expect(event).to.have.property('publisher', publisher);
+                event.stopEvent();
+                _chai.expect(event.eventStopped).to.be.true;
+                _chai.expect(calledStopEventFunction).to.be.undefined;
+                subscriptionsExecuted.push(`${name} before 0`);
+            });
+
+            pubsub.before('testEvent', event => {
+                _chai.expect(event).to.equal(eventObject);
+                _chai.expect(event).to.have.property('distributor', pubsub);
+                _chai.expect(event).to.have.property('publisher', publisher);
+                _chai.expect(calledStopEventFunction).to.be.undefined;
+                subscriptionsExecuted.push(`${name} before 1`);
+            });
+
+            pubsub.before('testEvent', event => {
+                _chai.expect(event).to.equal(eventObject);
+                _chai.expect(event).to.have.property('distributor', pubsub);
+                _chai.expect(event).to.have.property('publisher', publisher);
+                _chai.expect(calledStopEventFunction).to.be.undefined;
+                subscriptionsExecuted.push(`${name} before 2`);
+            });
+
+            pubsub.on('testEvent', event => {
+                _chai.expect(event).to.equal(eventObject);
+                _chai.expect(event).to.have.property('distributor', pubsub);
+                _chai.expect(event).to.have.property('publisher', publisher);
+                _chai.expect(calledStopEventFunction).to.be.true;
+                subscriptionsExecuted.push(`${name} on 0`);
+            });
+
+            pubsub.on('testEvent', event => {
+                _chai.expect(event).to.equal(eventObject);
+                _chai.expect(event).to.have.property('distributor', pubsub);
+                _chai.expect(event).to.have.property('publisher', publisher);
+                _chai.expect(calledStopEventFunction).to.be.true;
+                subscriptionsExecuted.push(`${name} on 1`);
+            });
+
+            pubsub.on('testEvent', event => {
+                _chai.expect(event).to.equal(eventObject);
+                _chai.expect(event).to.have.property('distributor', pubsub);
+                _chai.expect(event).to.have.property('publisher', publisher);
+                _chai.expect(calledStopEventFunction).to.be.true;
+                subscriptionsExecuted.push(`${name} on 2`);
+            });
+        });
+
+        publisher.publish('testEvent');
+
+        _chai.expect(subscriptionsExecuted).to.deep.equal([
+            'publisher before 0',
+            'publisher before 1',
+            'publisher before 2',
+            'distributor0 before 0',
+            'distributor0 before 1',
+            'distributor0 before 2',
+            'distributor1 before 0',
+            'distributor1 before 1',
+            'distributor1 before 2',
+            'distributor2 before 0',
+            'distributor2 before 1',
+            'distributor2 before 2',
+            'distributor0a before 0',
+            'distributor0a before 1',
+            'distributor0a before 2',
+            'distributor0b before 0',
+            'distributor0b before 1',
+            'distributor0b before 2',
+            'distributor1a before 0',
+            'distributor1a before 1',
+            'distributor1a before 2',
+            'distributor1b before 0',
+            'distributor1b before 1',
+            'distributor1b before 2',
+            'distributor2a before 0',
+            'distributor2a before 1',
+            'distributor2a before 2',
+            'distributor2b before 0',
+            'distributor2b before 1',
+            'distributor2b before 2'
+        ]);
+
+        _chai.expect(calledStopEventFunction).to.be.true;
+    });
+
+    _mocha.it('should allow a method name as a late bound stop event lifecycle function with a custom lifecycle host', () => {
+        let calledStopEventFunction,
+            eventObject;
+
+        const customLifecycleHost = {
+                _stopEventTestEvent (event) {
+                    _chai.expect(event).to.equal(eventObject);
+                    calledStopEventFunction = true;
+                }
+            },
+            CustomPubsub = _make(_Pubsub, {}, {
+                _pubsub: {
+                    testEvent: {
+                        allowPublicPublish: true,
+                        lifecycleHost: customLifecycleHost,
+                        stopEventFunction: '_stopEventTestEvent'
+                    }
+                }
+            }),
+            distributor0 = _Pubsub(),
+            distributor0a = _Pubsub(),
+            distributor0b = _Pubsub(),
+            distributor1 = _Pubsub(),
+            distributor1a = _Pubsub(),
+            distributor1b = _Pubsub(),
+            distributor2 = _Pubsub(),
+            distributor2a = _Pubsub(),
+            distributor2b = _Pubsub(),
+            publisher = CustomPubsub(),
+            subscriptionsExecuted = [];
+
+        publisher.addDistributor([
+            distributor0,
+            distributor1,
+            distributor2
+        ]);
+
+        distributor0.addDistributor(distributor0a).addDistributor(distributor0b);
+
+        distributor1.addDistributor([
+            distributor1a,
+            distributor1b
+        ]);
+
+        distributor2.addDistributor(new Set([
+            distributor2a,
+            distributor2b
+        ]));
+
+        [[
+            'distributor0',
+            distributor0
+        ], [
+            'distributor0a',
+            distributor0a
+        ], [
+            'distributor0b',
+            distributor0b
+        ], [
+            'distributor1',
+            distributor1
+        ], [
+            'distributor1a',
+            distributor1a
+        ], [
+            'distributor1b',
+            distributor1b
+        ], [
+            'distributor2',
+            distributor2
+        ], [
+            'distributor2a',
+            distributor2a
+        ], [
+            'distributor2b',
+            distributor2b
+        ], [
+            'publisher',
+            publisher
+        ]].forEach(([
+            name,
+            pubsub
+        ]) => {
+            pubsub.after('testEvent', event => {
+                _chai.expect(event).to.equal(eventObject);
+                _chai.expect(event).to.have.property('distributor', pubsub);
+                _chai.expect(event).to.have.property('publisher', publisher);
+                _chai.expect(calledStopEventFunction).to.be.true;
+                subscriptionsExecuted.push(`${name} after 0`);
+            });
+
+            pubsub.after('testEvent', event => {
+                _chai.expect(event).to.equal(eventObject);
+                _chai.expect(event).to.have.property('distributor', pubsub);
+                _chai.expect(event).to.have.property('publisher', publisher);
+                _chai.expect(calledStopEventFunction).to.be.true;
+                subscriptionsExecuted.push(`${name} after 1`);
+            });
+
+            pubsub.after('testEvent', event => {
+                _chai.expect(event).to.equal(eventObject);
+                _chai.expect(event).to.have.property('distributor', pubsub);
+                _chai.expect(event).to.have.property('publisher', publisher);
+                _chai.expect(calledStopEventFunction).to.be.true;
+                subscriptionsExecuted.push(`${name} after 2`);
+            });
+
+            pubsub.before('testEvent', event => {
+                if (eventObject) {
+                    _chai.expect(event).to.equal(eventObject);
+                } else {
+                    eventObject = event;
+                }
+
+                _chai.expect(event).to.have.property('distributor', pubsub);
+                _chai.expect(event).to.have.property('publisher', publisher);
+                event.stopEvent();
+                _chai.expect(event.eventStopped).to.be.true;
+                _chai.expect(calledStopEventFunction).to.be.undefined;
+                subscriptionsExecuted.push(`${name} before 0`);
+            });
+
+            pubsub.before('testEvent', event => {
+                _chai.expect(event).to.equal(eventObject);
+                _chai.expect(event).to.have.property('distributor', pubsub);
+                _chai.expect(event).to.have.property('publisher', publisher);
+                _chai.expect(calledStopEventFunction).to.be.undefined;
+                subscriptionsExecuted.push(`${name} before 1`);
+            });
+
+            pubsub.before('testEvent', event => {
+                _chai.expect(event).to.equal(eventObject);
+                _chai.expect(event).to.have.property('distributor', pubsub);
+                _chai.expect(event).to.have.property('publisher', publisher);
+                _chai.expect(calledStopEventFunction).to.be.undefined;
+                subscriptionsExecuted.push(`${name} before 2`);
+            });
+
+            pubsub.on('testEvent', event => {
+                _chai.expect(event).to.equal(eventObject);
+                _chai.expect(event).to.have.property('distributor', pubsub);
+                _chai.expect(event).to.have.property('publisher', publisher);
+                _chai.expect(calledStopEventFunction).to.be.true;
+                subscriptionsExecuted.push(`${name} on 0`);
+            });
+
+            pubsub.on('testEvent', event => {
+                _chai.expect(event).to.equal(eventObject);
+                _chai.expect(event).to.have.property('distributor', pubsub);
+                _chai.expect(event).to.have.property('publisher', publisher);
+                _chai.expect(calledStopEventFunction).to.be.true;
+                subscriptionsExecuted.push(`${name} on 1`);
+            });
+
+            pubsub.on('testEvent', event => {
+                _chai.expect(event).to.equal(eventObject);
+                _chai.expect(event).to.have.property('distributor', pubsub);
+                _chai.expect(event).to.have.property('publisher', publisher);
+                _chai.expect(calledStopEventFunction).to.be.true;
+                subscriptionsExecuted.push(`${name} on 2`);
+            });
+        });
+
+        publisher.publish('testEvent');
+
+        _chai.expect(subscriptionsExecuted).to.deep.equal([
+            'publisher before 0',
+            'publisher before 1',
+            'publisher before 2',
+            'distributor0 before 0',
+            'distributor0 before 1',
+            'distributor0 before 2',
+            'distributor1 before 0',
+            'distributor1 before 1',
+            'distributor1 before 2',
+            'distributor2 before 0',
+            'distributor2 before 1',
+            'distributor2 before 2',
+            'distributor0a before 0',
+            'distributor0a before 1',
+            'distributor0a before 2',
+            'distributor0b before 0',
+            'distributor0b before 1',
+            'distributor0b before 2',
+            'distributor1a before 0',
+            'distributor1a before 1',
+            'distributor1a before 2',
+            'distributor1b before 0',
+            'distributor1b before 1',
+            'distributor1b before 2',
+            'distributor2a before 0',
+            'distributor2a before 1',
+            'distributor2a before 2',
+            'distributor2b before 0',
+            'distributor2b before 1',
+            'distributor2b before 2'
+        ]);
+
+        _chai.expect(calledStopEventFunction).to.be.true;
+    });
+
+    _mocha.it('should execute the prevent lifecycle function when the event is prevented', () => {
+        const pubsub = _Pubsub(),
+            subscriptionsExecuted = [];
+
+        let calledPreventFunction,
+            eventObject;
+
+        pubsub.defineDispatcher('testEvent', {
+            allowPublicPublish: true,
+            preventFunction (event) {
+                _chai.expect(event).to.equal(eventObject);
+                calledPreventFunction = true;
+            }
+        });
+
+        pubsub.before('testEvent', event => {
+            eventObject = event;
+            event.prevent('on');
+            _chai.expect(event.isPrevented('on')).to.be.true;
+            _chai.expect(calledPreventFunction).to.be.undefined;
+            subscriptionsExecuted.push('before');
+        });
+
+        pubsub.on('testEvent', event => {
+            _chai.expect(event).to.equal(eventObject);
+            _chai.expect(event.isPrevented()).to.be.true;
+            _chai.expect(calledPreventFunction).to.be.true;
+            subscriptionsExecuted.push('on');
+        });
+
+        pubsub.publish('testEvent');
+
+        _chai.expect(subscriptionsExecuted).to.deep.equal([
+            'before'
+        ]);
+
+        _chai.expect(calledPreventFunction).to.be.true;
+    });
+
+    _mocha.it('should allow a method name as a late bound prevent lifecycle function', () => {
+        let calledPreventFunction,
+            eventObject;
+
+        const CustomPubsub = _make(_Pubsub, {
+                _preventTestEvent (event) {
+                    _chai.expect(event).to.equal(eventObject);
+                    calledPreventFunction = true;
+                }
+            }, {
+                _pubsub: {
+                    testEvent: {
+                        allowPublicPublish: true,
+                        preventFunction: '_preventTestEvent'
                     }
                 }
             }),
@@ -8966,14 +8923,14 @@ _mocha.describe('pubsub', () => {
             eventObject = event;
             event.prevent('on');
             _chai.expect(event.isPrevented('on')).to.be.true;
-            _chai.expect(calledPreventedFunction).to.be.undefined;
+            _chai.expect(calledPreventFunction).to.be.undefined;
             subscriptionsExecuted.push('before');
         });
 
         customPubsub.on('testEvent', event => {
             _chai.expect(event).to.equal(eventObject);
-            _chai.expect(event.defaultIsPrevented()).to.be.true;
-            _chai.expect(calledPreventedFunction).to.be.true;
+            _chai.expect(event.isPrevented()).to.be.true;
+            _chai.expect(calledPreventFunction).to.be.true;
             subscriptionsExecuted.push('on');
         });
 
@@ -8983,11 +8940,57 @@ _mocha.describe('pubsub', () => {
             'before'
         ]);
 
-        _chai.expect(calledPreventedFunction).to.be.true;
+        _chai.expect(calledPreventFunction).to.be.true;
     });
 
-    _mocha.it('should execute the subscribed lifecycle function when the event is subscribed to', () => {
-        let calledSubscribedFunction,
+    _mocha.it('should allow a method name as a late bound prevent lifecycle function with a custom lifecycle host', () => {
+        let calledPreventFunction,
+            eventObject;
+
+        const customLifecycleHost = {
+                _preventTestEvent (event) {
+                    _chai.expect(event).to.equal(eventObject);
+                    calledPreventFunction = true;
+                }
+            },
+            CustomPubsub = _make(_Pubsub, {}, {
+                _pubsub: {
+                    testEvent: {
+                        allowPublicPublish: true,
+                        lifecycleHost: customLifecycleHost,
+                        preventFunction: '_preventTestEvent'
+                    }
+                }
+            }),
+            customPubsub = CustomPubsub(),
+            subscriptionsExecuted = [];
+
+        customPubsub.before('testEvent', event => {
+            eventObject = event;
+            event.prevent('on');
+            _chai.expect(event.isPrevented('on')).to.be.true;
+            _chai.expect(calledPreventFunction).to.be.undefined;
+            subscriptionsExecuted.push('before');
+        });
+
+        customPubsub.on('testEvent', event => {
+            _chai.expect(event).to.equal(eventObject);
+            _chai.expect(event.isPrevented()).to.be.true;
+            _chai.expect(calledPreventFunction).to.be.true;
+            subscriptionsExecuted.push('on');
+        });
+
+        customPubsub.publish('testEvent');
+
+        _chai.expect(subscriptionsExecuted).to.deep.equal([
+            'before'
+        ]);
+
+        _chai.expect(calledPreventFunction).to.be.true;
+    });
+
+    _mocha.it('should execute the subscribe lifecycle function when the event is subscribed to', () => {
+        let calledSubscribeFunction,
             subscriptionExecuted;
 
         const pubsub = _Pubsub(),
@@ -8999,7 +9002,7 @@ _mocha.describe('pubsub', () => {
 
         pubsub.defineDispatcher('testEvent', {
             allowPublicPublish: true,
-            subscribedFunction ({
+            subscribeFunction ({
                 config,
                 dispatcher
             }) {
@@ -9009,15 +9012,15 @@ _mocha.describe('pubsub', () => {
                 _chai.expect(config).to.have.property('publicSubscription', true);
                 _chai.expect(config).to.have.property('stageName', 'on');
                 _chai.expect(config.state).to.be.an('object');
-                _chai.expect(dispatcher).to.be.an.instanceOf(_pubsub.Dispatcher);
-                calledSubscribedFunction = true;
+                _chai.expect(dispatcher).to.be.an.instanceOf(_Dispatcher);
+                calledSubscribeFunction = true;
             }
         });
 
         {
             const subscription = pubsub.subscribe('on', 'testEvent', subscriptionConfig);
 
-            _chai.expect(calledSubscribedFunction).to.be.true;
+            _chai.expect(calledSubscribeFunction).to.be.true;
 
             pubsub.publish('testEvent');
 
@@ -9032,8 +9035,8 @@ _mocha.describe('pubsub', () => {
         }
     });
 
-    _mocha.it('should allow a method name as a late bound subscribed lifecycle function', () => {
-        let calledSubscribedFunction,
+    _mocha.it('should allow a method name as a late bound subscribe lifecycle function', () => {
+        let calledSubscribeFunction,
             subscriptionExecuted;
 
         const CustomPubsub = _make(_Pubsub, {
@@ -9050,14 +9053,14 @@ _mocha.describe('pubsub', () => {
                     _chai.expect(config).to.have.property('publicSubscription', true);
                     _chai.expect(config).to.have.property('stageName', 'on');
                     _chai.expect(config.state).to.be.an('object');
-                    _chai.expect(dispatcher).to.be.an.instanceOf(_pubsub.Dispatcher);
-                    calledSubscribedFunction = true;
+                    _chai.expect(dispatcher).to.be.an.instanceOf(_Dispatcher);
+                    calledSubscribeFunction = true;
                 }
             }, {
                 _pubsub: {
                     testEvent: {
                         allowPublicPublish: true,
-                        subscribedFunction: '_subscribedTestEvent'
+                        subscribeFunction: '_subscribedTestEvent'
                     }
                 }
             }),
@@ -9066,7 +9069,7 @@ _mocha.describe('pubsub', () => {
         {
             const subscription = customPubsub.subscribe('on', 'testEvent', 'callbackFunction');
 
-            _chai.expect(calledSubscribedFunction).to.be.true;
+            _chai.expect(calledSubscribeFunction).to.be.true;
 
             customPubsub.publish('testEvent');
 
@@ -9081,8 +9084,8 @@ _mocha.describe('pubsub', () => {
         }
     });
 
-    _mocha.it('should allow a method name as a late bound subscribed lifecycle function with a custom lifecycle host', () => {
-        let calledSubscribedFunction,
+    _mocha.it('should allow a method name as a late bound subscribe lifecycle function with a custom lifecycle host', () => {
+        let calledSubscribeFunction,
             subscriptionExecuted;
 
         const customHost = {
@@ -9101,8 +9104,8 @@ _mocha.describe('pubsub', () => {
                     _chai.expect(config).to.have.property('publicSubscription', true);
                     _chai.expect(config).to.have.property('stageName', 'on');
                     _chai.expect(config.state).to.be.an('object');
-                    _chai.expect(dispatcher).to.be.an.instanceOf(_pubsub.Dispatcher);
-                    calledSubscribedFunction = true;
+                    _chai.expect(dispatcher).to.be.an.instanceOf(_Dispatcher);
+                    calledSubscribeFunction = true;
                 }
             },
             CustomPubsub = _make(_Pubsub, {}, {
@@ -9110,7 +9113,7 @@ _mocha.describe('pubsub', () => {
                     testEvent: {
                         allowPublicPublish: true,
                         lifecycleHost: customLifecycleHost,
-                        subscribedFunction: '_subscribedTestEvent'
+                        subscribeFunction: '_subscribedTestEvent'
                     }
                 }
             }),
@@ -9122,7 +9125,7 @@ _mocha.describe('pubsub', () => {
                 host: customHost
             });
 
-            _chai.expect(calledSubscribedFunction).to.be.true;
+            _chai.expect(calledSubscribeFunction).to.be.true;
 
             customPubsub.publish('testEvent');
 
@@ -9137,12 +9140,37 @@ _mocha.describe('pubsub', () => {
         }
     });
 
-    _mocha.it('should return the subscription object returned by the subscribed lifecycle function', () => {
+    _mocha.it('should prevent subscription when the subscribe lifecycle function returns false', () => {
+        let subscriptionExecuted = false;
+
+        const pubsub = _Pubsub();
+
+        pubsub.defineDispatcher('testEvent', {
+            allowPublicPublish: true,
+            subscribeFunction () {
+                return false;
+            }
+        });
+
+        {
+            const subscription = pubsub.subscribe('on', 'testEvent', () => {
+                subscriptionExecuted = true;
+            });
+
+            _chai.expect(subscription.subscribed).to.not.be.true;
+
+            pubsub.publish('testEvent');
+
+            _chai.expect(subscriptionExecuted).to.be.false;
+        }
+    });
+
+    _mocha.it('should return the subscription object returned by the subscribe lifecycle function', () => {
         const customSubscription = {},
             pubsub = _Pubsub();
 
         pubsub.defineDispatcher('testEvent', {
-            subscribedFunction () {
+            subscribeFunction () {
                 return customSubscription;
             }
         });
@@ -9154,8 +9182,8 @@ _mocha.describe('pubsub', () => {
         }
     });
 
-    _mocha.it('should execute the unsubscribed lifecycle function when the event is unsubscribed from', () => {
-        let calledUnsubscribedFunction,
+    _mocha.it('should execute the unsubscribe lifecycle function when the event is unsubscribed from', () => {
+        let calledUnsubscribeFunction,
             subscriptionExecuted;
 
         const pubsub = _Pubsub(),
@@ -9167,7 +9195,7 @@ _mocha.describe('pubsub', () => {
 
         pubsub.defineDispatcher('testEvent', {
             allowPublicPublish: true,
-            unsubscribedFunction ({
+            unsubscribeFunction ({
                 config,
                 dispatcher
             }) {
@@ -9177,8 +9205,8 @@ _mocha.describe('pubsub', () => {
                 _chai.expect(config).to.have.property('publicSubscription', true);
                 _chai.expect(config).to.have.property('stageName', 'on');
                 _chai.expect(config).to.have.property('state').that.is.an('object');
-                _chai.expect(dispatcher).to.be.an.instanceOf(_pubsub.Dispatcher);
-                calledUnsubscribedFunction = true;
+                _chai.expect(dispatcher).to.be.an.instanceOf(_Dispatcher);
+                calledUnsubscribeFunction = true;
             }
         });
 
@@ -9191,14 +9219,14 @@ _mocha.describe('pubsub', () => {
 
             subscription.unsubscribe();
 
-            _chai.expect(calledUnsubscribedFunction).to.be.true;
+            _chai.expect(calledUnsubscribeFunction).to.be.true;
 
-            calledUnsubscribedFunction = false;
+            calledUnsubscribeFunction = false;
             subscriptionExecuted = false;
 
             subscriptionConfig.callbackFunction = event => {
                 event.unsubscribe();
-                _chai.expect(calledUnsubscribedFunction).to.be.true;
+                _chai.expect(calledUnsubscribeFunction).to.be.true;
                 subscriptionExecuted = true;
             };
 
@@ -9209,8 +9237,8 @@ _mocha.describe('pubsub', () => {
         }
     });
 
-    _mocha.it('should allow a method name as a late bound unsubscribed lifecycle function', () => {
-        let calledUnsubscribedFunction,
+    _mocha.it('should allow a method name as a late bound unsubscribe lifecycle function', () => {
+        let calledUnsubscribeFunction,
             subscriptionExecuted;
 
         const CustomPubsub = _make(_Pubsub, {
@@ -9227,14 +9255,14 @@ _mocha.describe('pubsub', () => {
                     _chai.expect(config).to.have.property('publicSubscription', true);
                     _chai.expect(config).to.have.property('stageName', 'on');
                     _chai.expect(config).to.have.property('state').that.is.an('object');
-                    _chai.expect(dispatcher).to.be.an.instanceOf(_pubsub.Dispatcher);
-                    calledUnsubscribedFunction = true;
+                    _chai.expect(dispatcher).to.be.an.instanceOf(_Dispatcher);
+                    calledUnsubscribeFunction = true;
                 }
             }, {
                 _pubsub: {
                     testEvent: {
                         allowPublicPublish: true,
-                        unsubscribedFunction: '_unsubscribedTestEvent'
+                        unsubscribeFunction: '_unsubscribedTestEvent'
                     }
                 }
             }),
@@ -9249,14 +9277,14 @@ _mocha.describe('pubsub', () => {
 
             subscription.unsubscribe();
 
-            _chai.expect(calledUnsubscribedFunction).to.be.true;
+            _chai.expect(calledUnsubscribeFunction).to.be.true;
 
-            calledUnsubscribedFunction = false;
+            calledUnsubscribeFunction = false;
             subscriptionExecuted = false;
 
             customPubsub.callbackFunction = event => {
                 event.unsubscribe();
-                _chai.expect(calledUnsubscribedFunction).to.be.true;
+                _chai.expect(calledUnsubscribeFunction).to.be.true;
                 subscriptionExecuted = true;
             };
 
@@ -9267,8 +9295,8 @@ _mocha.describe('pubsub', () => {
         }
     });
 
-    _mocha.it('should allow a method name as a late bound unsubscribed lifecycle function with a custom lifecycle host', () => {
-        let calledUnsubscribedFunction,
+    _mocha.it('should allow a method name as a late bound unsubscribe lifecycle function with a custom lifecycle host', () => {
+        let calledUnsubscribeFunction,
             subscriptionExecuted;
 
         const customHost = {
@@ -9287,8 +9315,8 @@ _mocha.describe('pubsub', () => {
                     _chai.expect(config).to.have.property('publicSubscription', true);
                     _chai.expect(config).to.have.property('stageName', 'on');
                     _chai.expect(config).to.have.property('state').that.is.an('object');
-                    _chai.expect(dispatcher).to.be.an.instanceOf(_pubsub.Dispatcher);
-                    calledUnsubscribedFunction = true;
+                    _chai.expect(dispatcher).to.be.an.instanceOf(_Dispatcher);
+                    calledUnsubscribeFunction = true;
                 }
             },
             CustomPubsub = _make(_Pubsub, {}, {
@@ -9296,7 +9324,7 @@ _mocha.describe('pubsub', () => {
                     testEvent: {
                         allowPublicPublish: true,
                         lifecycleHost: customLifecycleHost,
-                        unsubscribedFunction: '_unsubscribedTestEvent'
+                        unsubscribeFunction: '_unsubscribedTestEvent'
                     }
                 }
             }),
@@ -9314,14 +9342,14 @@ _mocha.describe('pubsub', () => {
 
             subscription.unsubscribe();
 
-            _chai.expect(calledUnsubscribedFunction).to.be.true;
+            _chai.expect(calledUnsubscribeFunction).to.be.true;
 
-            calledUnsubscribedFunction = false;
+            calledUnsubscribeFunction = false;
             subscriptionExecuted = false;
 
             customPubsub.callbackFunction = event => {
                 event.unsubscribe();
-                _chai.expect(calledUnsubscribedFunction).to.be.true;
+                _chai.expect(calledUnsubscribeFunction).to.be.true;
                 subscriptionExecuted = true;
             };
 
@@ -9335,8 +9363,8 @@ _mocha.describe('pubsub', () => {
         }
     });
 
-    _mocha.it('should prevent unsubscription when the unsubscribed lifecycle function returns false', () => {
-        let calledUnsubscribedFunction,
+    _mocha.it('should prevent unsubscription when the unsubscribe lifecycle function returns false', () => {
+        let calledUnsubscribeFunction,
             subscriptionExecuted;
 
         const pubsub = _Pubsub(),
@@ -9351,7 +9379,7 @@ _mocha.describe('pubsub', () => {
             'testEvent1'
         ], {
             allowPublicPublish: true,
-            unsubscribedFunction ({
+            unsubscribeFunction ({
                 config,
                 dispatcher
             }) {
@@ -9361,8 +9389,8 @@ _mocha.describe('pubsub', () => {
                 _chai.expect(config).to.have.property('publicSubscription', true);
                 _chai.expect(config).to.have.property('stageName', 'on');
                 _chai.expect(config).to.have.property('state').that.is.an('object');
-                _chai.expect(dispatcher).to.be.an.instanceOf(_pubsub.Dispatcher);
-                calledUnsubscribedFunction = true;
+                _chai.expect(dispatcher).to.be.an.instanceOf(_Dispatcher);
+                calledUnsubscribeFunction = true;
                 return false;
             }
         });
@@ -9374,20 +9402,20 @@ _mocha.describe('pubsub', () => {
 
             _chai.expect(subscriptionExecuted).to.be.true;
             _chai.expect(subscription.unsubscribe()).to.be.false;
-            _chai.expect(calledUnsubscribedFunction).to.be.true;
+            _chai.expect(calledUnsubscribeFunction).to.be.true;
             _chai.expect(subscription.subscribed).to.be.true;
 
             subscriptionExecuted = false;
             pubsub.publish('testEvent0');
             _chai.expect(subscriptionExecuted).to.be.true;
 
-            calledUnsubscribedFunction = false;
+            calledUnsubscribeFunction = false;
             subscriptionExecuted = false;
 
             subscriptionConfig.callbackFunction = event => {
                 _chai.expect(event.unsubscribe()).to.be.false;
                 event.unsubscribe();
-                _chai.expect(calledUnsubscribedFunction).to.be.true;
+                _chai.expect(calledUnsubscribeFunction).to.be.true;
                 subscriptionExecuted = true;
             };
 
@@ -9395,7 +9423,7 @@ _mocha.describe('pubsub', () => {
             pubsub.publish('testEvent1');
             _chai.expect(subscriptionExecuted).to.be.true;
 
-            calledUnsubscribedFunction = false;
+            calledUnsubscribeFunction = false;
             subscriptionExecuted = false;
             pubsub.publish('testEvent0');
             _chai.expect(subscriptionExecuted).to.be.true;
@@ -9409,7 +9437,7 @@ _mocha.describe('pubsub', () => {
             testSubscription0 = pubsub.onceOn('destroy', event => {
                 _chai.expect(pubsub).to.have.property('destroyed', false);
                 subscriptionsExecuted.push('onceOnDestroy');
-                event.preventDefault();
+                event.prevent();
             }),
             testSubscription1 = pubsub.on('destroy', () => {
                 _chai.expect(pubsub).to.have.property('destroyed', false);
@@ -9452,7 +9480,7 @@ _mocha.describe('pubsub', () => {
                 'b',
                 'c'
             ]);
-            subscriptionsExecuted.push('defaultDestroy');
+            subscriptionsExecuted.push('completeDestroy');
             Reflect.apply(_Pubsub.prototype._destroy, this, args);
         };
 
@@ -9462,7 +9490,7 @@ _mocha.describe('pubsub', () => {
                 'b',
                 'c'
             ]);
-            subscriptionsExecuted.push('defaultDestroyComplete');
+            subscriptionsExecuted.push('completeDestroyComplete');
             Reflect.apply(_Pubsub.prototype._destroyComplete, this, args);
         };
 
@@ -9493,9 +9521,9 @@ _mocha.describe('pubsub', () => {
         _chai.expect(subscriptionsExecuted).to.deep.equal([
             'onAnotherEvent',
             'onDestroy',
-            'defaultDestroy',
+            'completeDestroy',
             'onDestroyComplete',
-            'defaultDestroyComplete',
+            'completeDestroyComplete',
             'afterDestroyComplete'
         ]);
         _chai.expect(testSubscription1).to.have.property('subscribed', false);
@@ -9516,5 +9544,71 @@ _mocha.describe('pubsub', () => {
 
         _chai.expect(pubsub).to.have.property('destroyed', true);
         _chai.expect(subscriptionsExecuted).to.deep.equal([]);
+    });
+
+    _mocha.it('should return false when unsubscribing from an event with an invalid internal unsubscribe function', () => {
+        const event = _Event();
+
+        _chai.expect(event.unsubscribe()).to.be.false;
+    });
+
+    _mocha.it('should return false when unsubscribing from a subscription with an invalid internal unsubscribe function', () => {
+        const subscription = _Subscription({
+            subscribed: true
+        });
+
+        _chai.expect(subscription.unsubscribe()).to.be.false;
+    });
+
+    _mocha.it('should allow custom stage subscription shortcut methods', () => {
+        const pubsub = _make(_Pubsub, {}, {
+                _pubsub: {
+                    testEvent: {
+                        allowPublicPublish: true,
+                        stages: [
+                            'custom',
+                            'complete'
+                        ]
+                    }
+                },
+                _subscriptionMethods: 'custom'
+            })(),
+            subscriptionsExecuted = [];
+
+        pubsub.custom('testEvent', () => {
+            subscriptionsExecuted.push('public custom');
+        });
+
+        pubsub._custom('testEvent', () => {
+            subscriptionsExecuted.push('protected custom');
+        });
+
+        pubsub.onceCustom('testEvent', () => {
+            subscriptionsExecuted.push('once public custom');
+        });
+
+        pubsub._onceCustom('testEvent', () => {
+            subscriptionsExecuted.push('once protected custom');
+        });
+
+        pubsub.publish('testEvent');
+
+        _chai.expect(subscriptionsExecuted).to.deep.equal([
+            'public custom',
+            'protected custom',
+            'once public custom',
+            'once protected custom'
+        ]);
+
+        pubsub.publish('testEvent');
+
+        _chai.expect(subscriptionsExecuted).to.deep.equal([
+            'public custom',
+            'protected custom',
+            'once public custom',
+            'once protected custom',
+            'public custom',
+            'protected custom'
+        ]);
     });
 });
