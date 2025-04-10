@@ -6856,7 +6856,7 @@ _mocha.describe('pubsub', () => {
         ]);
     });
 
-    _mocha.it('should execute the dispatch stopped lifecycle function when dispatch is stopped', () => {
+    _mocha.it('should execute the stop dispatch lifecycle function when dispatch is stopped', () => {
         const distributor0 = _Pubsub(),
             distributor0a = _Pubsub(),
             distributor0b = _Pubsub(),
@@ -6869,14 +6869,14 @@ _mocha.describe('pubsub', () => {
             publisher = _Pubsub(),
             subscriptionsExecuted = [];
 
-        let calledDispatchStoppedFunction,
+        let calledStopDispatchFunction,
             eventObject;
 
         publisher.defineDispatcher('testEvent', {
             allowPublicPublish: true,
-            dispatchStoppedFunction (event) {
+            stopDispatchFunction (event) {
                 _chai.expect(event).to.equal(eventObject);
-                calledDispatchStoppedFunction = true;
+                calledStopDispatchFunction = true;
             }
         });
 
@@ -6936,7 +6936,7 @@ _mocha.describe('pubsub', () => {
                 _chai.expect(event).to.equal(eventObject);
                 _chai.expect(event).to.have.property('distributor', pubsub);
                 _chai.expect(event).to.have.property('publisher', publisher);
-                _chai.expect(calledDispatchStoppedFunction).to.be.true;
+                _chai.expect(calledStopDispatchFunction).to.be.true;
                 subscriptionsExecuted.push(`${name} after 0`);
             });
 
@@ -6944,7 +6944,7 @@ _mocha.describe('pubsub', () => {
                 _chai.expect(event).to.equal(eventObject);
                 _chai.expect(event).to.have.property('distributor', pubsub);
                 _chai.expect(event).to.have.property('publisher', publisher);
-                _chai.expect(calledDispatchStoppedFunction).to.be.true;
+                _chai.expect(calledStopDispatchFunction).to.be.true;
                 subscriptionsExecuted.push(`${name} after 1`);
             });
 
@@ -6952,7 +6952,7 @@ _mocha.describe('pubsub', () => {
                 _chai.expect(event).to.equal(eventObject);
                 _chai.expect(event).to.have.property('distributor', pubsub);
                 _chai.expect(event).to.have.property('publisher', publisher);
-                _chai.expect(calledDispatchStoppedFunction).to.be.true;
+                _chai.expect(calledStopDispatchFunction).to.be.true;
                 subscriptionsExecuted.push(`${name} after 2`);
             });
 
@@ -6969,9 +6969,9 @@ _mocha.describe('pubsub', () => {
                 _chai.expect(event.dispatchStopped).to.be.true;
 
                 if (pubsub === publisher) {
-                    _chai.expect(calledDispatchStoppedFunction).to.be.undefined;
+                    _chai.expect(calledStopDispatchFunction).to.be.undefined;
                 } else {
-                    _chai.expect(calledDispatchStoppedFunction).to.be.true;
+                    _chai.expect(calledStopDispatchFunction).to.be.true;
                 }
 
                 subscriptionsExecuted.push(`${name} before 0`);
@@ -6981,7 +6981,7 @@ _mocha.describe('pubsub', () => {
                 _chai.expect(event).to.equal(eventObject);
                 _chai.expect(event).to.have.property('distributor', pubsub);
                 _chai.expect(event).to.have.property('publisher', publisher);
-                _chai.expect(calledDispatchStoppedFunction).to.be.true;
+                _chai.expect(calledStopDispatchFunction).to.be.true;
                 subscriptionsExecuted.push(`${name} before 1`);
             });
 
@@ -6989,7 +6989,7 @@ _mocha.describe('pubsub', () => {
                 _chai.expect(event).to.equal(eventObject);
                 _chai.expect(event).to.have.property('distributor', pubsub);
                 _chai.expect(event).to.have.property('publisher', publisher);
-                _chai.expect(calledDispatchStoppedFunction).to.be.true;
+                _chai.expect(calledStopDispatchFunction).to.be.true;
                 subscriptionsExecuted.push(`${name} before 2`);
             });
 
@@ -6997,7 +6997,7 @@ _mocha.describe('pubsub', () => {
                 _chai.expect(event).to.equal(eventObject);
                 _chai.expect(event).to.have.property('distributor', pubsub);
                 _chai.expect(event).to.have.property('publisher', publisher);
-                _chai.expect(calledDispatchStoppedFunction).to.be.true;
+                _chai.expect(calledStopDispatchFunction).to.be.true;
                 subscriptionsExecuted.push(`${name} on 0`);
             });
 
@@ -7005,7 +7005,7 @@ _mocha.describe('pubsub', () => {
                 _chai.expect(event).to.equal(eventObject);
                 _chai.expect(event).to.have.property('distributor', pubsub);
                 _chai.expect(event).to.have.property('publisher', publisher);
-                _chai.expect(calledDispatchStoppedFunction).to.be.true;
+                _chai.expect(calledStopDispatchFunction).to.be.true;
                 subscriptionsExecuted.push(`${name} on 1`);
             });
 
@@ -7013,7 +7013,7 @@ _mocha.describe('pubsub', () => {
                 _chai.expect(event).to.equal(eventObject);
                 _chai.expect(event).to.have.property('distributor', pubsub);
                 _chai.expect(event).to.have.property('publisher', publisher);
-                _chai.expect(calledDispatchStoppedFunction).to.be.true;
+                _chai.expect(calledStopDispatchFunction).to.be.true;
                 subscriptionsExecuted.push(`${name} on 2`);
             });
         });
@@ -7094,20 +7094,20 @@ _mocha.describe('pubsub', () => {
         ]);
     });
 
-    _mocha.it('should allow a method name as a late bound dispatch stopped lifecycle function', () => {
-        let calledDispatchStoppedFunction,
+    _mocha.it('should allow a method name as a late bound stop dispatch lifecycle function', () => {
+        let calledStopDispatchFunction,
             eventObject;
 
         const CustomPubsub = _make(_Pubsub, {
-                _dispatchStoppedTestEvent (event) {
+                _stopDispatchTestEvent (event) {
                     _chai.expect(event).to.equal(eventObject);
-                    calledDispatchStoppedFunction = true;
+                    calledStopDispatchFunction = true;
                 }
             }, {
                 _pubsub: {
                     testEvent: {
                         allowPublicPublish: true,
-                        dispatchStoppedFunction: '_dispatchStoppedTestEvent'
+                        stopDispatchFunction: '_stopDispatchTestEvent'
                     }
                 }
             }),
@@ -7179,7 +7179,7 @@ _mocha.describe('pubsub', () => {
                 _chai.expect(event).to.equal(eventObject);
                 _chai.expect(event).to.have.property('distributor', pubsub);
                 _chai.expect(event).to.have.property('publisher', publisher);
-                _chai.expect(calledDispatchStoppedFunction).to.be.true;
+                _chai.expect(calledStopDispatchFunction).to.be.true;
                 subscriptionsExecuted.push(`${name} after 0`);
             });
 
@@ -7187,7 +7187,7 @@ _mocha.describe('pubsub', () => {
                 _chai.expect(event).to.equal(eventObject);
                 _chai.expect(event).to.have.property('distributor', pubsub);
                 _chai.expect(event).to.have.property('publisher', publisher);
-                _chai.expect(calledDispatchStoppedFunction).to.be.true;
+                _chai.expect(calledStopDispatchFunction).to.be.true;
                 subscriptionsExecuted.push(`${name} after 1`);
             });
 
@@ -7195,7 +7195,7 @@ _mocha.describe('pubsub', () => {
                 _chai.expect(event).to.equal(eventObject);
                 _chai.expect(event).to.have.property('distributor', pubsub);
                 _chai.expect(event).to.have.property('publisher', publisher);
-                _chai.expect(calledDispatchStoppedFunction).to.be.true;
+                _chai.expect(calledStopDispatchFunction).to.be.true;
                 subscriptionsExecuted.push(`${name} after 2`);
             });
 
@@ -7212,9 +7212,9 @@ _mocha.describe('pubsub', () => {
                 _chai.expect(event.dispatchStopped).to.be.true;
 
                 if (pubsub === publisher) {
-                    _chai.expect(calledDispatchStoppedFunction).to.be.undefined;
+                    _chai.expect(calledStopDispatchFunction).to.be.undefined;
                 } else {
-                    _chai.expect(calledDispatchStoppedFunction).to.be.true;
+                    _chai.expect(calledStopDispatchFunction).to.be.true;
                 }
 
                 subscriptionsExecuted.push(`${name} before 0`);
@@ -7224,7 +7224,7 @@ _mocha.describe('pubsub', () => {
                 _chai.expect(event).to.equal(eventObject);
                 _chai.expect(event).to.have.property('distributor', pubsub);
                 _chai.expect(event).to.have.property('publisher', publisher);
-                _chai.expect(calledDispatchStoppedFunction).to.be.true;
+                _chai.expect(calledStopDispatchFunction).to.be.true;
                 subscriptionsExecuted.push(`${name} before 1`);
             });
 
@@ -7232,7 +7232,7 @@ _mocha.describe('pubsub', () => {
                 _chai.expect(event).to.equal(eventObject);
                 _chai.expect(event).to.have.property('distributor', pubsub);
                 _chai.expect(event).to.have.property('publisher', publisher);
-                _chai.expect(calledDispatchStoppedFunction).to.be.true;
+                _chai.expect(calledStopDispatchFunction).to.be.true;
                 subscriptionsExecuted.push(`${name} before 2`);
             });
 
@@ -7240,7 +7240,7 @@ _mocha.describe('pubsub', () => {
                 _chai.expect(event).to.equal(eventObject);
                 _chai.expect(event).to.have.property('distributor', pubsub);
                 _chai.expect(event).to.have.property('publisher', publisher);
-                _chai.expect(calledDispatchStoppedFunction).to.be.true;
+                _chai.expect(calledStopDispatchFunction).to.be.true;
                 subscriptionsExecuted.push(`${name} on 0`);
             });
 
@@ -7248,7 +7248,7 @@ _mocha.describe('pubsub', () => {
                 _chai.expect(event).to.equal(eventObject);
                 _chai.expect(event).to.have.property('distributor', pubsub);
                 _chai.expect(event).to.have.property('publisher', publisher);
-                _chai.expect(calledDispatchStoppedFunction).to.be.true;
+                _chai.expect(calledStopDispatchFunction).to.be.true;
                 subscriptionsExecuted.push(`${name} on 1`);
             });
 
@@ -7256,7 +7256,7 @@ _mocha.describe('pubsub', () => {
                 _chai.expect(event).to.equal(eventObject);
                 _chai.expect(event).to.have.property('distributor', pubsub);
                 _chai.expect(event).to.have.property('publisher', publisher);
-                _chai.expect(calledDispatchStoppedFunction).to.be.true;
+                _chai.expect(calledStopDispatchFunction).to.be.true;
                 subscriptionsExecuted.push(`${name} on 2`);
             });
         });
@@ -7337,22 +7337,22 @@ _mocha.describe('pubsub', () => {
         ]);
     });
 
-    _mocha.it('should allow a method name as a late bound dispatch stopped lifecycle function with a custom lifecycle host', () => {
-        let calledDispatchStoppedFunction,
+    _mocha.it('should allow a method name as a late bound stop dispatch lifecycle function with a custom lifecycle host', () => {
+        let calledStopDispatchFunction,
             eventObject;
 
         const customLifecycleHost = {
-                _dispatchStoppedTestEvent (event) {
+                _stopDispatchTestEvent (event) {
                     _chai.expect(event).to.equal(eventObject);
-                    calledDispatchStoppedFunction = true;
+                    calledStopDispatchFunction = true;
                 }
             },
             CustomPubsub = _make(_Pubsub, {}, {
                 _pubsub: {
                     testEvent: {
                         allowPublicPublish: true,
-                        dispatchStoppedFunction: '_dispatchStoppedTestEvent',
-                        lifecycleHost: customLifecycleHost
+                        lifecycleHost: customLifecycleHost,
+                        stopDispatchFunction: '_stopDispatchTestEvent'
                     }
                 }
             }),
@@ -7424,7 +7424,7 @@ _mocha.describe('pubsub', () => {
                 _chai.expect(event).to.equal(eventObject);
                 _chai.expect(event).to.have.property('distributor', pubsub);
                 _chai.expect(event).to.have.property('publisher', publisher);
-                _chai.expect(calledDispatchStoppedFunction).to.be.true;
+                _chai.expect(calledStopDispatchFunction).to.be.true;
                 subscriptionsExecuted.push(`${name} after 0`);
             });
 
@@ -7432,7 +7432,7 @@ _mocha.describe('pubsub', () => {
                 _chai.expect(event).to.equal(eventObject);
                 _chai.expect(event).to.have.property('distributor', pubsub);
                 _chai.expect(event).to.have.property('publisher', publisher);
-                _chai.expect(calledDispatchStoppedFunction).to.be.true;
+                _chai.expect(calledStopDispatchFunction).to.be.true;
                 subscriptionsExecuted.push(`${name} after 1`);
             });
 
@@ -7440,7 +7440,7 @@ _mocha.describe('pubsub', () => {
                 _chai.expect(event).to.equal(eventObject);
                 _chai.expect(event).to.have.property('distributor', pubsub);
                 _chai.expect(event).to.have.property('publisher', publisher);
-                _chai.expect(calledDispatchStoppedFunction).to.be.true;
+                _chai.expect(calledStopDispatchFunction).to.be.true;
                 subscriptionsExecuted.push(`${name} after 2`);
             });
 
@@ -7457,9 +7457,9 @@ _mocha.describe('pubsub', () => {
                 _chai.expect(event.dispatchStopped).to.be.true;
 
                 if (pubsub === publisher) {
-                    _chai.expect(calledDispatchStoppedFunction).to.be.undefined;
+                    _chai.expect(calledStopDispatchFunction).to.be.undefined;
                 } else {
-                    _chai.expect(calledDispatchStoppedFunction).to.be.true;
+                    _chai.expect(calledStopDispatchFunction).to.be.true;
                 }
 
                 subscriptionsExecuted.push(`${name} before 0`);
@@ -7469,7 +7469,7 @@ _mocha.describe('pubsub', () => {
                 _chai.expect(event).to.equal(eventObject);
                 _chai.expect(event).to.have.property('distributor', pubsub);
                 _chai.expect(event).to.have.property('publisher', publisher);
-                _chai.expect(calledDispatchStoppedFunction).to.be.true;
+                _chai.expect(calledStopDispatchFunction).to.be.true;
                 subscriptionsExecuted.push(`${name} before 1`);
             });
 
@@ -7477,7 +7477,7 @@ _mocha.describe('pubsub', () => {
                 _chai.expect(event).to.equal(eventObject);
                 _chai.expect(event).to.have.property('distributor', pubsub);
                 _chai.expect(event).to.have.property('publisher', publisher);
-                _chai.expect(calledDispatchStoppedFunction).to.be.true;
+                _chai.expect(calledStopDispatchFunction).to.be.true;
                 subscriptionsExecuted.push(`${name} before 2`);
             });
 
@@ -7485,7 +7485,7 @@ _mocha.describe('pubsub', () => {
                 _chai.expect(event).to.equal(eventObject);
                 _chai.expect(event).to.have.property('distributor', pubsub);
                 _chai.expect(event).to.have.property('publisher', publisher);
-                _chai.expect(calledDispatchStoppedFunction).to.be.true;
+                _chai.expect(calledStopDispatchFunction).to.be.true;
                 subscriptionsExecuted.push(`${name} on 0`);
             });
 
@@ -7493,7 +7493,7 @@ _mocha.describe('pubsub', () => {
                 _chai.expect(event).to.equal(eventObject);
                 _chai.expect(event).to.have.property('distributor', pubsub);
                 _chai.expect(event).to.have.property('publisher', publisher);
-                _chai.expect(calledDispatchStoppedFunction).to.be.true;
+                _chai.expect(calledStopDispatchFunction).to.be.true;
                 subscriptionsExecuted.push(`${name} on 1`);
             });
 
@@ -7501,7 +7501,7 @@ _mocha.describe('pubsub', () => {
                 _chai.expect(event).to.equal(eventObject);
                 _chai.expect(event).to.have.property('distributor', pubsub);
                 _chai.expect(event).to.have.property('publisher', publisher);
-                _chai.expect(calledDispatchStoppedFunction).to.be.true;
+                _chai.expect(calledStopDispatchFunction).to.be.true;
                 subscriptionsExecuted.push(`${name} on 2`);
             });
         });
@@ -7582,7 +7582,7 @@ _mocha.describe('pubsub', () => {
         ]);
     });
 
-    _mocha.it('should execute the distribution stopped lifecycle function when distribution is stopped', () => {
+    _mocha.it('should execute the stop distribution lifecycle function when distribution is stopped', () => {
         const distributor0 = _Pubsub(),
             distributor0a = _Pubsub(),
             distributor0b = _Pubsub(),
@@ -7595,14 +7595,14 @@ _mocha.describe('pubsub', () => {
             publisher = _Pubsub(),
             subscriptionsExecuted = [];
 
-        let calledDistributionStoppedFunction,
+        let calledStopDistributionFunction,
             eventObject;
 
         publisher.defineDispatcher('testEvent', {
             allowPublicPublish: true,
-            distributionStoppedFunction (event) {
+            stopDistributionFunction (event) {
                 _chai.expect(event).to.equal(eventObject);
-                calledDistributionStoppedFunction = true;
+                calledStopDistributionFunction = true;
             }
         });
 
@@ -7662,7 +7662,7 @@ _mocha.describe('pubsub', () => {
                 _chai.expect(event).to.equal(eventObject);
                 _chai.expect(event).to.have.property('distributor', pubsub);
                 _chai.expect(event).to.have.property('publisher', publisher);
-                _chai.expect(calledDistributionStoppedFunction).to.be.true;
+                _chai.expect(calledStopDistributionFunction).to.be.true;
                 subscriptionsExecuted.push(`${name} after 0`);
             });
 
@@ -7670,7 +7670,7 @@ _mocha.describe('pubsub', () => {
                 _chai.expect(event).to.equal(eventObject);
                 _chai.expect(event).to.have.property('distributor', pubsub);
                 _chai.expect(event).to.have.property('publisher', publisher);
-                _chai.expect(calledDistributionStoppedFunction).to.be.true;
+                _chai.expect(calledStopDistributionFunction).to.be.true;
                 subscriptionsExecuted.push(`${name} after 1`);
             });
 
@@ -7678,7 +7678,7 @@ _mocha.describe('pubsub', () => {
                 _chai.expect(event).to.equal(eventObject);
                 _chai.expect(event).to.have.property('distributor', pubsub);
                 _chai.expect(event).to.have.property('publisher', publisher);
-                _chai.expect(calledDistributionStoppedFunction).to.be.true;
+                _chai.expect(calledStopDistributionFunction).to.be.true;
                 subscriptionsExecuted.push(`${name} after 2`);
             });
 
@@ -7693,7 +7693,7 @@ _mocha.describe('pubsub', () => {
                 _chai.expect(event).to.have.property('publisher', publisher);
                 event.stopDistribution();
                 _chai.expect(event.distributionStopped).to.be.true;
-                _chai.expect(calledDistributionStoppedFunction).to.be.undefined;
+                _chai.expect(calledStopDistributionFunction).to.be.undefined;
                 subscriptionsExecuted.push(`${name} before 0`);
             });
 
@@ -7701,7 +7701,7 @@ _mocha.describe('pubsub', () => {
                 _chai.expect(event).to.equal(eventObject);
                 _chai.expect(event).to.have.property('distributor', pubsub);
                 _chai.expect(event).to.have.property('publisher', publisher);
-                _chai.expect(calledDistributionStoppedFunction).to.be.undefined;
+                _chai.expect(calledStopDistributionFunction).to.be.undefined;
                 subscriptionsExecuted.push(`${name} before 1`);
             });
 
@@ -7709,7 +7709,7 @@ _mocha.describe('pubsub', () => {
                 _chai.expect(event).to.equal(eventObject);
                 _chai.expect(event).to.have.property('distributor', pubsub);
                 _chai.expect(event).to.have.property('publisher', publisher);
-                _chai.expect(calledDistributionStoppedFunction).to.be.undefined;
+                _chai.expect(calledStopDistributionFunction).to.be.undefined;
                 subscriptionsExecuted.push(`${name} before 2`);
             });
 
@@ -7724,7 +7724,7 @@ _mocha.describe('pubsub', () => {
                 _chai.expect(event).to.equal(eventObject);
                 _chai.expect(event).to.have.property('distributor', pubsub);
                 _chai.expect(event).to.have.property('publisher', publisher);
-                _chai.expect(calledDistributionStoppedFunction).to.be.true;
+                _chai.expect(calledStopDistributionFunction).to.be.true;
                 subscriptionsExecuted.push(`${name} on 1`);
             });
 
@@ -7732,7 +7732,7 @@ _mocha.describe('pubsub', () => {
                 _chai.expect(event).to.equal(eventObject);
                 _chai.expect(event).to.have.property('distributor', pubsub);
                 _chai.expect(event).to.have.property('publisher', publisher);
-                _chai.expect(calledDistributionStoppedFunction).to.be.true;
+                _chai.expect(calledStopDistributionFunction).to.be.true;
                 subscriptionsExecuted.push(`${name} on 2`);
             });
         });
@@ -7806,20 +7806,20 @@ _mocha.describe('pubsub', () => {
         ]);
     });
 
-    _mocha.it('should allow a method name as a late bound distribution stopped lifecycle function', () => {
-        let calledDistributionStoppedFunction,
+    _mocha.it('should allow a method name as a late bound stop distribution lifecycle function', () => {
+        let calledStopDistributionFunction,
             eventObject;
 
         const CustomPubsub = _make(_Pubsub, {
-                _distributionStoppedTestEvent (event) {
+                _stopDistributionTestEvent (event) {
                     _chai.expect(event).to.equal(eventObject);
-                    calledDistributionStoppedFunction = true;
+                    calledStopDistributionFunction = true;
                 }
             }, {
                 _pubsub: {
                     testEvent: {
                         allowPublicPublish: true,
-                        distributionStoppedFunction: '_distributionStoppedTestEvent'
+                        stopDistributionFunction: '_stopDistributionTestEvent'
                     }
                 }
             }),
@@ -7891,7 +7891,7 @@ _mocha.describe('pubsub', () => {
                 _chai.expect(event).to.equal(eventObject);
                 _chai.expect(event).to.have.property('distributor', pubsub);
                 _chai.expect(event).to.have.property('publisher', publisher);
-                _chai.expect(calledDistributionStoppedFunction).to.be.true;
+                _chai.expect(calledStopDistributionFunction).to.be.true;
                 subscriptionsExecuted.push(`${name} after 0`);
             });
 
@@ -7899,7 +7899,7 @@ _mocha.describe('pubsub', () => {
                 _chai.expect(event).to.equal(eventObject);
                 _chai.expect(event).to.have.property('distributor', pubsub);
                 _chai.expect(event).to.have.property('publisher', publisher);
-                _chai.expect(calledDistributionStoppedFunction).to.be.true;
+                _chai.expect(calledStopDistributionFunction).to.be.true;
                 subscriptionsExecuted.push(`${name} after 1`);
             });
 
@@ -7907,7 +7907,7 @@ _mocha.describe('pubsub', () => {
                 _chai.expect(event).to.equal(eventObject);
                 _chai.expect(event).to.have.property('distributor', pubsub);
                 _chai.expect(event).to.have.property('publisher', publisher);
-                _chai.expect(calledDistributionStoppedFunction).to.be.true;
+                _chai.expect(calledStopDistributionFunction).to.be.true;
                 subscriptionsExecuted.push(`${name} after 2`);
             });
 
@@ -7922,7 +7922,7 @@ _mocha.describe('pubsub', () => {
                 _chai.expect(event).to.have.property('publisher', publisher);
                 event.stopDistribution();
                 _chai.expect(event.distributionStopped).to.be.true;
-                _chai.expect(calledDistributionStoppedFunction).to.be.undefined;
+                _chai.expect(calledStopDistributionFunction).to.be.undefined;
                 subscriptionsExecuted.push(`${name} before 0`);
             });
 
@@ -7930,7 +7930,7 @@ _mocha.describe('pubsub', () => {
                 _chai.expect(event).to.equal(eventObject);
                 _chai.expect(event).to.have.property('distributor', pubsub);
                 _chai.expect(event).to.have.property('publisher', publisher);
-                _chai.expect(calledDistributionStoppedFunction).to.be.undefined;
+                _chai.expect(calledStopDistributionFunction).to.be.undefined;
                 subscriptionsExecuted.push(`${name} before 1`);
             });
 
@@ -7938,7 +7938,7 @@ _mocha.describe('pubsub', () => {
                 _chai.expect(event).to.equal(eventObject);
                 _chai.expect(event).to.have.property('distributor', pubsub);
                 _chai.expect(event).to.have.property('publisher', publisher);
-                _chai.expect(calledDistributionStoppedFunction).to.be.undefined;
+                _chai.expect(calledStopDistributionFunction).to.be.undefined;
                 subscriptionsExecuted.push(`${name} before 2`);
             });
 
@@ -7953,7 +7953,7 @@ _mocha.describe('pubsub', () => {
                 _chai.expect(event).to.equal(eventObject);
                 _chai.expect(event).to.have.property('distributor', pubsub);
                 _chai.expect(event).to.have.property('publisher', publisher);
-                _chai.expect(calledDistributionStoppedFunction).to.be.true;
+                _chai.expect(calledStopDistributionFunction).to.be.true;
                 subscriptionsExecuted.push(`${name} on 1`);
             });
 
@@ -7961,7 +7961,7 @@ _mocha.describe('pubsub', () => {
                 _chai.expect(event).to.equal(eventObject);
                 _chai.expect(event).to.have.property('distributor', pubsub);
                 _chai.expect(event).to.have.property('publisher', publisher);
-                _chai.expect(calledDistributionStoppedFunction).to.be.true;
+                _chai.expect(calledStopDistributionFunction).to.be.true;
                 subscriptionsExecuted.push(`${name} on 2`);
             });
         });
@@ -8035,22 +8035,22 @@ _mocha.describe('pubsub', () => {
         ]);
     });
 
-    _mocha.it('should allow a method name as a late bound distribution stopped lifecycle function with a custom lifecycle host', () => {
-        let calledDistributionStoppedFunction,
+    _mocha.it('should allow a method name as a late bound stop distribution lifecycle function with a custom lifecycle host', () => {
+        let calledStopDistributionFunction,
             eventObject;
 
         const customLifecycleHost = {
-                _distributionStoppedTestEvent (event) {
+                _stopDistributionTestEvent (event) {
                     _chai.expect(event).to.equal(eventObject);
-                    calledDistributionStoppedFunction = true;
+                    calledStopDistributionFunction = true;
                 }
             },
             CustomPubsub = _make(_Pubsub, {}, {
                 _pubsub: {
                     testEvent: {
                         allowPublicPublish: true,
-                        distributionStoppedFunction: '_distributionStoppedTestEvent',
-                        lifecycleHost: customLifecycleHost
+                        lifecycleHost: customLifecycleHost,
+                        stopDistributionFunction: '_stopDistributionTestEvent'
                     }
                 }
             }),
@@ -8122,7 +8122,7 @@ _mocha.describe('pubsub', () => {
                 _chai.expect(event).to.equal(eventObject);
                 _chai.expect(event).to.have.property('distributor', pubsub);
                 _chai.expect(event).to.have.property('publisher', publisher);
-                _chai.expect(calledDistributionStoppedFunction).to.be.true;
+                _chai.expect(calledStopDistributionFunction).to.be.true;
                 subscriptionsExecuted.push(`${name} after 0`);
             });
 
@@ -8130,7 +8130,7 @@ _mocha.describe('pubsub', () => {
                 _chai.expect(event).to.equal(eventObject);
                 _chai.expect(event).to.have.property('distributor', pubsub);
                 _chai.expect(event).to.have.property('publisher', publisher);
-                _chai.expect(calledDistributionStoppedFunction).to.be.true;
+                _chai.expect(calledStopDistributionFunction).to.be.true;
                 subscriptionsExecuted.push(`${name} after 1`);
             });
 
@@ -8138,7 +8138,7 @@ _mocha.describe('pubsub', () => {
                 _chai.expect(event).to.equal(eventObject);
                 _chai.expect(event).to.have.property('distributor', pubsub);
                 _chai.expect(event).to.have.property('publisher', publisher);
-                _chai.expect(calledDistributionStoppedFunction).to.be.true;
+                _chai.expect(calledStopDistributionFunction).to.be.true;
                 subscriptionsExecuted.push(`${name} after 2`);
             });
 
@@ -8153,7 +8153,7 @@ _mocha.describe('pubsub', () => {
                 _chai.expect(event).to.have.property('publisher', publisher);
                 event.stopDistribution();
                 _chai.expect(event.distributionStopped).to.be.true;
-                _chai.expect(calledDistributionStoppedFunction).to.be.undefined;
+                _chai.expect(calledStopDistributionFunction).to.be.undefined;
                 subscriptionsExecuted.push(`${name} before 0`);
             });
 
@@ -8161,7 +8161,7 @@ _mocha.describe('pubsub', () => {
                 _chai.expect(event).to.equal(eventObject);
                 _chai.expect(event).to.have.property('distributor', pubsub);
                 _chai.expect(event).to.have.property('publisher', publisher);
-                _chai.expect(calledDistributionStoppedFunction).to.be.undefined;
+                _chai.expect(calledStopDistributionFunction).to.be.undefined;
                 subscriptionsExecuted.push(`${name} before 1`);
             });
 
@@ -8169,7 +8169,7 @@ _mocha.describe('pubsub', () => {
                 _chai.expect(event).to.equal(eventObject);
                 _chai.expect(event).to.have.property('distributor', pubsub);
                 _chai.expect(event).to.have.property('publisher', publisher);
-                _chai.expect(calledDistributionStoppedFunction).to.be.undefined;
+                _chai.expect(calledStopDistributionFunction).to.be.undefined;
                 subscriptionsExecuted.push(`${name} before 2`);
             });
 
@@ -8184,7 +8184,7 @@ _mocha.describe('pubsub', () => {
                 _chai.expect(event).to.equal(eventObject);
                 _chai.expect(event).to.have.property('distributor', pubsub);
                 _chai.expect(event).to.have.property('publisher', publisher);
-                _chai.expect(calledDistributionStoppedFunction).to.be.true;
+                _chai.expect(calledStopDistributionFunction).to.be.true;
                 subscriptionsExecuted.push(`${name} on 1`);
             });
 
@@ -8192,7 +8192,7 @@ _mocha.describe('pubsub', () => {
                 _chai.expect(event).to.equal(eventObject);
                 _chai.expect(event).to.have.property('distributor', pubsub);
                 _chai.expect(event).to.have.property('publisher', publisher);
-                _chai.expect(calledDistributionStoppedFunction).to.be.true;
+                _chai.expect(calledStopDistributionFunction).to.be.true;
                 subscriptionsExecuted.push(`${name} on 2`);
             });
         });
@@ -8266,7 +8266,7 @@ _mocha.describe('pubsub', () => {
         ]);
     });
 
-    _mocha.it('should execute the event stopped lifecycle function when the event is stopped', () => {
+    _mocha.it('should execute the stop event lifecycle function when the event is stopped', () => {
         const distributor0 = _Pubsub(),
             distributor0a = _Pubsub(),
             distributor0b = _Pubsub(),
@@ -8279,14 +8279,14 @@ _mocha.describe('pubsub', () => {
             publisher = _Pubsub(),
             subscriptionsExecuted = [];
 
-        let calledEventStoppedFunction,
+        let calledStopEventFunction,
             eventObject;
 
         publisher.defineDispatcher('testEvent', {
             allowPublicPublish: true,
-            eventStoppedFunction (event) {
+            stopEventFunction (event) {
                 _chai.expect(event).to.equal(eventObject);
-                calledEventStoppedFunction = true;
+                calledStopEventFunction = true;
             }
         });
 
@@ -8346,7 +8346,7 @@ _mocha.describe('pubsub', () => {
                 _chai.expect(event).to.equal(eventObject);
                 _chai.expect(event).to.have.property('distributor', pubsub);
                 _chai.expect(event).to.have.property('publisher', publisher);
-                _chai.expect(calledEventStoppedFunction).to.be.true;
+                _chai.expect(calledStopEventFunction).to.be.true;
                 subscriptionsExecuted.push(`${name} after 0`);
             });
 
@@ -8354,7 +8354,7 @@ _mocha.describe('pubsub', () => {
                 _chai.expect(event).to.equal(eventObject);
                 _chai.expect(event).to.have.property('distributor', pubsub);
                 _chai.expect(event).to.have.property('publisher', publisher);
-                _chai.expect(calledEventStoppedFunction).to.be.true;
+                _chai.expect(calledStopEventFunction).to.be.true;
                 subscriptionsExecuted.push(`${name} after 1`);
             });
 
@@ -8362,7 +8362,7 @@ _mocha.describe('pubsub', () => {
                 _chai.expect(event).to.equal(eventObject);
                 _chai.expect(event).to.have.property('distributor', pubsub);
                 _chai.expect(event).to.have.property('publisher', publisher);
-                _chai.expect(calledEventStoppedFunction).to.be.true;
+                _chai.expect(calledStopEventFunction).to.be.true;
                 subscriptionsExecuted.push(`${name} after 2`);
             });
 
@@ -8377,7 +8377,7 @@ _mocha.describe('pubsub', () => {
                 _chai.expect(event).to.have.property('publisher', publisher);
                 event.stopEvent();
                 _chai.expect(event.eventStopped).to.be.true;
-                _chai.expect(calledEventStoppedFunction).to.be.undefined;
+                _chai.expect(calledStopEventFunction).to.be.undefined;
                 subscriptionsExecuted.push(`${name} before 0`);
             });
 
@@ -8385,7 +8385,7 @@ _mocha.describe('pubsub', () => {
                 _chai.expect(event).to.equal(eventObject);
                 _chai.expect(event).to.have.property('distributor', pubsub);
                 _chai.expect(event).to.have.property('publisher', publisher);
-                _chai.expect(calledEventStoppedFunction).to.be.undefined;
+                _chai.expect(calledStopEventFunction).to.be.undefined;
                 subscriptionsExecuted.push(`${name} before 1`);
             });
 
@@ -8393,7 +8393,7 @@ _mocha.describe('pubsub', () => {
                 _chai.expect(event).to.equal(eventObject);
                 _chai.expect(event).to.have.property('distributor', pubsub);
                 _chai.expect(event).to.have.property('publisher', publisher);
-                _chai.expect(calledEventStoppedFunction).to.be.undefined;
+                _chai.expect(calledStopEventFunction).to.be.undefined;
                 subscriptionsExecuted.push(`${name} before 2`);
             });
 
@@ -8401,7 +8401,7 @@ _mocha.describe('pubsub', () => {
                 _chai.expect(event).to.equal(eventObject);
                 _chai.expect(event).to.have.property('distributor', pubsub);
                 _chai.expect(event).to.have.property('publisher', publisher);
-                _chai.expect(calledEventStoppedFunction).to.be.true;
+                _chai.expect(calledStopEventFunction).to.be.true;
                 subscriptionsExecuted.push(`${name} on 0`);
             });
 
@@ -8409,7 +8409,7 @@ _mocha.describe('pubsub', () => {
                 _chai.expect(event).to.equal(eventObject);
                 _chai.expect(event).to.have.property('distributor', pubsub);
                 _chai.expect(event).to.have.property('publisher', publisher);
-                _chai.expect(calledEventStoppedFunction).to.be.true;
+                _chai.expect(calledStopEventFunction).to.be.true;
                 subscriptionsExecuted.push(`${name} on 1`);
             });
 
@@ -8417,7 +8417,7 @@ _mocha.describe('pubsub', () => {
                 _chai.expect(event).to.equal(eventObject);
                 _chai.expect(event).to.have.property('distributor', pubsub);
                 _chai.expect(event).to.have.property('publisher', publisher);
-                _chai.expect(calledEventStoppedFunction).to.be.true;
+                _chai.expect(calledStopEventFunction).to.be.true;
                 subscriptionsExecuted.push(`${name} on 2`);
             });
         });
@@ -8457,23 +8457,23 @@ _mocha.describe('pubsub', () => {
             'distributor2b before 2'
         ]);
 
-        _chai.expect(calledEventStoppedFunction).to.be.true;
+        _chai.expect(calledStopEventFunction).to.be.true;
     });
 
-    _mocha.it('should allow a method name as a late bound stopped lifecycle function', () => {
-        let calledEventStoppedFunction,
+    _mocha.it('should allow a method name as a late bound stop event lifecycle function', () => {
+        let calledStopEventFunction,
             eventObject;
 
         const CustomPubsub = _make(_Pubsub, {
-                _eventStoppedTestEvent (event) {
+                _stopEventTestEvent (event) {
                     _chai.expect(event).to.equal(eventObject);
-                    calledEventStoppedFunction = true;
+                    calledStopEventFunction = true;
                 }
             }, {
                 _pubsub: {
                     testEvent: {
                         allowPublicPublish: true,
-                        eventStoppedFunction: '_eventStoppedTestEvent'
+                        stopEventFunction: '_stopEventTestEvent'
                     }
                 }
             }),
@@ -8545,7 +8545,7 @@ _mocha.describe('pubsub', () => {
                 _chai.expect(event).to.equal(eventObject);
                 _chai.expect(event).to.have.property('distributor', pubsub);
                 _chai.expect(event).to.have.property('publisher', publisher);
-                _chai.expect(calledEventStoppedFunction).to.be.true;
+                _chai.expect(calledStopEventFunction).to.be.true;
                 subscriptionsExecuted.push(`${name} after 0`);
             });
 
@@ -8553,7 +8553,7 @@ _mocha.describe('pubsub', () => {
                 _chai.expect(event).to.equal(eventObject);
                 _chai.expect(event).to.have.property('distributor', pubsub);
                 _chai.expect(event).to.have.property('publisher', publisher);
-                _chai.expect(calledEventStoppedFunction).to.be.true;
+                _chai.expect(calledStopEventFunction).to.be.true;
                 subscriptionsExecuted.push(`${name} after 1`);
             });
 
@@ -8561,7 +8561,7 @@ _mocha.describe('pubsub', () => {
                 _chai.expect(event).to.equal(eventObject);
                 _chai.expect(event).to.have.property('distributor', pubsub);
                 _chai.expect(event).to.have.property('publisher', publisher);
-                _chai.expect(calledEventStoppedFunction).to.be.true;
+                _chai.expect(calledStopEventFunction).to.be.true;
                 subscriptionsExecuted.push(`${name} after 2`);
             });
 
@@ -8576,7 +8576,7 @@ _mocha.describe('pubsub', () => {
                 _chai.expect(event).to.have.property('publisher', publisher);
                 event.stopEvent();
                 _chai.expect(event.eventStopped).to.be.true;
-                _chai.expect(calledEventStoppedFunction).to.be.undefined;
+                _chai.expect(calledStopEventFunction).to.be.undefined;
                 subscriptionsExecuted.push(`${name} before 0`);
             });
 
@@ -8584,7 +8584,7 @@ _mocha.describe('pubsub', () => {
                 _chai.expect(event).to.equal(eventObject);
                 _chai.expect(event).to.have.property('distributor', pubsub);
                 _chai.expect(event).to.have.property('publisher', publisher);
-                _chai.expect(calledEventStoppedFunction).to.be.undefined;
+                _chai.expect(calledStopEventFunction).to.be.undefined;
                 subscriptionsExecuted.push(`${name} before 1`);
             });
 
@@ -8592,7 +8592,7 @@ _mocha.describe('pubsub', () => {
                 _chai.expect(event).to.equal(eventObject);
                 _chai.expect(event).to.have.property('distributor', pubsub);
                 _chai.expect(event).to.have.property('publisher', publisher);
-                _chai.expect(calledEventStoppedFunction).to.be.undefined;
+                _chai.expect(calledStopEventFunction).to.be.undefined;
                 subscriptionsExecuted.push(`${name} before 2`);
             });
 
@@ -8600,7 +8600,7 @@ _mocha.describe('pubsub', () => {
                 _chai.expect(event).to.equal(eventObject);
                 _chai.expect(event).to.have.property('distributor', pubsub);
                 _chai.expect(event).to.have.property('publisher', publisher);
-                _chai.expect(calledEventStoppedFunction).to.be.true;
+                _chai.expect(calledStopEventFunction).to.be.true;
                 subscriptionsExecuted.push(`${name} on 0`);
             });
 
@@ -8608,7 +8608,7 @@ _mocha.describe('pubsub', () => {
                 _chai.expect(event).to.equal(eventObject);
                 _chai.expect(event).to.have.property('distributor', pubsub);
                 _chai.expect(event).to.have.property('publisher', publisher);
-                _chai.expect(calledEventStoppedFunction).to.be.true;
+                _chai.expect(calledStopEventFunction).to.be.true;
                 subscriptionsExecuted.push(`${name} on 1`);
             });
 
@@ -8616,7 +8616,7 @@ _mocha.describe('pubsub', () => {
                 _chai.expect(event).to.equal(eventObject);
                 _chai.expect(event).to.have.property('distributor', pubsub);
                 _chai.expect(event).to.have.property('publisher', publisher);
-                _chai.expect(calledEventStoppedFunction).to.be.true;
+                _chai.expect(calledStopEventFunction).to.be.true;
                 subscriptionsExecuted.push(`${name} on 2`);
             });
         });
@@ -8656,25 +8656,25 @@ _mocha.describe('pubsub', () => {
             'distributor2b before 2'
         ]);
 
-        _chai.expect(calledEventStoppedFunction).to.be.true;
+        _chai.expect(calledStopEventFunction).to.be.true;
     });
 
-    _mocha.it('should allow a method name as a late bound stopped lifecycle function with a custom lifecycle host', () => {
-        let calledEventStoppedFunction,
+    _mocha.it('should allow a method name as a late bound stop event lifecycle function with a custom lifecycle host', () => {
+        let calledStopEventFunction,
             eventObject;
 
         const customLifecycleHost = {
-                _eventStoppedTestEvent (event) {
+                _stopEventTestEvent (event) {
                     _chai.expect(event).to.equal(eventObject);
-                    calledEventStoppedFunction = true;
+                    calledStopEventFunction = true;
                 }
             },
             CustomPubsub = _make(_Pubsub, {}, {
                 _pubsub: {
                     testEvent: {
                         allowPublicPublish: true,
-                        eventStoppedFunction: '_eventStoppedTestEvent',
-                        lifecycleHost: customLifecycleHost
+                        lifecycleHost: customLifecycleHost,
+                        stopEventFunction: '_stopEventTestEvent'
                     }
                 }
             }),
@@ -8746,7 +8746,7 @@ _mocha.describe('pubsub', () => {
                 _chai.expect(event).to.equal(eventObject);
                 _chai.expect(event).to.have.property('distributor', pubsub);
                 _chai.expect(event).to.have.property('publisher', publisher);
-                _chai.expect(calledEventStoppedFunction).to.be.true;
+                _chai.expect(calledStopEventFunction).to.be.true;
                 subscriptionsExecuted.push(`${name} after 0`);
             });
 
@@ -8754,7 +8754,7 @@ _mocha.describe('pubsub', () => {
                 _chai.expect(event).to.equal(eventObject);
                 _chai.expect(event).to.have.property('distributor', pubsub);
                 _chai.expect(event).to.have.property('publisher', publisher);
-                _chai.expect(calledEventStoppedFunction).to.be.true;
+                _chai.expect(calledStopEventFunction).to.be.true;
                 subscriptionsExecuted.push(`${name} after 1`);
             });
 
@@ -8762,7 +8762,7 @@ _mocha.describe('pubsub', () => {
                 _chai.expect(event).to.equal(eventObject);
                 _chai.expect(event).to.have.property('distributor', pubsub);
                 _chai.expect(event).to.have.property('publisher', publisher);
-                _chai.expect(calledEventStoppedFunction).to.be.true;
+                _chai.expect(calledStopEventFunction).to.be.true;
                 subscriptionsExecuted.push(`${name} after 2`);
             });
 
@@ -8777,7 +8777,7 @@ _mocha.describe('pubsub', () => {
                 _chai.expect(event).to.have.property('publisher', publisher);
                 event.stopEvent();
                 _chai.expect(event.eventStopped).to.be.true;
-                _chai.expect(calledEventStoppedFunction).to.be.undefined;
+                _chai.expect(calledStopEventFunction).to.be.undefined;
                 subscriptionsExecuted.push(`${name} before 0`);
             });
 
@@ -8785,7 +8785,7 @@ _mocha.describe('pubsub', () => {
                 _chai.expect(event).to.equal(eventObject);
                 _chai.expect(event).to.have.property('distributor', pubsub);
                 _chai.expect(event).to.have.property('publisher', publisher);
-                _chai.expect(calledEventStoppedFunction).to.be.undefined;
+                _chai.expect(calledStopEventFunction).to.be.undefined;
                 subscriptionsExecuted.push(`${name} before 1`);
             });
 
@@ -8793,7 +8793,7 @@ _mocha.describe('pubsub', () => {
                 _chai.expect(event).to.equal(eventObject);
                 _chai.expect(event).to.have.property('distributor', pubsub);
                 _chai.expect(event).to.have.property('publisher', publisher);
-                _chai.expect(calledEventStoppedFunction).to.be.undefined;
+                _chai.expect(calledStopEventFunction).to.be.undefined;
                 subscriptionsExecuted.push(`${name} before 2`);
             });
 
@@ -8801,7 +8801,7 @@ _mocha.describe('pubsub', () => {
                 _chai.expect(event).to.equal(eventObject);
                 _chai.expect(event).to.have.property('distributor', pubsub);
                 _chai.expect(event).to.have.property('publisher', publisher);
-                _chai.expect(calledEventStoppedFunction).to.be.true;
+                _chai.expect(calledStopEventFunction).to.be.true;
                 subscriptionsExecuted.push(`${name} on 0`);
             });
 
@@ -8809,7 +8809,7 @@ _mocha.describe('pubsub', () => {
                 _chai.expect(event).to.equal(eventObject);
                 _chai.expect(event).to.have.property('distributor', pubsub);
                 _chai.expect(event).to.have.property('publisher', publisher);
-                _chai.expect(calledEventStoppedFunction).to.be.true;
+                _chai.expect(calledStopEventFunction).to.be.true;
                 subscriptionsExecuted.push(`${name} on 1`);
             });
 
@@ -8817,7 +8817,7 @@ _mocha.describe('pubsub', () => {
                 _chai.expect(event).to.equal(eventObject);
                 _chai.expect(event).to.have.property('distributor', pubsub);
                 _chai.expect(event).to.have.property('publisher', publisher);
-                _chai.expect(calledEventStoppedFunction).to.be.true;
+                _chai.expect(calledStopEventFunction).to.be.true;
                 subscriptionsExecuted.push(`${name} on 2`);
             });
         });
@@ -8857,21 +8857,21 @@ _mocha.describe('pubsub', () => {
             'distributor2b before 2'
         ]);
 
-        _chai.expect(calledEventStoppedFunction).to.be.true;
+        _chai.expect(calledStopEventFunction).to.be.true;
     });
 
-    _mocha.it('should execute the prevented lifecycle function when the event is prevented', () => {
+    _mocha.it('should execute the prevent lifecycle function when the event is prevented', () => {
         const pubsub = _Pubsub(),
             subscriptionsExecuted = [];
 
-        let calledPreventedFunction,
+        let calledPreventFunction,
             eventObject;
 
         pubsub.defineDispatcher('testEvent', {
             allowPublicPublish: true,
-            preventedFunction (event) {
+            preventFunction (event) {
                 _chai.expect(event).to.equal(eventObject);
-                calledPreventedFunction = true;
+                calledPreventFunction = true;
             }
         });
 
@@ -8879,14 +8879,14 @@ _mocha.describe('pubsub', () => {
             eventObject = event;
             event.prevent('on');
             _chai.expect(event.isPrevented('on')).to.be.true;
-            _chai.expect(calledPreventedFunction).to.be.undefined;
+            _chai.expect(calledPreventFunction).to.be.undefined;
             subscriptionsExecuted.push('before');
         });
 
         pubsub.on('testEvent', event => {
             _chai.expect(event).to.equal(eventObject);
             _chai.expect(event.isPrevented()).to.be.true;
-            _chai.expect(calledPreventedFunction).to.be.true;
+            _chai.expect(calledPreventFunction).to.be.true;
             subscriptionsExecuted.push('on');
         });
 
@@ -8896,23 +8896,23 @@ _mocha.describe('pubsub', () => {
             'before'
         ]);
 
-        _chai.expect(calledPreventedFunction).to.be.true;
+        _chai.expect(calledPreventFunction).to.be.true;
     });
 
-    _mocha.it('should allow a method name as a late bound prevented lifecycle function', () => {
-        let calledPreventedFunction,
+    _mocha.it('should allow a method name as a late bound prevent lifecycle function', () => {
+        let calledPreventFunction,
             eventObject;
 
         const CustomPubsub = _make(_Pubsub, {
-                _preventedTestEvent (event) {
+                _preventTestEvent (event) {
                     _chai.expect(event).to.equal(eventObject);
-                    calledPreventedFunction = true;
+                    calledPreventFunction = true;
                 }
             }, {
                 _pubsub: {
                     testEvent: {
                         allowPublicPublish: true,
-                        preventedFunction: '_preventedTestEvent'
+                        preventFunction: '_preventTestEvent'
                     }
                 }
             }),
@@ -8923,14 +8923,14 @@ _mocha.describe('pubsub', () => {
             eventObject = event;
             event.prevent('on');
             _chai.expect(event.isPrevented('on')).to.be.true;
-            _chai.expect(calledPreventedFunction).to.be.undefined;
+            _chai.expect(calledPreventFunction).to.be.undefined;
             subscriptionsExecuted.push('before');
         });
 
         customPubsub.on('testEvent', event => {
             _chai.expect(event).to.equal(eventObject);
             _chai.expect(event.isPrevented()).to.be.true;
-            _chai.expect(calledPreventedFunction).to.be.true;
+            _chai.expect(calledPreventFunction).to.be.true;
             subscriptionsExecuted.push('on');
         });
 
@@ -8940,17 +8940,17 @@ _mocha.describe('pubsub', () => {
             'before'
         ]);
 
-        _chai.expect(calledPreventedFunction).to.be.true;
+        _chai.expect(calledPreventFunction).to.be.true;
     });
 
-    _mocha.it('should allow a method name as a late bound prevented lifecycle function with a custom lifecycle host', () => {
-        let calledPreventedFunction,
+    _mocha.it('should allow a method name as a late bound prevent lifecycle function with a custom lifecycle host', () => {
+        let calledPreventFunction,
             eventObject;
 
         const customLifecycleHost = {
-                _preventedTestEvent (event) {
+                _preventTestEvent (event) {
                     _chai.expect(event).to.equal(eventObject);
-                    calledPreventedFunction = true;
+                    calledPreventFunction = true;
                 }
             },
             CustomPubsub = _make(_Pubsub, {}, {
@@ -8958,7 +8958,7 @@ _mocha.describe('pubsub', () => {
                     testEvent: {
                         allowPublicPublish: true,
                         lifecycleHost: customLifecycleHost,
-                        preventedFunction: '_preventedTestEvent'
+                        preventFunction: '_preventTestEvent'
                     }
                 }
             }),
@@ -8969,14 +8969,14 @@ _mocha.describe('pubsub', () => {
             eventObject = event;
             event.prevent('on');
             _chai.expect(event.isPrevented('on')).to.be.true;
-            _chai.expect(calledPreventedFunction).to.be.undefined;
+            _chai.expect(calledPreventFunction).to.be.undefined;
             subscriptionsExecuted.push('before');
         });
 
         customPubsub.on('testEvent', event => {
             _chai.expect(event).to.equal(eventObject);
             _chai.expect(event.isPrevented()).to.be.true;
-            _chai.expect(calledPreventedFunction).to.be.true;
+            _chai.expect(calledPreventFunction).to.be.true;
             subscriptionsExecuted.push('on');
         });
 
@@ -8986,11 +8986,11 @@ _mocha.describe('pubsub', () => {
             'before'
         ]);
 
-        _chai.expect(calledPreventedFunction).to.be.true;
+        _chai.expect(calledPreventFunction).to.be.true;
     });
 
-    _mocha.it('should execute the subscribed lifecycle function when the event is subscribed to', () => {
-        let calledSubscribedFunction,
+    _mocha.it('should execute the subscribe lifecycle function when the event is subscribed to', () => {
+        let calledSubscribeFunction,
             subscriptionExecuted;
 
         const pubsub = _Pubsub(),
@@ -9002,7 +9002,7 @@ _mocha.describe('pubsub', () => {
 
         pubsub.defineDispatcher('testEvent', {
             allowPublicPublish: true,
-            subscribedFunction ({
+            subscribeFunction ({
                 config,
                 dispatcher
             }) {
@@ -9013,14 +9013,14 @@ _mocha.describe('pubsub', () => {
                 _chai.expect(config).to.have.property('stageName', 'on');
                 _chai.expect(config.state).to.be.an('object');
                 _chai.expect(dispatcher).to.be.an.instanceOf(_Dispatcher);
-                calledSubscribedFunction = true;
+                calledSubscribeFunction = true;
             }
         });
 
         {
             const subscription = pubsub.subscribe('on', 'testEvent', subscriptionConfig);
 
-            _chai.expect(calledSubscribedFunction).to.be.true;
+            _chai.expect(calledSubscribeFunction).to.be.true;
 
             pubsub.publish('testEvent');
 
@@ -9035,8 +9035,8 @@ _mocha.describe('pubsub', () => {
         }
     });
 
-    _mocha.it('should allow a method name as a late bound subscribed lifecycle function', () => {
-        let calledSubscribedFunction,
+    _mocha.it('should allow a method name as a late bound subscribe lifecycle function', () => {
+        let calledSubscribeFunction,
             subscriptionExecuted;
 
         const CustomPubsub = _make(_Pubsub, {
@@ -9054,13 +9054,13 @@ _mocha.describe('pubsub', () => {
                     _chai.expect(config).to.have.property('stageName', 'on');
                     _chai.expect(config.state).to.be.an('object');
                     _chai.expect(dispatcher).to.be.an.instanceOf(_Dispatcher);
-                    calledSubscribedFunction = true;
+                    calledSubscribeFunction = true;
                 }
             }, {
                 _pubsub: {
                     testEvent: {
                         allowPublicPublish: true,
-                        subscribedFunction: '_subscribedTestEvent'
+                        subscribeFunction: '_subscribedTestEvent'
                     }
                 }
             }),
@@ -9069,7 +9069,7 @@ _mocha.describe('pubsub', () => {
         {
             const subscription = customPubsub.subscribe('on', 'testEvent', 'callbackFunction');
 
-            _chai.expect(calledSubscribedFunction).to.be.true;
+            _chai.expect(calledSubscribeFunction).to.be.true;
 
             customPubsub.publish('testEvent');
 
@@ -9084,8 +9084,8 @@ _mocha.describe('pubsub', () => {
         }
     });
 
-    _mocha.it('should allow a method name as a late bound subscribed lifecycle function with a custom lifecycle host', () => {
-        let calledSubscribedFunction,
+    _mocha.it('should allow a method name as a late bound subscribe lifecycle function with a custom lifecycle host', () => {
+        let calledSubscribeFunction,
             subscriptionExecuted;
 
         const customHost = {
@@ -9105,7 +9105,7 @@ _mocha.describe('pubsub', () => {
                     _chai.expect(config).to.have.property('stageName', 'on');
                     _chai.expect(config.state).to.be.an('object');
                     _chai.expect(dispatcher).to.be.an.instanceOf(_Dispatcher);
-                    calledSubscribedFunction = true;
+                    calledSubscribeFunction = true;
                 }
             },
             CustomPubsub = _make(_Pubsub, {}, {
@@ -9113,7 +9113,7 @@ _mocha.describe('pubsub', () => {
                     testEvent: {
                         allowPublicPublish: true,
                         lifecycleHost: customLifecycleHost,
-                        subscribedFunction: '_subscribedTestEvent'
+                        subscribeFunction: '_subscribedTestEvent'
                     }
                 }
             }),
@@ -9125,7 +9125,7 @@ _mocha.describe('pubsub', () => {
                 host: customHost
             });
 
-            _chai.expect(calledSubscribedFunction).to.be.true;
+            _chai.expect(calledSubscribeFunction).to.be.true;
 
             customPubsub.publish('testEvent');
 
@@ -9140,12 +9140,37 @@ _mocha.describe('pubsub', () => {
         }
     });
 
-    _mocha.it('should return the subscription object returned by the subscribed lifecycle function', () => {
+    _mocha.it('should prevent subscription when the subscribe lifecycle function returns false', () => {
+        let subscriptionExecuted = false;
+
+        const pubsub = _Pubsub();
+
+        pubsub.defineDispatcher('testEvent', {
+            allowPublicPublish: true,
+            subscribeFunction () {
+                return false;
+            }
+        });
+
+        {
+            const subscription = pubsub.subscribe('on', 'testEvent', () => {
+                subscriptionExecuted = true;
+            });
+
+            _chai.expect(subscription.subscribed).to.not.be.true;
+
+            pubsub.publish('testEvent');
+
+            _chai.expect(subscriptionExecuted).to.be.false;
+        }
+    });
+
+    _mocha.it('should return the subscription object returned by the subscribe lifecycle function', () => {
         const customSubscription = {},
             pubsub = _Pubsub();
 
         pubsub.defineDispatcher('testEvent', {
-            subscribedFunction () {
+            subscribeFunction () {
                 return customSubscription;
             }
         });
@@ -9157,8 +9182,8 @@ _mocha.describe('pubsub', () => {
         }
     });
 
-    _mocha.it('should execute the unsubscribed lifecycle function when the event is unsubscribed from', () => {
-        let calledUnsubscribedFunction,
+    _mocha.it('should execute the unsubscribe lifecycle function when the event is unsubscribed from', () => {
+        let calledUnsubscribeFunction,
             subscriptionExecuted;
 
         const pubsub = _Pubsub(),
@@ -9170,7 +9195,7 @@ _mocha.describe('pubsub', () => {
 
         pubsub.defineDispatcher('testEvent', {
             allowPublicPublish: true,
-            unsubscribedFunction ({
+            unsubscribeFunction ({
                 config,
                 dispatcher
             }) {
@@ -9181,7 +9206,7 @@ _mocha.describe('pubsub', () => {
                 _chai.expect(config).to.have.property('stageName', 'on');
                 _chai.expect(config).to.have.property('state').that.is.an('object');
                 _chai.expect(dispatcher).to.be.an.instanceOf(_Dispatcher);
-                calledUnsubscribedFunction = true;
+                calledUnsubscribeFunction = true;
             }
         });
 
@@ -9194,14 +9219,14 @@ _mocha.describe('pubsub', () => {
 
             subscription.unsubscribe();
 
-            _chai.expect(calledUnsubscribedFunction).to.be.true;
+            _chai.expect(calledUnsubscribeFunction).to.be.true;
 
-            calledUnsubscribedFunction = false;
+            calledUnsubscribeFunction = false;
             subscriptionExecuted = false;
 
             subscriptionConfig.callbackFunction = event => {
                 event.unsubscribe();
-                _chai.expect(calledUnsubscribedFunction).to.be.true;
+                _chai.expect(calledUnsubscribeFunction).to.be.true;
                 subscriptionExecuted = true;
             };
 
@@ -9212,8 +9237,8 @@ _mocha.describe('pubsub', () => {
         }
     });
 
-    _mocha.it('should allow a method name as a late bound unsubscribed lifecycle function', () => {
-        let calledUnsubscribedFunction,
+    _mocha.it('should allow a method name as a late bound unsubscribe lifecycle function', () => {
+        let calledUnsubscribeFunction,
             subscriptionExecuted;
 
         const CustomPubsub = _make(_Pubsub, {
@@ -9231,13 +9256,13 @@ _mocha.describe('pubsub', () => {
                     _chai.expect(config).to.have.property('stageName', 'on');
                     _chai.expect(config).to.have.property('state').that.is.an('object');
                     _chai.expect(dispatcher).to.be.an.instanceOf(_Dispatcher);
-                    calledUnsubscribedFunction = true;
+                    calledUnsubscribeFunction = true;
                 }
             }, {
                 _pubsub: {
                     testEvent: {
                         allowPublicPublish: true,
-                        unsubscribedFunction: '_unsubscribedTestEvent'
+                        unsubscribeFunction: '_unsubscribedTestEvent'
                     }
                 }
             }),
@@ -9252,14 +9277,14 @@ _mocha.describe('pubsub', () => {
 
             subscription.unsubscribe();
 
-            _chai.expect(calledUnsubscribedFunction).to.be.true;
+            _chai.expect(calledUnsubscribeFunction).to.be.true;
 
-            calledUnsubscribedFunction = false;
+            calledUnsubscribeFunction = false;
             subscriptionExecuted = false;
 
             customPubsub.callbackFunction = event => {
                 event.unsubscribe();
-                _chai.expect(calledUnsubscribedFunction).to.be.true;
+                _chai.expect(calledUnsubscribeFunction).to.be.true;
                 subscriptionExecuted = true;
             };
 
@@ -9270,8 +9295,8 @@ _mocha.describe('pubsub', () => {
         }
     });
 
-    _mocha.it('should allow a method name as a late bound unsubscribed lifecycle function with a custom lifecycle host', () => {
-        let calledUnsubscribedFunction,
+    _mocha.it('should allow a method name as a late bound unsubscribe lifecycle function with a custom lifecycle host', () => {
+        let calledUnsubscribeFunction,
             subscriptionExecuted;
 
         const customHost = {
@@ -9291,7 +9316,7 @@ _mocha.describe('pubsub', () => {
                     _chai.expect(config).to.have.property('stageName', 'on');
                     _chai.expect(config).to.have.property('state').that.is.an('object');
                     _chai.expect(dispatcher).to.be.an.instanceOf(_Dispatcher);
-                    calledUnsubscribedFunction = true;
+                    calledUnsubscribeFunction = true;
                 }
             },
             CustomPubsub = _make(_Pubsub, {}, {
@@ -9299,7 +9324,7 @@ _mocha.describe('pubsub', () => {
                     testEvent: {
                         allowPublicPublish: true,
                         lifecycleHost: customLifecycleHost,
-                        unsubscribedFunction: '_unsubscribedTestEvent'
+                        unsubscribeFunction: '_unsubscribedTestEvent'
                     }
                 }
             }),
@@ -9317,14 +9342,14 @@ _mocha.describe('pubsub', () => {
 
             subscription.unsubscribe();
 
-            _chai.expect(calledUnsubscribedFunction).to.be.true;
+            _chai.expect(calledUnsubscribeFunction).to.be.true;
 
-            calledUnsubscribedFunction = false;
+            calledUnsubscribeFunction = false;
             subscriptionExecuted = false;
 
             customPubsub.callbackFunction = event => {
                 event.unsubscribe();
-                _chai.expect(calledUnsubscribedFunction).to.be.true;
+                _chai.expect(calledUnsubscribeFunction).to.be.true;
                 subscriptionExecuted = true;
             };
 
@@ -9338,8 +9363,8 @@ _mocha.describe('pubsub', () => {
         }
     });
 
-    _mocha.it('should prevent unsubscription when the unsubscribed lifecycle function returns false', () => {
-        let calledUnsubscribedFunction,
+    _mocha.it('should prevent unsubscription when the unsubscribe lifecycle function returns false', () => {
+        let calledUnsubscribeFunction,
             subscriptionExecuted;
 
         const pubsub = _Pubsub(),
@@ -9354,7 +9379,7 @@ _mocha.describe('pubsub', () => {
             'testEvent1'
         ], {
             allowPublicPublish: true,
-            unsubscribedFunction ({
+            unsubscribeFunction ({
                 config,
                 dispatcher
             }) {
@@ -9365,7 +9390,7 @@ _mocha.describe('pubsub', () => {
                 _chai.expect(config).to.have.property('stageName', 'on');
                 _chai.expect(config).to.have.property('state').that.is.an('object');
                 _chai.expect(dispatcher).to.be.an.instanceOf(_Dispatcher);
-                calledUnsubscribedFunction = true;
+                calledUnsubscribeFunction = true;
                 return false;
             }
         });
@@ -9377,20 +9402,20 @@ _mocha.describe('pubsub', () => {
 
             _chai.expect(subscriptionExecuted).to.be.true;
             _chai.expect(subscription.unsubscribe()).to.be.false;
-            _chai.expect(calledUnsubscribedFunction).to.be.true;
+            _chai.expect(calledUnsubscribeFunction).to.be.true;
             _chai.expect(subscription.subscribed).to.be.true;
 
             subscriptionExecuted = false;
             pubsub.publish('testEvent0');
             _chai.expect(subscriptionExecuted).to.be.true;
 
-            calledUnsubscribedFunction = false;
+            calledUnsubscribeFunction = false;
             subscriptionExecuted = false;
 
             subscriptionConfig.callbackFunction = event => {
                 _chai.expect(event.unsubscribe()).to.be.false;
                 event.unsubscribe();
-                _chai.expect(calledUnsubscribedFunction).to.be.true;
+                _chai.expect(calledUnsubscribeFunction).to.be.true;
                 subscriptionExecuted = true;
             };
 
@@ -9398,7 +9423,7 @@ _mocha.describe('pubsub', () => {
             pubsub.publish('testEvent1');
             _chai.expect(subscriptionExecuted).to.be.true;
 
-            calledUnsubscribedFunction = false;
+            calledUnsubscribeFunction = false;
             subscriptionExecuted = false;
             pubsub.publish('testEvent0');
             _chai.expect(subscriptionExecuted).to.be.true;

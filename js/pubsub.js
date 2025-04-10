@@ -676,7 +676,8 @@ export default _make([
             publishOnce: true
         },
         [_defaultSymbol]: {
-            allowPublicPublish: true
+            allowPublicPublish: true,
+            allowPublicUnsubscription: true
         }
     },
     _subscriptionMethods: [

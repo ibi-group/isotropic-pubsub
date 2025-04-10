@@ -166,6 +166,8 @@ pubsub.publish('formSubmit', {
 });
 ```
 
+When you publish or subscribe to an event that hasn't been explicitly defined using `defineDispatcher`, a default configuration is used automatically. However, best practice is to explicitly define events.
+
 ### Bulk Subscriptions
 
 Subscribe to multiple events at once:
@@ -464,7 +466,7 @@ pubsub.on('notification', event => {
 pubsub.onceOn('notification', callback);
 ```
 
-### Managing Subscriptions Lifecycle
+### Managing Subscription Lifecycles
 
 It's a good practice to store subscription objects for later cleanup, especially in components with a lifecycle:
 
@@ -1232,10 +1234,22 @@ pubsub.defineDispatcher('eventName', {
     lifecycleHost: null,
     // Control whether events can be prevented
     preventable: true,
+    // Function to run when event stage is prevented
+    preventFunction: 'functionOrMethodName',
     // Publish the event only once
     publishOnce: false,
     // Custom event stages
-    stages: ['before', 'on', 'complete', 'after']
+    stages: ['before', 'on', 'complete', 'after'],
+    // Function to run when dispatch is stopped
+    stopDispatchFunction: 'functionOrMethodName',
+    // Function to run when distribution is stopped
+    stopDistributionFunction: 'functionOrMethodName',
+    // Function to run when event is stopped
+    stopEventFunction: 'functionOrMethodName',
+    // Function to run when a listener subscribes
+    subscribeFunction: 'functionOrMethodName',
+    // Function to run when a listener unsubscribes
+    unsubscribeFunction: 'functionOrMethodName'
 });
 ```
 
@@ -1268,33 +1282,435 @@ pubsub.publish('load'); // Complete function doesn't run
 
 For both `completeOnce` and `publishOnce`, after the event has already been completed or published, any new subscriber is executed immediately.
 
-### `lifecycleHost`
+## Event Lifecycle Functions
 
-The `lifecycleHost` option specifies the context (`this`) for lifecycle functions like `completeFunction`, `preventedFunction`, etc. This is particularly useful when the event is defined in one object but the handling logic exists in another:
+`isotropic-pubsub` provides a set of special functions that are called at specific points in an event's lifecycle. These lifecycle functions offer powerful hooks to customize event behavior, respond to state changes, and implement cross-cutting concerns like logging or monitoring. By utilizing these functions effectively, you can implement sophisticated event patterns while maintaining clean separation of concerns.
+
+### Available Lifecycle Functions
+
+| Lifecycle Function | Called When | Purpose |
+|-------------------|-------------|---------|
+| `completeFunction` | The event reaches its completion stage | Execute the primary action for the event |
+| `preventFunction` | Any stage of the event is prevented | React to prevention of an event stage |
+| `stopDispatchFunction` | `event.stopDispatch()` is called | React to dispatch being halted |
+| `stopDistributionFunction` | `event.stopDistribution()` is called | React to distribution being halted |
+| `stopEventFunction` | `event.stopEvent()` is called | React to the entire event being stopped |
+| `subscribeFunction` | A new subscription is created | Validate or modify subscriptions |
+| `unsubscribeFunction` | A subscription is removed | Clean up or react to unsubscriptions |
+
+### Configuring Lifecycle Functions
+
+You can specify lifecycle functions when defining an event dispatcher:
 
 ```javascript
-// A controller that processes events but delegates handling
-const controller = {
-    handleSave (event) {
-        console.log('Saving data:', event.data, this);
-        // Saving implementation...
+pubsub.defineDispatcher('saveData', {
+    // The primary action function
+    completeFunction: event => {
+        // Save the data
+        saveToDatabase(event.data);
+    },
+    // Called when the event is prevented
+    preventFunction: event => {
+        console.warn('Save operation prevented:', event);
+    },
+    // Called when a new subscription is added
+    subscribeFunction: ({
+        config,
+        dispatcher
+    }) => {
+        console.log('New subscription to saveData:', config);
+    }
+});
+```
+
+### Using Method Names Instead of Functions
+
+As with event handlers, you can use method names instead of functions:
+
+```javascript
+import _make from 'isotropic-make';
+import _Pubsub from 'isotropic-pubsub';
+
+const _DataService = _make(_Pubsub, {
+    // Lifecycle handler methods
+    _handleSaveComplete (event) {
+        this.lastSavedData = event.data;
+        this.saveCount += 1;
+    },
+    _init (...args) {
+        Reflect.apply(_Pubsub.prototype._init, this, args);
+
+        this.lastSavedData = null;
+        this.saveCount = 0;
+        this._authorizedSubscriberSet = new Set();
+
+        return this;
+    },
+    _validateSaveSubscription ({
+        config
+    }) {
+        // Only allow certain components to subscribe
+        if (!this._authorizedSubscriberSet.has(config.host)) {
+            console.warn('Unauthorized subscription attempt');
+
+            return false; // Prevents the subscription
+        }
+    }
+}, {
+    _pubsub: {
+        saveData: {
+            completeFunction: '_handleSaveComplete',
+            subscribeFunction: '_validateSaveSubscription'
+        }
+    }
+});
+```
+
+### Using the `lifecycleHost` Property
+
+By default, lifecycle functions are executed in the context of the dispatcher itself. You can specify a different context using the `lifecycleHost` property:
+
+```javascript
+const logger = {
+    logPrevention (event) {
+        console.log(`Event ${event.name} was prevented at stage ${event.stageName}`);
     }
 };
 
-const pubsub = _Pubsub();
-
-pubsub.defineDispatcher('save', {
-    allowPublicPublish: true,
-    completeFunction: 'handleSave',
-    lifecycleHost: controller
-});
-
-// When 'save' is published, the handleSave method is called with controller as 'this'
-pubsub.publish('save', {
-    id: 123,
-    name: 'Test'
+pubsub.defineDispatcher('criticalOperation', {
+    preventFunction: 'logPrevention',
+    lifecycleHost: logger
 });
 ```
+
+This allows you to centralize event lifecycle logic in specialized objects that handle cross-cutting concerns.
+
+### Use Cases for Lifecycle Functions
+
+#### 1. The `completeFunction` - Primary Event Handler
+
+The most commonly used lifecycle function is `completeFunction`, which executes the primary action associated with an event:
+
+```javascript
+pubsub.defineDispatcher('userLogin', {
+    completeFunction: event => {
+        const {
+            username,
+            password
+        } = event.data;
+
+        // Primary login logic
+        authenticateUser(username, password).then(user => {
+            pubsub.publish('loginSuccess', {
+                user
+            });
+        }).catch(error => {
+            pubsub.publish('loginFailure', {
+                error
+            });
+        });
+    }
+});
+```
+
+The `completeFunction` runs after the "on" stage and before the "after" stage, allowing you to implement a clear separation between preparation (before), processing (on), main action (complete), and cleanup (after).
+
+#### 2. The `preventFunction` - Handling Validation Failures
+
+The `preventFunction` is useful for centralizing the handling of validation failures:
+
+```javascript
+pubsub.defineDispatcher('formSubmit', {
+    completeFunction: 'submitForm',
+    preventFunction: event => {
+        // Find which stage prevented the event
+        if (event.isPrevented('before')) {
+            // Validation failure
+            showValidationErrors();
+        } else if (event.isPrevented('complete')) {
+            // Submission failure
+            showSubmissionError();
+        }
+    },
+    preventable: true
+});
+```
+
+#### 3. The `subscribeFunction` and `unsubscribeFunction` - Subscription Management
+
+These functions let you monitor and control subscriptions:
+
+```javascript
+pubsub.defineDispatcher('securedEvent', {
+    subscribeFunction: ({
+        config
+    }) => {
+        // Log all subscriptions
+        console.log(`New subscription from ${config.host.name || 'anonymous'}`);
+
+        // Verify permissions
+        if (!hasPermission(config.host, 'securedEvent')) {
+            console.error('Permission denied');
+
+            return false; // Prevents the subscription
+        }
+    },
+    unsubscribeFunction: ({
+        config
+    }) => {
+        // Clean up any resources associated with this subscription
+        releaseResources(config.subscriptionId);
+    }
+});
+```
+
+The `subscribeFunction` can return `false` to prevent the subscription from being created. It can also return a subscription object and bypass the regular subscription logic.
+
+The `unsubscribeFunction` can return `false` to prevent the subscription from being unsubscribed.
+
+#### 4. Flow Control Functions
+
+The `stopDispatchFunction`, `stopDistributionFunction`, and `stopEventFunction` help you respond to changes in event flow:
+
+```javascript
+pubsub.defineDispatcher('dataProcess', {
+    stopDispatchFunction: event => {
+        console.log('Dispatch stopped by:', event.distributor.id);
+    },
+    stopDistributionFunction: event => {
+        console.log('Distribution stopped at:', event.distributor.id);
+
+        // Notify about partial distribution
+        pubsub.publish('partialDistribution', {
+            lastDistributor: event.distributor.id,
+            originalEvent: event.name
+        });
+    },
+    stopEventFunction: event => {
+        console.log('Event completely stopped at stage:', event.stageName);
+
+        // Record the aborted event
+        logAbortedEvent(event);
+    }
+});
+```
+
+### Return Values from Lifecycle Functions
+
+Most lifecycle functions are called for their side effects, and their return values are ignored. However, there are two important exceptions:
+
+1. **`subscribeFunction`**: If it returns `false`, the subscription is prevented.
+2. **`unsubscribeFunction`**: If it returns `false`, the unsubscription is prevented.
+
+This allows you to implement subscription policies that control which components can subscribe to or unsubscribe from specific events. Additionally `subscribeFunction` can return a subscription object and bypass the regular subscription logic.
+
+### Lifecycle Functions in Inheritance
+
+When extending a class that uses `isotropic-pubsub`, you can override or extend lifecycle functions:
+
+```javascript
+import _make from 'isotropic-make';
+import _Pubsub from 'isotropic-pubsub';
+
+// Base class with generic handling
+const _BaseService = _make(_Pubsub, {
+        _logEvent (event) {
+            console.log(`Event ${event.name} processed`);
+        },
+        _processOperation (event) {
+            // base implementation
+        }
+    }, {
+        _pubsub: {
+            operation: {
+                completeFunction: '_processOperation',
+                preventFunction: '_logEvent'
+            }
+        }
+    }),
+    // Derived class with specialized handling
+    _UserService = _make(_BaseService, {
+        _processOperation (event) {
+            // Add specialized processing
+            if (event.data.type === 'user') {
+                this._processUserOperation(event);
+            } else {
+                // Call parent implementation for non-user operations
+                Reflect.apply(_BaseService.prototype._processOperation, this, [
+                    event
+                ]);
+            }
+        },
+        _processUserOperation (event) {
+            // implementation
+        }
+    });
+```
+
+A derived class can override an event configuration and/or specific lifecycle methods while inheriting others from the parent class.
+
+## Public vs. Protected Methods
+
+`isotropic-pubsub` follows a pattern that distinguishes between public methods (intended for external use) and protected methods (primarily for internal use). Understanding this distinction is crucial for using the interface effectively, especially when extending it or creating custom implementations.
+
+### Public vs. Protected Method Pairs
+
+The library provides paired public and protected versions of its core methods:
+
+| Public Method | Protected Method | Purpose |
+|---------------|-----------------|---------|
+| `after()` | `_after()` | Subscribe to the "after" stage |
+| `before()` | `_before()` | Subscribe to the "before" stage |
+| `bulkSubscribe()` | `_bulkSubscribe()` | Subscribe to multiple events |
+| `bulkUnsubscribe()` | `_bulkUnsubscribe()` | Unsubscribe from multiple events |
+| `on()` | `_on()` | Subscribe to the "on" stage of an event |
+| `onceAfter()` | `_onceAfter()` | Subscribe once to the "after" stage |
+| `onceBefore()` | `_onceBefore()` | Subscribe once to the "before" stage |
+| `onceOn()` | `_onceOn()` | Subscribe once to the "on" stage |
+| `publish()` | `_publish()` | Publish an event |
+
+### When to Use Each Version
+
+- **Public methods** (`publish()`, `on()`, etc.):
+  - Use these in most application code
+  - Subject to permission checks configured on the event dispatcher
+  - Can be controlled by configuration options like `allowPublicPublish`
+
+- **Protected methods** (`_publish()`, `_on()`, etc.):
+  - Use these inside class methods when extending `Pubsub`
+  - Bypass permission checks, always execute regardless of configuration
+  - Useful for internal communication within a component
+
+```javascript
+import _make from 'isotropic-make';
+import _Pubsub from 'isotropic-pubsub';
+
+// Example of the pattern in a component extending Pubsub
+const _Component = _make(_Pubsub, {
+    doSomething (anotherObject) {
+        // Internal communication between methods - use protected version
+        this._publish('internalEvent', {
+            data: 'value'
+        });
+
+        // External notification - use public version
+        anotherObject.publish('componentAction', {
+            action: 'something'
+        });
+    },
+    _init (...args) {
+        Reflect.apply(_Pubsub.prototype._init, this, args);
+
+        // Internal subscription - use protected version
+        this._on('internalEvent', '_handleInternalEvent');
+
+        return this;
+    }
+});
+```
+
+### Configuration Options for Access Control
+
+`isotropic-pubsub` provides several configuration options to control access to events:
+
+- **`allowPublicPublish`**: When `true`, allows events to be published via the public `publish()` method. Default: `false`
+- **`allowPublicSubscription`**: When `true`, allows subscribing to events via public methods like `on()`, `before()`, etc. Default: `true`
+- **`allowPublicUnsubscription`**: When `true`, allows unsubscribing from events via public methods. Default: `false`
+
+The defaults allow for anyone to subscribe to an event but publishing an event or unsubscribing someone else's subscription are internal features. These options can be set when defining event dispatchers:
+
+```javascript
+// Define an event with restricted access
+pubsub.defineDispatcher('secureEvent', {
+    allowPublicPublish: false,       // Only internal methods can publish
+    allowPublicSubscription: true,   // Anyone can subscribe
+    allowPublicUnsubscription: false // Can't unsubscribe without subscription object
+});
+
+// Define a fully public event
+pubsub.defineDispatcher('publicEvent', {
+    allowPublicPublish: true,
+    allowPublicSubscription: true,
+    allowPublicUnsubscription: true
+});
+
+// Define an internal-only event
+pubsub.defineDispatcher('internalEvent', {
+    allowPublicPublish: false,
+    allowPublicSubscription: false,
+    allowPublicUnsubscription: false
+});
+```
+
+### Use Cases for Access Control
+
+1. **Encapsulation**: Restrict which parts of your application can trigger critical events
+
+```javascript
+// Only internal methods can trigger the logout process
+authService.defineDispatcher('logout', {
+    allowPublicPublish: false
+});
+
+// But components can still subscribe to know when logout happens
+navBar.on('logout', () => {
+    navBar.showLoginButton();
+});
+
+// Inside the auth service
+authService._on('sessionExpired', () => {
+    // Internal method can publish the restricted event
+    authService._publish('logout');
+});
+```
+
+2. **Stability**: Prevent external code from unsubscribing critical handlers
+
+```javascript
+// Core system events that shouldn't be disrupted
+system.defineDispatcher('systemShutdown', {
+    allowPublicUnsubscription: false
+});
+
+// Core handler that must run
+system.on('systemShutdown', () => {
+    system.saveState();
+});
+```
+
+3. **Interface Clarity**: Create purely internal events for implementation details
+
+```javascript
+// Internal component communication
+component.defineDispatcher('_updateState', {
+    allowPublicPublish: false,
+    allowPublicSubscription: false
+});
+
+// Only used within the component's methods
+component._on('_updateState', () => {
+    component._refreshView();
+});
+```
+
+### Best Practices
+
+1. **Use protected methods for internal communication**
+   When components need to communicate between their own methods, use the protected methods.
+
+2. **Use public methods for application-level events**
+   For events that represent application-level actions or state changes, use public methods with appropriate access controls.
+
+3. **Be conservative with access controls**
+   Start with more restrictive permissions and loosen them only when necessary. It's easier to open up access later than to restrict it after components rely on direct access.
+
+4. **Document access patterns**
+   When creating a component with events, clearly document which events are intended for public consumption and which are internal implementation details.
+
+5. **Use consistent naming conventions**
+   Consider prefixing internal events with an underscore (like `_internalEvent`) to make it clear they're not part of the public API.
+
+This public/protected pattern allows `isotropic-pubsub` to support both encapsulated, implementation-detail events and public, API-level events in the same system, providing flexibility while maintaining control over access. Note that this is only advisory access control. There is nothing to prevent any code from accesing the protected methods when they aren't supposed to.
 
 ### Event Stages Control
 
