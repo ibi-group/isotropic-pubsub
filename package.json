@@ -2,12 +2,12 @@
     "author": "Steven Olmsted <steven.olmsted@ibigroup.com>",
     "bugs": "https://github.com/ibi-group/isotropic-pubsub/issues",
     "dependencies": {
-        "isotropic-make": "~0.13.1",
-        "isotropic-property-chainer": "~0.14.0"
+        "isotropic-make": "~0.14.0",
+        "isotropic-property-chainer": "~0.15.0"
     },
     "description": "An event system with subscription stages, preventable events, and event distribution",
     "devDependencies": {
-        "isotropic-dev-dependencies": "~0.3.1"
+        "isotropic-dev-dependencies": "~0.4.0"
     },
     "engines": {
         "node": "^26.5.0",
@@ -40,5 +40,5 @@
         "test": "c8 -c ./node_modules/isotropic-dev-dependencies/config/c8.json node --test"
     },
     "type": "module",
-    "version": "0.15.0"
+    "version": "0.16.0"
 }
