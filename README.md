@@ -114,9 +114,9 @@ import _Pubsub from 'isotropic-pubsub';
 
 {
     // Create a hierarchy of pubsub objects
-    const child1 = _Pubsub();
-        child2 = _Pubsub();
-        grandchild = _Pubsub();
+    const child1 = _Pubsub(),
+        child2 = _Pubsub(),
+        grandchild = _Pubsub(),
         root = _Pubsub();
 
     // Set up distribution
@@ -187,7 +187,7 @@ pubsub.bulkSubscribe([{
     config: {
         callbackFunction: 'validateForm',
         once: true
-    }
+    },
     eventName: 'formSubmit',
     stageName: 'before'
 }]);
@@ -201,7 +201,7 @@ Extend the Pubsub class to create event-aware components:
 import _make from 'isotropic-make';
 import _Pubsub from 'isotropic-pubsub';
 
-const _UserManager = _make(_Pubsub, {
+const _UserManager = _make('UserManager', _Pubsub, {
     addUser (user) {
         // Store user
         // ...
@@ -250,7 +250,7 @@ import _make from 'isotropic-make';
 import _Pubsub from 'isotropic-pubsub';
 
 // Define a class with Pubsub as a mixin
-const _DataStore = _make([
+const _DataStore = _make('DataStore', [
     _Pubsub
 ], {
     get (key) {
@@ -272,7 +272,7 @@ const _DataStore = _make([
     },
     _init (...args) {
         // Initialize Pubsub functionality
-        Reflect.apply(_Pubsub.prototype._init, this, ...args);
+        Reflect.apply(_Pubsub.prototype._init, this, args);
 
         this._data = {};
 
@@ -345,7 +345,7 @@ import _make from 'isotropic-make';
 import _Pubsub from 'isotropic-pubsub';
 
 // The DataStore class
-const _DataStore = _make([
+const _DataStore = _make('DataStore', [
     _Pubsub
 ], {
     handleDataChange (event) {
@@ -474,7 +474,7 @@ It's a good practice to store subscription objects for later cleanup, especially
 import _make from 'isotropic-make';
 import _Pubsub from 'isotropic-pubsub';
 
-const _Component = _make([
+const _Component = _make('Component', [
     _Pubsub
 ], {
     _destroy (...args) {
@@ -575,7 +575,7 @@ import _Pubsub from 'isotropic-pubsub';
 const eventBus = _Pubsub();
 
 // Cart component
-const _Cart = _make({
+const _Cart = _make('Cart', {
         addItem (item) {
             this.items.push(item);
 
@@ -597,16 +597,17 @@ const _Cart = _make({
                     totalItemCount: this.items.length
                 });
             }
+
             return this;
-        }
+        },
         _init () {
             this.items = [];
 
             return this;
         }
-    });
+    }),
     // Header component with cart indicator
-    _CartIndicator = make({
+    _CartIndicator = _make('CartIndicator', {
         updateDisplay () {
             console.log(`Cart indicator updated: ${this.count} items`);
             // Update UI...
@@ -616,7 +617,7 @@ const _Cart = _make({
 
             // Subscribe to cart events
             eventBus.on([
-                'itemAdded'
+                'itemAdded',
                 'itemRemoved'
             ], event => {
                 this.count = event.data.totalItemCount;
@@ -692,7 +693,7 @@ class FileUploader {
             // Start upload process
             this.currentUpload = {
                 cancel: () => {
-                    console.log('Upload cancelled');
+                    console.log('Upload canceled');
 
                     clearInterval(this.progressInterval);
                     event.stopEvent();
@@ -759,7 +760,7 @@ import _make from 'isotropic-make';
 import _Pubsub from 'isotropic-pubsub';
 
 // Component base class
-const _Component = _make(_Pubsub, {
+const _Component = _make('Component', _Pubsub, {
     addChild (id) {
         const child = _Component({
             id,
@@ -769,9 +770,9 @@ const _Component = _make(_Pubsub, {
         this.children.push(child);
 
         return child;
-    }
-    _init(...args) {
-        Reflect.apply(_Pubsub.prototype._init, this, ...args);
+    },
+    _init (...args) {
+        Reflect.apply(_Pubsub.prototype._init, this, args);
 
         const {
             id,
@@ -808,7 +809,7 @@ const _Component = _make(_Pubsub, {
 
     // Subscribe at the root
     app.on('userAction', event => {
-        console.log(`User action in ${event.distributor.id}: ${event.data.action}`);
+        console.log(`User action in ${event.publisher.id}: ${event.data.action}`);
     });
 
     // Trigger events from leaf nodes
@@ -817,7 +818,7 @@ const _Component = _make(_Pubsub, {
     });
     // User action in user-menu: logout
 
-    contentArea.publish('userAction', {
+    mainContentArea.publish('userAction', {
         action: 'save'
     });
     // User action in content: save
@@ -1062,7 +1063,7 @@ import _make from 'isotropic-make';
 import _Pubsub from 'isotropic-pubsub';
 
 // Base service with common event configurations
-const _BaseService = _make(_Pubsub, {
+const _BaseService = _make('BaseService', _Pubsub, {
         // Instance methods
         _handleCreate (event) {
             console.log('Creating resource:', event.data);
@@ -1095,7 +1096,7 @@ const _BaseService = _make(_Pubsub, {
         }
     }),
     // Derived service with additional event configurations
-    _UserService = _make(_BaseService, {
+    _UserService = _make('UserService', _BaseService, {
         // Instance methods
         _handleLogin (event) {
             console.log('New login:', event.data);
@@ -1164,6 +1165,7 @@ const pubsub = _Pubsub(options);
 - **bulkUnsubscribe([stageName], [eventName])**: Unsubscribe from multiple events
 - **defineDispatcher(eventName, config)**: Define a custom event dispatcher
 - **destroy(...args)**: Destroy the pubsub instance
+- **hasDistributor(distributor)**: Check if distributor has been added
 - **on(eventName, config)**: Subscribe to the on stage of an event
 - **publish(eventName, data)**: Publish an event with optional data
 - **onceAfter(eventName, config)**: Subscribe once to the after stage
@@ -1331,7 +1333,7 @@ As with event handlers, you can use method names instead of functions:
 import _make from 'isotropic-make';
 import _Pubsub from 'isotropic-pubsub';
 
-const _DataService = _make(_Pubsub, {
+const _DataService = _make('DataService', _Pubsub, {
     // Lifecycle handler methods
     _handleSaveComplete (event) {
         this.lastSavedData = event.data;
@@ -1513,7 +1515,7 @@ import _make from 'isotropic-make';
 import _Pubsub from 'isotropic-pubsub';
 
 // Base class with generic handling
-const _BaseService = _make(_Pubsub, {
+const _BaseService = _make('BaseService', _Pubsub, {
         _logEvent (event) {
             console.log(`Event ${event.name} processed`);
         },
@@ -1529,7 +1531,7 @@ const _BaseService = _make(_Pubsub, {
         }
     }),
     // Derived class with specialized handling
-    _UserService = _make(_BaseService, {
+    _UserService = _make('UserService', _BaseService, {
         _processOperation (event) {
             // Add specialized processing
             if (event.data.type === 'user') {
@@ -1586,7 +1588,7 @@ import _make from 'isotropic-make';
 import _Pubsub from 'isotropic-pubsub';
 
 // Example of the pattern in a component extending Pubsub
-const _Component = _make(_Pubsub, {
+const _Component = _make('Component', _Pubsub, {
     doSomething (anotherObject) {
         // Internal communication between methods - use protected version
         this._publish('internalEvent', {
@@ -1798,7 +1800,7 @@ When working with asynchronous operations, follow these best practices:
 2. **Use event chains**: Chain events to create complex workflows with asynchronous steps.
 
 ```javascript
-const _AsyncService = _make(_Pubsub, {
+const _AsyncService = _make('AsyncService', _Pubsub, {
     // First event in the chain
     processData (data) {
         return this.publish('processStart', { data });
@@ -1885,9 +1887,9 @@ The exact order of event processing across distributors follows these rules:
 
 1. For each stage (before, on, complete, after):
    - First, all handlers for that stage on the publisher execute
-   - Then, all handlers for that stage on the first distributor execute
-   - Then, all handlers for that stage on all of that distributor's distributors execute (recursively)
-   - This repeats for each subsequent distributor in the order they were added
+   - Then, all handlers for that stage on all the publisher's distributors execute in the order they were added
+   - Then, all handlers for that stage on all of the first distributor's distributors execute and so on
+   - This repeats for each subsequent distributor 
 
 This breadth-first traversal ensures predictable event flow and allows for complex event propagation patterns.
 
@@ -2017,6 +2019,8 @@ Custom dispatchers are useful for specialized event patterns such as:
 ### Example: Throttled Event Dispatcher
 
 ```javascript
+import _Dispatcher from 'isotropic-pubsub/lib/dispatcher.js';
+
 // A dispatcher that limits event frequency
 const throttledDispatcher = {
     newState () {
@@ -2043,7 +2047,6 @@ const throttledDispatcher = {
 
         return this;
     },
-
     subscribe(config) {
         // Use the standard dispatcher's subscribe method
         return _Dispatcher.prototype.subscribe.call(this, config);
@@ -2063,7 +2066,7 @@ isotropic-pubsub works seamlessly with other modules in the isotropic ecosystem:
 
 - **isotropic-make**: Create constructor functions with inheritance and mixins
 - **isotropic-property-chainer**: Chain property objects through inheritance
-- **isotropic-mixin-prototype-chain**: Walk prototype chains including mixins
+- **isotropic-state**: Reactive state management with change events
 
 ## Contributing
 
