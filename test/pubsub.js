@@ -2340,6 +2340,111 @@ _test.describe('pubsub', () => {
         ]);
     });
 
+    _test.it('should accept subscribe in the construction config', () => {
+        const subscriptionsExecuted = [];
+
+        _Pubsub({
+            subscribe: {
+                testEvent: event => {
+                    subscriptionsExecuted.push(`callbackFunction ${event.stageName} ${event.name}`);
+                }
+            }
+        }).publish('testEvent');
+
+        _chai.expect(subscriptionsExecuted).to.deep.equal([
+            'callbackFunction on testEvent'
+        ]);
+    });
+
+    _test.it('should accept a subscribe construction config with a stage name and once', () => {
+        const subscriptionsExecuted = [],
+
+            callbackFunction = event => {
+                subscriptionsExecuted.push(`callbackFunction ${event.stageName} ${event.name}`);
+            },
+            pubsub = _Pubsub({
+                subscribe: {
+                    testEventA: {
+                        callbackFunction,
+                        stageName: 'before'
+                    },
+                    testEventB: {
+                        callbackFunction,
+                        once: true,
+                        stageName: 'after'
+                    }
+                }
+            });
+
+        pubsub.publish('testEventA');
+        pubsub.publish('testEventB');
+        pubsub.publish('testEventA');
+        pubsub.publish('testEventB');
+
+        _chai.expect(subscriptionsExecuted).to.deep.equal([
+            'callbackFunction before testEventA',
+            'callbackFunction after testEventB',
+            'callbackFunction before testEventA'
+        ]);
+    });
+
+    _test.it('should accept a method name in a subscribe construction config', () => {
+        const subscriptionsExecuted = [];
+
+        _make('TestThing', _Pubsub, {
+            handlerMethod (event) {
+                subscriptionsExecuted.push(`handlerMethod ${event.stageName} ${event.name}`);
+            }
+        })({
+            subscribe: {
+                testEvent: 'handlerMethod'
+            }
+        }).publish('testEvent');
+
+        _chai.expect(subscriptionsExecuted).to.deep.equal([
+            'handlerMethod on testEvent'
+        ]);
+    });
+
+    _test.it('should accept a symbol event name in a subscribe construction config', () => {
+        const eventNameSymbol = Symbol('testEvent'),
+            subscriptionsExecuted = [];
+
+        _Pubsub({
+            subscribe: {
+                [eventNameSymbol]: event => {
+                    _chai.expect(event).to.have.property('name', eventNameSymbol);
+
+                    subscriptionsExecuted.push('symbol');
+                }
+            }
+        }).publish(eventNameSymbol);
+
+        _chai.expect(subscriptionsExecuted).to.deep.equal([
+            'symbol'
+        ]);
+    });
+
+    _test.it('should respect allowPublicSubscription in a subscribe construction config', () => {
+        const subscriptionsExecuted = [];
+
+        _make('TestThing', _Pubsub, {}, {
+            _pubsub: {
+                protectedEvent: {
+                    allowPublicSubscription: false
+                }
+            }
+        })({
+            subscribe: {
+                protectedEvent: () => {
+                    subscriptionsExecuted.push('protectedEvent');
+                }
+            }
+        })._publish('protectedEvent');
+
+        _chai.expect(subscriptionsExecuted).to.deep.equal([]);
+    });
+
     _test.it('should allow bulk unsubscription of all subscriptions', () => {
         let subscriptionExecutionCount = 0;
 
