@@ -1108,6 +1108,54 @@ _test.describe('pubsub', () => {
         ]);
     });
 
+    _test.it('should accept distributors in the construction config', () => {
+        const distributorA = _Pubsub(),
+            distributorB = _Pubsub(),
+            pubsub = _Pubsub({
+                distributors: [
+                    distributorA,
+                    distributorB
+                ]
+            }),
+            subscriptionsExecuted = [];
+
+        _chai.expect(pubsub.hasDistributor(distributorA)).to.be.true;
+        _chai.expect(pubsub.hasDistributor(distributorB)).to.be.true;
+
+        distributorA.on('testEvent', () => {
+            subscriptionsExecuted.push('distributorA');
+        });
+
+        distributorB.on('testEvent', () => {
+            subscriptionsExecuted.push('distributorB');
+        });
+
+        pubsub.publish('testEvent');
+
+        _chai.expect(subscriptionsExecuted).to.deep.equal([
+            'distributorA',
+            'distributorB'
+        ]);
+    });
+
+    _test.it('should accept any iterable of distributors in the construction config', () => {
+        const distributor = _Pubsub();
+
+        _chai.expect(_Pubsub({
+            distributors: new Set([
+                distributor
+            ])
+        }).hasDistributor(distributor)).to.be.true;
+    });
+
+    _test.it('should accept a single distributor in the construction config', () => {
+        const distributor = _Pubsub();
+
+        _chai.expect(_Pubsub({
+            distributors: distributor
+        }).hasDistributor(distributor)).to.be.true;
+    });
+
     _test.it('should not execute further stages if the event is stopped', () => {
         const distributor0 = _Pubsub(),
             distributor0a = _Pubsub(),
