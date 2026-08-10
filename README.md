@@ -193,6 +193,83 @@ pubsub.bulkSubscribe([{
 }]);
 ```
 
+### Construction Configuration
+
+The constructor accepts an optional config object with three optional properties that set up the event system before the instance is used: `pubsub` defines dispatchers, `distributors` establishes event distribution, and `subscribe` registers subscriptions.
+
+```javascript
+const pubsub = _Pubsub({
+    distributors: [
+        parent
+    ],
+    pubsub: {
+        dataChanged: {
+            allowPublicPublish: true
+        }
+    },
+    subscribe: {
+        dataChanged: event => {
+            console.log('Data changed:', event.data);
+        }
+    }
+});
+```
+
+#### `distributors`
+
+Distributes this object's events to one or more other objects, equivalent to calling `addDistributor` immediately after construction. It accepts a single object or any iterable of objects.
+
+```javascript
+const child = _Pubsub({
+    distributors: new Set([
+        parentA,
+        parentB
+    ])
+});
+```
+
+This matters for subclasses that publish events while initializing. Distribution paths are resolved when an event is published. By passing distributors to the constructor, it ensures they are in place before any events are published.
+
+#### `subscribe`
+
+Registers subscriptions on the new instance, keyed by event name. Each value may be a callback function, a method name, a subscription config object, or an iterable of any of those:
+
+```javascript
+const pubsub = _Pubsub({
+    subscribe: {
+        // A callback function, subscribed to the on stage
+        dataChanged: event => {
+            console.log('Data changed:', event.data);
+        },
+
+        // A method name
+        dataLoaded: '_handleDataLoaded',
+
+        // A config object, which may specify a stage name
+        dataSaved: {
+            callbackFunction: event => {
+                console.log('Saved:', event.data);
+            },
+            once: true,
+            stageName: 'after'
+        },
+
+        // Several subscriptions to the same event
+        dataRemoved: [
+            '_handleDataRemoved',
+            {
+                callbackFunction: '_validateRemoval',
+                stageName: 'before'
+            }
+        ]
+    }
+});
+```
+
+Subscriptions default to the `on` stage. Any other subscription config is passed through.
+
+These are public subscriptions so events configured with `allowPublicSubscription: false` are not subscribed this way. A subclass that needs to subscribe to its own protected events should do so with `_bulkSubscribe` in its `_init` method instead.
+
 ### Using as a Base Class
 
 Extend the Pubsub class to create event-aware components:
@@ -1156,6 +1233,10 @@ This inheritance pattern allows you to build complex event systems while maintai
 const pubsub = _Pubsub(options);
 ```
 
+- **distributors**: An object or iterable of objects to distribute this object's events to
+- **pubsub**: Event dispatcher definitions, as passed to `defineDispatcher`
+- **subscribe**: Subscriptions to register, keyed by event name
+
 #### Instance Methods
 
 - **addDistributor(distributor)**: Add an object to distribute events to
@@ -1570,6 +1651,7 @@ The library provides paired public and protected versions of its core methods:
 | `onceBefore()` | `_onceBefore()` | Subscribe once to the "before" stage |
 | `onceOn()` | `_onceOn()` | Subscribe once to the "on" stage |
 | `publish()` | `_publish()` | Publish an event |
+| `subscribe()` | `_subscribe()` | Subscribe to an event at a specific stage |
 
 ### When to Use Each Version
 
@@ -1889,7 +1971,7 @@ The exact order of event processing across distributors follows these rules:
    - First, all handlers for that stage on the publisher execute
    - Then, all handlers for that stage on all the publisher's distributors execute in the order they were added
    - Then, all handlers for that stage on all of the first distributor's distributors execute and so on
-   - This repeats for each subsequent distributor 
+   - This repeats for each subsequent distributor
 
 This breadth-first traversal ensures predictable event flow and allows for complex event propagation patterns.
 
