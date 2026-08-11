@@ -866,6 +866,148 @@ _test.describe('pubsub', () => {
         ]);
     });
 
+    _test.it('should filter subscription executions', () => {
+        const pubsub = _Pubsub(),
+            subscriptionsExecuted = [];
+
+        pubsub.on('testEvent', {
+            callbackFunction: event => {
+                subscriptionsExecuted.push(event.data.value);
+            },
+            filterFunction: event => event.data.value % 2 === 0
+        });
+
+        for (const value of [
+            1,
+            2,
+            3,
+            4
+        ]) {
+            pubsub.publish('testEvent', {
+                value
+            });
+        }
+
+        _chai.expect(subscriptionsExecuted).to.deep.equal([
+            2,
+            4
+        ]);
+    });
+
+    _test.it('should allow a method name as a filter function', () => {
+        const subscriptionsExecuted = [],
+            testThing = _make('TestThing', _Pubsub, {
+                filterMethod (event) {
+                    return event.data.value === 'wanted';
+                }
+            })();
+
+        testThing.on('testEvent', {
+            callbackFunction: event => {
+                subscriptionsExecuted.push(event.data.value);
+            },
+            filterFunction: 'filterMethod'
+        });
+
+        testThing.publish('testEvent', {
+            value: 'unwanted'
+        });
+
+        testThing.publish('testEvent', {
+            value: 'wanted'
+        });
+
+        _chai.expect(subscriptionsExecuted).to.deep.equal([
+            'wanted'
+        ]);
+    });
+
+    _test.it('should keep a once subscription active until its filter function passes', () => {
+        const pubsub = _Pubsub(),
+            subscriptionsExecuted = [];
+
+        pubsub.onceOn('testEvent', {
+            callbackFunction: event => {
+                subscriptionsExecuted.push(event.data.value);
+            },
+            filterFunction: event => event.data.value === 3
+        });
+
+        for (const value of [
+            1,
+            2,
+            3,
+            4,
+            3
+        ]) {
+            pubsub.publish('testEvent', {
+                value
+            });
+        }
+
+        _chai.expect(subscriptionsExecuted).to.deep.equal([
+            3
+        ]);
+    });
+
+    _test.it('should filter subscription executions of an already published publishOnce event', () => {
+        const pubsub = _Pubsub({
+                pubsub: {
+                    testEvent: {
+                        allowPublicPublish: true,
+                        publishOnce: true
+                    }
+                }
+            }),
+            subscriptionsExecuted = [];
+
+        pubsub.publish('testEvent', {
+            value: 'testValue'
+        });
+
+        pubsub.on('testEvent', {
+            callbackFunction: () => {
+                subscriptionsExecuted.push('filtered out');
+            },
+            filterFunction: () => false
+        });
+
+        pubsub.on('testEvent', {
+            callbackFunction: event => {
+                subscriptionsExecuted.push(event.data.value);
+            },
+            filterFunction: () => true
+        });
+
+        _chai.expect(subscriptionsExecuted).to.deep.equal([
+            'testValue'
+        ]);
+    });
+
+    _test.it('should allow a filter function to stop dispatch', () => {
+        const pubsub = _Pubsub(),
+            subscriptionsExecuted = [];
+
+        pubsub.on('testEvent', {
+            callbackFunction: () => {
+                subscriptionsExecuted.push('first');
+            },
+            filterFunction: event => {
+                event.stopDispatch();
+
+                return false;
+            }
+        });
+
+        pubsub.on('testEvent', () => {
+            subscriptionsExecuted.push('second');
+        });
+
+        pubsub.publish('testEvent');
+
+        _chai.expect(subscriptionsExecuted).to.deep.equal([]);
+    });
+
     _test.it('should distribute events to distributors', () => {
         const distributor0 = _Pubsub(),
             distributor0a = _Pubsub(),

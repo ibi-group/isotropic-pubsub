@@ -14,7 +14,7 @@ A powerful and flexible event system for JavaScript applications that implements
 - **Fine-Grained Control**: Prevent, stop, or modify events during their lifecycle
 - **Customizable Behavior**: Configure dispatchers with custom behavior for each event type
 - **Multiple Integration Options**: Use as standalone, base class, or mixin
-- **Chainable API**: Fluent interface for elegant code
+- **Filtered Subscriptions**: Let a subscription choose which events it runs for
 
 ## Installation
 
@@ -102,6 +102,54 @@ pubsub.on('notification', {
     once: true
 });
 ```
+
+### Filtering Subscriptions
+
+Any subscription can declare a `filterFunction`. It runs before the callback function and decides whether this particular event is one the subscriber cares about. Returning a truthy value runs the callback function as usual. Returning a falsy value skips it entirely.
+
+```javascript
+pubsub.on('dataChanged', {
+    callbackFunction: event => {
+        console.log('An even value:', event.data.value);
+    },
+    filterFunction: event => event.data.value % 2 === 0
+});
+```
+
+A filtered out event never reaches the call function, so a `once` subscription that filters an event out will **remain subscribed**. This lets a one-time subscription wait for the *right* event rather than merely the *next* one:
+
+```javascript
+// Runs once, for the first event published by a particular object
+pubsub.onceOn('dataChanged', {
+    callbackFunction: event => {
+        console.log('Got it:', event.data);
+    },
+    filterFunction: event => event.publisher === interestingObject
+});
+```
+
+Without a filter function, the same functionality requires an ordinary subscription that unsubscribes itself:
+
+```javascript
+// Equivalent to the above
+pubsub.on('dataChanged', event => {
+    if (event.publisher === interestingObject) {
+        event.unsubscribe();
+        console.log('Got it:', event.data);
+    }
+});
+```
+
+A filter function receives the event object and is called with the same host as the callback function, so a method name works too:
+
+```javascript
+pubsub.on('dataChanged', {
+    callbackFunction: '_handleDataChanged',
+    filterFunction: '_isInterestingDataChange'
+});
+```
+
+Filter functions receive the event fully populated for the current stage, so `event.distributor`, `event.publisher`, and `event.stageName` are all available. A filter function may also call the event control methods. A filter function that calls `event.stopDispatch()` stops the stage even though its own callback function did not run.
 
 ## Advanced Features
 
@@ -259,6 +307,7 @@ const pubsub = _Pubsub({
             '_handleDataRemoved',
             {
                 callbackFunction: '_validateRemoval',
+                filterFunction: '_isRemovable',
                 stageName: 'before'
             }
         ]
@@ -1254,6 +1303,12 @@ const pubsub = _Pubsub(options);
 - **onceOn(eventName, config)**: Subscribe once to the on stage
 - **removeDistributor(distributor)**: Remove a distributor
 - **subscribe(stageName, eventName, config)**: Subscribe to an event at a specific stage
+
+#### Subscription Config
+
+- **callbackFunction**: Function or method name executed when the event is dispatched
+- **filterFunction**: Function of method name that decides whether the callback function runs for a given event
+- **once**: Whether to unsubscribe after the callback function runs
 
 ### Event Object
 
