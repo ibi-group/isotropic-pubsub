@@ -161,6 +161,79 @@ _test.describe('pubsub', () => {
         ]);
     });
 
+    _test.it('should accept a config object in subscribe', () => {
+        const pubsub = _Pubsub(),
+            subscriptionsExecuted = [];
+
+        _chai.expect(pubsub.subscribe({
+            callbackFunction: event => {
+                subscriptionsExecuted.push(event.stageName);
+            },
+            eventName: 'testEvent',
+            stageName: 'before'
+        })).to.have.property('subscribed').that.is.true;
+
+        pubsub.publish('testEvent');
+
+        _chai.expect(subscriptionsExecuted).to.deep.equal([
+            'before'
+        ]);
+    });
+
+    _test.it('should accept a config object in _subscribe', () => {
+        const subscriptionsExecuted = [],
+            testThing = _make('TestThing', _Pubsub, {}, {
+                _pubsub: {
+                    protectedEvent: {
+                        allowPublicSubscription: false
+                    }
+                }
+            })();
+
+        _chai.expect(testThing._subscribe({
+            callbackFunction: () => {
+                subscriptionsExecuted.push('protected');
+            },
+            eventName: 'protectedEvent',
+            stageName: 'on'
+        })).to.have.property('subscribed').that.is.true;
+
+        _chai.expect(testThing.subscribe({
+            callbackFunction: () => {
+                subscriptionsExecuted.push('public');
+            },
+            eventName: 'protectedEvent',
+            stageName: 'on'
+        })).to.have.property('subscribed').that.is.false;
+
+        testThing._publish('protectedEvent');
+
+        _chai.expect(subscriptionsExecuted).to.deep.equal([
+            'protected'
+        ]);
+    });
+
+    _test.it('should accept once in a subscribe config object', () => {
+        const pubsub = _Pubsub(),
+            subscriptionsExecuted = [];
+
+        pubsub.subscribe({
+            callbackFunction: () => {
+                subscriptionsExecuted.push('executed');
+            },
+            eventName: 'testEvent',
+            once: true,
+            stageName: 'on'
+        });
+
+        pubsub.publish('testEvent');
+        pubsub.publish('testEvent');
+
+        _chai.expect(subscriptionsExecuted).to.deep.equal([
+            'executed'
+        ]);
+    });
+
     _test.it('should execute staged subscribers when an event is published with any combination of public or protected publish or subscribe', () => {
         const pubsub = _Pubsub(),
             subscriptionsExecuted = [];
@@ -620,7 +693,7 @@ _test.describe('pubsub', () => {
                 subscriptionsExecuted.push('a');
             });
 
-            pubsub.on('testEvent', event => {
+            pubsub.on('testEvent', () => {
                 subscriptionsExecuted.push('b');
             });
 
@@ -2327,7 +2400,6 @@ _test.describe('pubsub', () => {
             'on 3 a',
             'on 3 b',
             'on 3 c',
-            'after 2',
             'before 0',
             'before 2',
             'on 2',
@@ -2464,7 +2536,6 @@ _test.describe('pubsub', () => {
             'on 3 a',
             'on 3 b',
             'on 3 c',
-            'after 2',
             'before 0',
             'before 2',
             'on 2',
@@ -2479,6 +2550,295 @@ _test.describe('pubsub', () => {
             'on 3 b',
             'on 3 c',
             'after 0'
+        ]);
+    });
+
+    _test.it('should treat a bulk subscription with once as a single group', async () => {
+        const pubsub = _Pubsub(),
+            subscriptionsExecuted = [],
+            testSubscription = pubsub.bulkSubscribe({
+                callbackFunction: event => {
+                    subscriptionsExecuted.push(`callbackFunction ${event.stageName} ${event.name}`);
+                },
+                eventName: [
+                    'testEventA',
+                    'testEventB',
+                    'testEventC'
+                ],
+                once: true,
+                stageName: 'on'
+            });
+
+        pubsub.publish('testEventB');
+
+        _chai.expect(testSubscription).to.have.property('subscribed', false);
+
+        pubsub.publish('testEventA').publish('testEventC');
+
+        _chai.expect(subscriptionsExecuted).to.deep.equal([
+            'callbackFunction on testEventB'
+        ]);
+
+        await Promise.resolve();
+
+        _chai.expect(testSubscription).to.have.property('subscribed', false);
+    });
+
+    _test.it('should execute every callback function of a once group for the triggering event', () => {
+        const pubsub = _Pubsub(),
+            subscriptionsExecuted = [];
+
+        pubsub.bulkSubscribe({
+            callbackFunction: [
+                event => {
+                    subscriptionsExecuted.push(`a ${event.stageName} ${event.name}`);
+                },
+                event => {
+                    subscriptionsExecuted.push(`b ${event.stageName} ${event.name}`);
+                },
+                event => {
+                    subscriptionsExecuted.push(`c ${event.stageName} ${event.name}`);
+                }
+            ],
+            eventName: [
+                'testEventA',
+                'testEventB'
+            ],
+            once: true,
+            stageName: 'on'
+        });
+
+        pubsub.publish('testEventA');
+        pubsub.publish('testEventB');
+        pubsub.publish('testEventA');
+
+        _chai.expect(subscriptionsExecuted).to.deep.equal([
+            'a on testEventA',
+            'b on testEventA',
+            'c on testEventA'
+        ]);
+    });
+
+    _test.it('should keep a once group subscribed until its filter function passes', () => {
+        const pubsub = _Pubsub(),
+            subscriptionsExecuted = [];
+
+        pubsub.bulkSubscribe({
+            callbackFunction: event => {
+                subscriptionsExecuted.push(event.data.value);
+            },
+            eventName: [
+                'testEventA',
+                'testEventB'
+            ],
+            filterFunction: event => event.data.value >= 3,
+            once: true,
+            stageName: 'on'
+        });
+
+        for (const value of [
+            1,
+            2,
+            3,
+            4
+        ]) {
+            pubsub.publish('testEventA', {
+                value
+            });
+            pubsub.publish('testEventB', {
+                value
+            });
+        }
+
+        _chai.expect(subscriptionsExecuted).to.deep.equal([
+            3
+        ]);
+    });
+
+    _test.it('should apply a bulk subscription filter function to all events in the group', () => {
+        const pubsub = _Pubsub(),
+            subscriptionsExecuted = [];
+
+        pubsub.bulkSubscribe({
+            callbackFunction: event => {
+                subscriptionsExecuted.push(event.data.value);
+            },
+            eventName: [
+                'testEventA',
+                'testEventB'
+            ],
+            filterFunction: event => event.data.value % 2 === 0,
+            stageName: 'on'
+        });
+
+        for (const value of [
+            1,
+            2
+        ]) {
+            pubsub.publish('testEventA', {
+                value
+            });
+            pubsub.publish('testEventB', {
+                value
+            });
+        }
+
+        _chai.expect(subscriptionsExecuted).to.deep.equal([
+            2,
+            2
+        ]);
+    });
+
+    _test.it('should accept a method name as a bulk subscription filter function', () => {
+        const subscriptionsExecuted = [],
+            testThing = _make('TestThing', _Pubsub, {
+                filterMethod (event) {
+                    return event.data.value === 'wanted';
+                }
+            })();
+
+        testThing.bulkSubscribe({
+            callbackFunction: event => {
+                subscriptionsExecuted.push(event.data.value);
+            },
+            eventName: 'testEvent',
+            filterFunction: 'filterMethod',
+            stageName: 'on'
+        });
+
+        testThing.publish('testEvent', {
+            value: 'unwanted'
+        });
+
+        testThing.publish('testEvent', {
+            value: 'wanted'
+        });
+
+        _chai.expect(subscriptionsExecuted).to.deep.equal([
+            'wanted'
+        ]);
+    });
+
+    _test.it('should ignore an unresolvable method name as a bulk subscription filter function', () => {
+        const pubsub = _Pubsub(),
+            subscriptionsExecuted = [];
+
+        pubsub.bulkSubscribe({
+            callbackFunction: () => {
+                subscriptionsExecuted.push('executed');
+            },
+            eventName: 'testEvent',
+            filterFunction: 'thisMethodDoesNotExist',
+            stageName: 'on'
+        });
+
+        pubsub.publish('testEvent');
+
+        _chai.expect(subscriptionsExecuted).to.deep.equal([]);
+    });
+
+    _test.it('should compose a bulk subscription filter function with config filter function', () => {
+        const pubsub = _Pubsub(),
+            subscriptionsExecuted = [];
+
+        pubsub.bulkSubscribe({
+            config: [{
+                callbackFunction: event => {
+                    subscriptionsExecuted.push(`configFilterFunction a ${event.data.value}`);
+                },
+                filterFunction: event => event.data.value !== 2
+            }, {
+                callbackFunction: event => {
+                    subscriptionsExecuted.push(`configFilterFunction b ${event.data.value}`);
+                }
+            }],
+            eventName: 'testEvent',
+            filterFunction: event => event.data.value < 3,
+            stageName: 'on'
+        });
+
+        for (const value of [
+            1,
+            2,
+            3
+        ]) {
+            pubsub.publish('testEvent', {
+                value
+            });
+        }
+
+        _chai.expect(subscriptionsExecuted).to.deep.equal([
+            'configFilterFunction a 1',
+            'configFilterFunction b 1',
+            'configFilterFunction b 2'
+        ]);
+    });
+
+    _test.it('should accept a callbackFunction as an alternative to config in a bulk subscription', () => {
+        const pubsub = _Pubsub(),
+            subscriptionsExecuted = [];
+
+        pubsub.bulkSubscribe({
+            callbackFunction: event => {
+                subscriptionsExecuted.push(`callbackFunction ${event.stageName} ${event.name}`);
+            },
+            eventName: 'testEvent',
+            stageName: 'before'
+        });
+
+        pubsub.publish('testEvent');
+
+        _chai.expect(subscriptionsExecuted).to.deep.equal([
+            'callbackFunction before testEvent'
+        ]);
+    });
+
+    _test.it('should accept a method name as a bulk subscription callback function', () => {
+        const subscriptionsExecuted = [],
+            testThing = _make('TestThing', _Pubsub, {
+                handlerMethod (event) {
+                    subscriptionsExecuted.push(`handlerMethod ${event.stageName} ${event.name}`);
+                }
+            })();
+
+        testThing.bulkSubscribe({
+            callbackFunction: 'handlerMethod',
+            eventName: 'testEvent',
+            stageName: 'on'
+        });
+
+        testThing.publish('testEvent');
+
+        _chai.expect(subscriptionsExecuted).to.deep.equal([
+            'handlerMethod on testEvent'
+        ]);
+    });
+
+    _test.it('should not give a config filtered member of a spent once group another chance', () => {
+        const pubsub = _Pubsub(),
+            subscriptionsExecuted = [];
+
+        pubsub.bulkSubscribe({
+            config: [{
+                callbackFunction: () => {
+                    subscriptionsExecuted.push('a');
+                }
+            }, {
+                callbackFunction: () => {
+                    subscriptionsExecuted.push('b');
+                },
+                filterFunction: () => false
+            }],
+            eventName: 'testEvent',
+            once: true,
+            stageName: 'on'
+        });
+
+        pubsub.publish('testEvent');
+        pubsub.publish('testEvent');
+
+        _chai.expect(subscriptionsExecuted).to.deep.equal([
+            'a'
         ]);
     });
 
@@ -10031,7 +10391,7 @@ _test.describe('pubsub', () => {
             });
 
             _chai.expect(subscription).to.be.an.instanceOf(_Subscription);
-            _chai.expect(subscription.subscribed).to.not.be.true;
+            _chai.expect(subscription.subscribed).to.be.false;
 
             pubsub.publish('testEvent');
 
