@@ -10734,4 +10734,279 @@ _test.describe('pubsub', () => {
             'protected custom'
         ]);
     });
+
+    _test.it('should allow awaiting an event', async () => {
+        const pubsub = _Pubsub(),
+
+            promise = pubsub.until('testEvent');
+
+        _chai.expect(promise).to.be.an.instanceOf(Promise);
+        _chai.expect(promise).to.have.property('subscribed').that.is.true;
+        _chai.expect(promise).to.have.property('unsubscribe').that.is.a('function');
+        _chai.expect(promise[Symbol.dispose]).to.be.a('function');
+
+        pubsub.publish('testEvent', {
+            value: 'testValue'
+        });
+
+        {
+            const eventSnapshot = await promise;
+
+            _chai.expect(promise).to.have.property('subscribed').that.is.false;
+            _chai.expect(eventSnapshot).to.be.an('object');
+            _chai.expect(Object.isFrozen(eventSnapshot)).to.be.true;
+            _chai.expect(eventSnapshot).to.have.property('completed').that.is.true;
+            _chai.expect(eventSnapshot).to.have.property('data').that.deep.equals({
+                value: 'testValue'
+            });
+            _chai.expect(eventSnapshot).to.have.property('distributor').that.equals(pubsub);
+            _chai.expect(eventSnapshot).not.to.have.property('isPrevented');
+            _chai.expect(eventSnapshot).to.have.property('name', 'testEvent');
+            _chai.expect(eventSnapshot).not.to.have.property('prevent');
+            _chai.expect(eventSnapshot).to.have.property('publisher').that.equals(pubsub);
+            _chai.expect(eventSnapshot).to.have.property('stageName', 'after');
+            _chai.expect(eventSnapshot).not.to.have.property('stopDispatch');
+            _chai.expect(eventSnapshot).not.to.have.property('stopDistribution');
+            _chai.expect(eventSnapshot).not.to.have.property('stopEvent');
+            _chai.expect(eventSnapshot).not.to.have.property('unsubscribe');
+        }
+    });
+
+    _test.it('should allow awaiting an event with a symbol event name', async () => {
+        const eventNameSymbol = Symbol('testEvent'),
+            pubsub = _Pubsub(),
+
+            promise = pubsub.until(eventNameSymbol);
+
+        pubsub.publish(eventNameSymbol);
+
+        _chai.expect(await promise).to.have.property('name', eventNameSymbol);
+    });
+
+    _test.it('should accept a config object for until', async () => {
+        const pubsub = _Pubsub(),
+
+            promise = pubsub.until({
+                eventName: 'testEvent',
+                stageName: 'before'
+            });
+
+        pubsub.publish('testEvent');
+
+        _chai.expect(await promise).to.have.property('stageName', 'before');
+    });
+
+    _test.it('should resolve an until promise subscribed to the before stage of a prevented event', async () => {
+        const pubsub = _Pubsub(),
+
+            afterPromise = pubsub.until('testEvent'),
+            beforePromise = pubsub.until({
+                eventName: 'testEvent',
+                stageName: 'before'
+            });
+
+        let afterResolved = false;
+
+        afterPromise.then(() => {
+            afterResolved = true;
+        });
+
+        pubsub.before('testEvent', event => {
+            event.prevent();
+        });
+
+        pubsub.publish('testEvent');
+
+        _chai.expect(await beforePromise).to.have.property('stageName', 'before');
+
+        await Promise.resolve();
+
+        _chai.expect(afterResolved).to.be.false;
+        _chai.expect(afterPromise).to.have.property('subscribed').that.is.true;
+    });
+
+    _test.it('should resolve an until promise for an already published publishOnce event', async () => {
+        const pubsub = _Pubsub({
+            pubsub: {
+                testEvent: {
+                    allowPublicPublish: true,
+                    publishOnce: true
+                }
+            }
+        });
+
+        pubsub.publish('testEvent', {
+            value: 'testValue'
+        });
+
+        _chai.expect(await pubsub.until('testEvent')).to.have.property('data').that.deep.equals({
+            value: 'testValue'
+        });
+    });
+
+    _test.it('should allow unsubscribing an until promise', async () => {
+        const pubsub = _Pubsub(),
+
+            promise = pubsub.until('testEvent');
+
+        _chai.expect(promise).to.have.property('subscribed').that.is.true;
+        _chai.expect(promise.unsubscribe()).to.be.true;
+        _chai.expect(promise).to.have.property('subscribed').that.is.false;
+
+        let promiseResolved = false;
+
+        promise.then(() => {
+            promiseResolved = true;
+        });
+
+        pubsub.publish('testEvent');
+
+        await Promise.resolve();
+
+        _chai.expect(promiseResolved).to.be.false;
+    });
+
+    _test.it('should allow disposing an until promise', () => {
+        let promise;
+
+        {
+            using disposablePromise = _Pubsub().until('testEvent');
+
+            promise = disposablePromise;
+
+            _chai.expect(promise).to.have.property('subscribed').that.is.true;
+        }
+
+        _chai.expect(promise).to.have.property('subscribed').that.is.false;
+    });
+
+    _test.it('should allow protected until subscriptions', async () => {
+        const testThing = _make('TestThing', _Pubsub, {}, {
+                _pubsub: {
+                    protectedEvent: {
+                        allowPublicSubscription: false
+                    }
+                }
+            })(),
+
+            promise = testThing._until({
+                eventName: 'protectedEvent',
+                stageName: 'on'
+            });
+
+        _chai.expect(testThing.until({
+            eventName: 'protectedEvent',
+            stageName: 'on'
+        })).to.have.property('subscribed').that.is.false;
+
+        testThing._publish('protectedEvent', {
+            value: 'testValue'
+        });
+
+        _chai.expect(await promise).to.have.property('data').that.deep.equals({
+            value: 'testValue'
+        });
+    });
+
+    _test.it('should keep an until subscription active until its filter function passes', async () => {
+        const publisher = _Pubsub(),
+            pubsub = _Pubsub(),
+
+            promise = pubsub.until({
+                eventName: 'testEvent',
+                filterFunction: event => event.publisher !== pubsub
+            });
+
+        publisher.addDistributor(pubsub);
+
+        pubsub.publish('testEvent', {
+            value: 'fromPubsub'
+        });
+
+        publisher.publish('testEvent', {
+            value: 'fromPublisher'
+        });
+
+        _chai.expect(await promise).to.have.property('data').that.deep.equals({
+            value: 'fromPublisher'
+        });
+    });
+
+    _test.it('should allow awaiting multiple events', async () => {
+        const pubsub = _Pubsub(),
+
+            promise = pubsub.until({
+                eventName: [
+                    'failure',
+                    'success'
+                ]
+            });
+
+        pubsub.publish('success', {
+            value: 'testValue'
+        });
+
+        pubsub.publish('failure', {
+            reason: 'timeout'
+        });
+
+        {
+            const eventSnapshot = await promise;
+
+            _chai.expect(eventSnapshot).to.have.property('name', 'success');
+            _chai.expect(eventSnapshot).to.have.property('data').that.deep.equals({
+                value: 'testValue'
+            });
+        }
+    });
+
+    _test.it('should allow awaiting multiple events with a filter function', async () => {
+        const pubsub = _Pubsub(),
+
+            promise = pubsub.until({
+                eventName: [
+                    'jobComplete',
+                    'jobFailed'
+                ],
+                filterFunction: event => event.data.id === 7
+            });
+
+        pubsub.publish('jobComplete', {
+            id: 5
+        });
+
+        pubsub.publish('jobFailed', {
+            id: 7
+        });
+
+        _chai.expect(await promise).to.have.property('name', 'jobFailed');
+    });
+
+    _test.it('should unsubscribe from all events within the until subscription when an until promise is unsubscribed', async () => {
+        const pubsub = _Pubsub(),
+
+            promise = pubsub.until({
+                eventName: [
+                    'failure',
+                    'success'
+                ]
+            });
+
+        _chai.expect(promise).to.have.property('subscribed').that.is.true;
+        _chai.expect(promise.unsubscribe()).to.be.true;
+        _chai.expect(promise).to.have.property('subscribed').that.is.false;
+
+        let promiseResolved = false;
+
+        promise.then(() => {
+            promiseResolved = true;
+        });
+
+        pubsub.publish('success');
+        pubsub.publish('failure');
+
+        await Promise.resolve();
+
+        _chai.expect(promiseResolved).to.be.false;
+    });
 });
