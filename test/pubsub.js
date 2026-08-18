@@ -684,6 +684,23 @@ _test.describe('pubsub', () => {
         _chai.expect(testSubscription.unsubscribe()).to.be.true;
     });
 
+    _test.it('should return false when unsubscribing from within a complete function', () => {
+        let unsubscribeResult;
+
+        const pubsub = _Pubsub();
+
+        pubsub.defineDispatcher('testEvent', {
+            allowPublicPublish: true,
+            completeFunction: event => {
+                unsubscribeResult = event.unsubscribe();
+            }
+        });
+
+        pubsub.publish('testEvent');
+
+        _chai.expect(unsubscribeResult).to.be.false;
+    });
+
     _test.it('should unsubscribe when subscription is disposed', () => {
         const pubsub = _Pubsub(),
             subscriptionsExecuted = [];
