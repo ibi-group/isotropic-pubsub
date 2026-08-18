@@ -3,11 +3,13 @@
     "bugs": "https://github.com/ibi-group/isotropic-pubsub/issues",
     "dependencies": {
         "isotropic-make": "~0.14.0",
-        "isotropic-property-chainer": "~0.15.0"
+        "isotropic-property-chainer": "~0.15.0",
+        "isotropic-timeout-cancel": "~0.1.0"
     },
     "description": "An event system with subscription stages, preventable events, and event distribution",
     "devDependencies": {
-        "isotropic-dev-dependencies": "~0.4.0"
+        "isotropic-dev-dependencies": "~0.4.0",
+        "isotropic-later": "~0.15.0"
     },
     "engines": {
         "node": "^26.5.0",

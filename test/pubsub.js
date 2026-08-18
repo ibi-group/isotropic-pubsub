@@ -1,6 +1,7 @@
 import _chai from 'isotropic-dev-dependencies/lib/chai.js';
 import _Dispatcher from '../lib/dispatcher.js';
 import _Event from '../lib/event.js';
+import _later from 'isotropic-later';
 import _make from 'isotropic-make';
 import _Pubsub from '../lib/pubsub.js';
 import _Subscription from '../lib/subscription.js';
@@ -11111,5 +11112,306 @@ _test.describe('pubsub', () => {
         await Promise.resolve();
 
         _chai.expect(promiseResolved).to.be.false;
+    });
+
+    _test.it('should throw synchronously when an until subscription cannot be created', () => {
+        const pubsub = _Pubsub();
+
+        pubsub.destroy();
+
+        _chai.expect(() => {
+            pubsub.until({
+                eventName: 'testEvent',
+                timeout: 60000
+            });
+        }).to.throw(TypeError); // eslint-disable-line no-restricted-globals -- This is testing a value provided by the runtime environment.
+    });
+
+    _test.it('should reject an until promise when its timeout elapses', async () => {
+        const promise = _Pubsub().until({
+            eventName: 'testEvent',
+            timeout: 10
+        });
+
+        let error;
+
+        try {
+            await promise;
+        } catch (caughtError) {
+            error = caughtError;
+        }
+
+        _chai.expect(error).to.have.property('name', 'TimeoutError');
+        _chai.expect(error).to.have.property('message', 'Event timed out');
+        _chai.expect(error).to.have.property('details').that.has.property('duration', 10);
+        _chai.expect(promise).to.have.property('canceled').that.is.true;
+        _chai.expect(promise).to.have.property('subscribed').that.is.false;
+    });
+
+    _test.it('should allow a custom subject and details for until errors', async () => {
+        let error;
+
+        try {
+            await _Pubsub().until({
+                details: {
+                    resource: 'testResource'
+                },
+                eventName: 'testEvent',
+                subject: 'Test event',
+                timeout: 10
+            });
+        } catch (caughtError) {
+            error = caughtError;
+        }
+
+        _chai.expect(error).to.have.property('message', 'Test event timed out');
+        _chai.expect(error).to.have.property('details').that.has.property('resource', 'testResource');
+    });
+
+    _test.it('should not settle a silent until promise when its timeout elapses', async () => {
+        const promise = _Pubsub().until({
+            eventName: 'testEvent',
+            silent: true,
+            timeout: 10
+        });
+
+        let settled = false;
+
+        promise.then(() => {
+            settled = true;
+        }, () => {
+            settled = true;
+        });
+
+        await _later(30);
+
+        _chai.expect(settled).to.be.false;
+        _chai.expect(promise).to.have.property('canceled').that.is.true;
+        _chai.expect(promise).to.have.property('subscribed').that.is.false;
+    });
+
+    _test.it('should clear the until timeout when the event is published', async () => {
+        const pubsub = _Pubsub(),
+
+            promise = pubsub.until({
+                eventName: 'testEvent',
+                timeout: 10
+            });
+
+        pubsub.publish('testEvent', {
+            value: 'testValue'
+        });
+
+        _chai.expect(await promise).to.have.property('data').that.deep.equals({
+            value: 'testValue'
+        });
+
+        let rejected = false;
+
+        promise.catch(() => {
+            rejected = true;
+        });
+
+        await _later(30);
+
+        _chai.expect(rejected).to.be.false;
+        _chai.expect(promise).to.have.property('canceled').that.is.false;
+    });
+
+    _test.it('should clear the until timeout when the subscription is unsubscribed', async () => {
+        const promise = _Pubsub().until({
+            eventName: 'testEvent',
+            timeout: 10
+        });
+
+        let settled = false;
+
+        promise.then(() => {
+            settled = true;
+        }, () => {
+            settled = true;
+        });
+
+        _chai.expect(promise.unsubscribe()).to.be.true;
+
+        await _later(30);
+
+        _chai.expect(settled).to.be.false;
+        _chai.expect(promise).to.have.property('canceled').that.is.false;
+    });
+
+    _test.it('should allow canceling an until promise', async () => {
+        const promise = _Pubsub().until('testEvent');
+
+        _chai.expect(promise.cancel()).to.equal(promise);
+
+        let error;
+
+        try {
+            await promise;
+        } catch (caughtError) {
+            error = caughtError;
+        }
+
+        _chai.expect(error).to.have.property('name', 'CanceledError');
+        _chai.expect(error).to.have.property('message', 'Event canceled');
+        _chai.expect(promise).to.have.property('canceled').that.is.true;
+        _chai.expect(promise).to.have.property('subscribed').that.is.false;
+    });
+
+    _test.it('should allow canceling an until promise with a reason', async () => {
+        const reason = new Error('testReason'), // eslint-disable-line no-restricted-globals -- This is testing an arbitrary caller provided error.
+
+            promise = _Pubsub().until('testEvent');
+
+        promise.cancel({
+            reason
+        });
+
+        let error;
+
+        try {
+            await promise;
+        } catch (caughtError) {
+            error = caughtError;
+        }
+
+        _chai.expect(error).to.equal(reason);
+    });
+
+    _test.it('should allow canceling an until promise silently', async () => {
+        const promise = _Pubsub().until('testEvent');
+
+        let settled = false;
+
+        promise.then(() => {
+            settled = true;
+        }, () => {
+            settled = true;
+        });
+
+        promise.cancel({
+            silent: true
+        });
+
+        await _later(10);
+
+        _chai.expect(settled).to.be.false;
+        _chai.expect(promise).to.have.property('canceled').that.is.true;
+        _chai.expect(promise).to.have.property('subscribed').that.is.false;
+    });
+
+    _test.it('should not cancel an until promise after it has resolved', async () => {
+        const pubsub = _Pubsub(),
+
+            promise = pubsub.until('testEvent');
+
+        pubsub.publish('testEvent');
+
+        await promise;
+
+        promise.cancel();
+
+        _chai.expect(promise).to.have.property('canceled').that.is.false;
+        _chai.expect(await promise).to.have.property('name', 'testEvent');
+    });
+
+    _test.it('should reject an until promise when an abort signal is aborted', async () => {
+        const abortController = new AbortController(),
+            promise = _Pubsub().until({
+                eventName: 'testEvent',
+                signal: abortController.signal
+            });
+
+        _chai.expect(promise).to.have.property('subscribed').that.is.true;
+
+        abortController.abort();
+
+        let error;
+
+        try {
+            await promise;
+        } catch (caughtError) {
+            error = caughtError;
+        }
+
+        _chai.expect(error).to.have.property('name', 'AbortError');
+        _chai.expect(error).to.have.property('message', 'Event aborted');
+        _chai.expect(promise).to.have.property('subscribed').that.is.false;
+    });
+
+    _test.it('should not subscribe an until promise when its abort signal is already aborted', async () => {
+        const pubsub = _Pubsub(),
+
+            promise = pubsub.until({
+                eventName: 'testEvent',
+                signal: AbortSignal.abort()
+            });
+
+        _chai.expect(promise).to.have.property('subscribed').that.is.false;
+
+        let error;
+
+        try {
+            await promise;
+        } catch (caughtError) {
+            error = caughtError;
+        }
+
+        _chai.expect(error).to.have.property('name', 'AbortError');
+
+        pubsub.publish('testEvent');
+
+        _chai.expect(pubsub._eventStateByEventName.testEvent.subscriptionMapByStageName).not.to.have.property('after');
+    });
+
+    _test.it('should release the remaining until subscriptions when one of its events has already been published', async () => {
+        const pubsub = _Pubsub({
+            pubsub: {
+                alreadyPublished: {
+                    allowPublicPublish: true,
+                    publishOnce: true
+                }
+            }
+        });
+
+        pubsub.publish('alreadyPublished', {
+            value: 'testValue'
+        });
+
+        {
+            const promise = pubsub.until({
+                eventName: [
+                    'alreadyPublished',
+                    'neverPublished'
+                ]
+            });
+
+            _chai.expect(await promise).to.have.property('name', 'alreadyPublished');
+            _chai.expect(promise).to.have.property('subscribed').that.is.false;
+            _chai.expect(pubsub._eventStateByEventName.neverPublished.subscriptionMapByStageName).not.to.have.property('after');
+        }
+    });
+
+    _test.it('should allow protected until subscriptions to be canceled', async () => {
+        let error;
+
+        try {
+            await _make('TestThing', _Pubsub, {}, {
+                _pubsub: {
+                    protectedEvent: {
+                        allowPublicSubscription: false
+                    }
+                }
+            })()._until({
+                eventName: 'protectedEvent',
+                stageName: 'on',
+                timeout: 10
+            });
+        } catch (caughtError) {
+            error = caughtError;
+        }
+
+        _chai.expect(error).to.have.property('name', 'TimeoutError');
     });
 });

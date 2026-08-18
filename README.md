@@ -15,7 +15,7 @@ A powerful and flexible event system for JavaScript applications that implements
 - **Event Encapsulation**: Keep events entirely internal or expose them for others to observe
 - **Fine-Grained Control**: Prevent, stop, or modify events during their lifecycle
 - **Filtered Subscriptions**: Let a subscription choose which events it runs for
-- **Awaitable Events**: Get a subscription promise that resolves aynchronously when an event is published
+- **Awaitable Events**: Get a cancelable subscription promise that resolves aynchronously when an event is published
 - **Customizable Behavior**: Configure dispatchers with custom behavior for each event type
 - **Multiple Integration Options**: Use as standalone, base class, or mixin
 
@@ -338,7 +338,7 @@ const eventSnapshot = await pubsub.until({
 });
 ```
 
-The `until` method's config object does not accept a `callbackFunction` or `once` property.
+The `until` method's config object does not accept a `callbackFunction` or `once` property. It also accepts more properties which are described under [Canceling](#canceling) below.
 
 #### Racing Several Events
 
@@ -395,14 +395,16 @@ The resolved value is a frozen snapshot captured at the moment the subscription 
 
 #### Canceling
 
-The returned promise carries a `subscribed` getter, an `unsubscribe` method, and a `Symbol.dispose` method. It can be canceled explicitly or canceled when it leaves scope with `using`:
+An `until` subscription is a cancelable task, and it uses the same interface as the rest of the isotropic ecosystem, provided by [isotropic-timeout-cancel](https://github.com/ibi-group/isotropic-timeout-cancel).
+
+The returned promise carries a `cancel` method, a `canceled` getter, a `subscribed` getter, an `unsubscribe` method, and a `Symbol.dispose` method:
 
 ```javascript
 {
     const promise = pubsub.until('dataChanged');
 
     if (noLongerInterested) {
-        promise.unsubscribe();
+        promise.cancel();
     }
 }
 
@@ -417,15 +419,57 @@ The returned promise carries a `subscribed` getter, an `unsubscribe` method, and
 }
 ```
 
-These extra properties exist only on the promise returned by the `until` method. Chaining the promise with `then` returns an ordinary promise without these extra properties.
+There are two ways to release the subscription, and they differ only in whether the promise settles:
+
+- **`cancel(config)`** releases the subscription and rejects the promise with a standardized error. It returns the promise, so it can be chained.
+- **`unsubscribe()`** releases the subscription and leaves the promise unsettled, exactly like unsubscribing any other subscription. It returns a Boolean.
+
+`Symbol.dispose` behaves like `unsubscribe`, so a `using` declaration that goes out of scope never produces a rejection to handle.
+
+##### Timeouts And Signals
+
+The config object accepts the same cancellation options as any other isotropic cancelable task:
+
+- **details**: An object included as the `details` of generated errors
+- **signal**: An `AbortSignal` that cancels the subscription when it aborts. A signal that has already aborted cancels before any subscription is created.
+- **silent**: When `true`, the promise never rejects. Every form of cancellation, including a timeout, simply releases the subscription and leaves the promise unsettled. Default: `false`
+- **subject**: The subject of generated error messages, as in `` `${subject} timed out` ``. Default: `'Event'`
+- **timeout**: A number of milliseconds or a `Temporal.Duration`. If the event has not been published by the time it elapses, the subscription is released and the promise rejects with a `TimeoutError`.
+
+```javascript
+// Give up after five seconds
+try {
+    const eventSnapshot = await pubsub.until({
+        eventName: 'dataChanged',
+        subject: 'Data change',
+        timeout: 5000
+    });
+} catch (error) {
+    // Error: Data change timed out
+}
+```
+
+Publishing the event, unsubscribing, canceling, and disposing all clear a pending timeout, so a settled or released `until` never leaves a timer behind.
+
+| Cause | Error name | Message |
+| --- | --- | --- |
+| The `timeout` elapsed | `TimeoutError` | `` `${subject} timed out` `` |
+| An `AbortSignal` aborted | `AbortError` | `` `${subject} aborted` `` |
+| `cancel()` with no reason | `CanceledError` | `` `${subject} canceled` `` |
+
+Calling `cancel({ reason })` delivers that reason as-is instead of a generated error, and `cancel({ silent: true })` releases the subscription without rejecting.
+
+These extra properties exist only on the promise returned by the `until` method. Chaining the promise with `then` returns an ordinary promise without them.
 
 #### Events That Never Publish
 
-If the event is never published, the promise never settles. It is not rejected when the object is destroyed, and unsubscribing does not settle it either. This is deliberate. An unsettled promise with no remaining references will be garbage collected normally.
+If the event is never published, the promise never settles. Destroying the object releases the subscription but does not settle the promise, and neither does `unsubscribe`. This is deliberate: an `until` subscription that is still waiting is still live, and a promise that resolves only when the event actually happens is the purpose of the method.
+
+Since the subscription is registered on the object, the object holds a reference to the promise for as long as it stays subscribed. It is not eligible for garbage collection during that time. That means an `until` that will *never* be satisfied is retained by a long-lived object until something releases it. This will leak memory if the promise goes out of scope but the object remains. Use `timeout`, `signal`, `cancel()`, `unsubscribe()`, or `using` for any `until` whose event is not guaranteed to be published, and you are no longer interested in waiting for it.
 
 #### Awaiting A Once Event That Already Published
 
-Subscribing to a `publishOnce` event that has already been published executes the subscription immediately, so `until` resolves whether or no the event has already happened. This makes it a reliable way to wait on one-time events.
+Subscribing to a `publishOnce` event that has already been published executes the subscription immediately, so `until` resolves whether or not the event has already happened. This makes it a reliable way to wait on one-time events, and it works when racing several event names too. If one of them has already been published, the promise resolves with it and the subscriptions to the others are released immediately.
 
 ## Advanced Features
 
@@ -1590,6 +1634,18 @@ Accepted by `after`, `before`, `bulkSubscribe`, `on`, `onceAfter`, `onceBefore`,
 
 `bulkSubscribe` and the stage shortcut methods accept an iterable of event names and/or an iterable of callback functions. `bulkSubscribe` additionally accepts a `config` property in place of `callbackFunction`.
 
+#### Until Config
+
+`until` accepts an event name, or a config object with `eventName`, `filterFunction`, `host`, and `stageName` from the subscription config (but not `callbackFunction` or `once`), plus the cancellation options:
+
+- **details**: An object included as the `details` of generated errors
+- **signal**: An `AbortSignal` that cancels the subscription when it aborts
+- **silent**: When `true`, the promise never rejects. Default: `false`
+- **subject**: The subject of generated error messages. Default: `'Event'`
+- **timeout**: A number of milliseconds or a `Temporal.Duration` after which the promise rejects with a `TimeoutError`
+
+`stageName` defaults to `'after'` rather than `'on'`.
+
 ### Event Object
 
 Event objects are passed to subscribers and contain:
@@ -1634,11 +1690,13 @@ Returned when subscribing to events:
 
 ### Until Promise
 
-Returned by the `until` method. A promise that resolves with an event snapshot, with subscription management added:
+Returned by the `until` method. A promise that resolves with an event snapshot, with subscription management and cancellation added:
 
+- **cancel(config)**: Releases the subscription and rejects the promise. Accepts `reason`, `signal`, and `silent`, as in [isotropic-cancel](https://github.com/ibi-group/isotropic-cancel). Returns the promise.
+- **canceled**: Whether the subscription was canceled
 - **subscribed**: Whether the subscription is active
-- **unsubscribe()**: Method to unsubscribe
-- **[Symbol.dispose]()**: Unsubscribes for `using` declarations
+- **unsubscribe()**: Releases the subscription without settling the promise. Returns a Boolean.
+- **[Symbol.dispose]()**: Releases the subscription without settling the promise, for `using` declarations
 
 ## Advanced Configuration
 
