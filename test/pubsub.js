@@ -6823,7 +6823,157 @@ _test.describe('pubsub', () => {
         _chai.expect(subscriptionsExecuted).to.deep.equal([]);
     });
 
-    // TODO: test late subscribers to once events when dispatch, distribution, and event is stopped
+    _test.it('should immediately execute late subscribers to once events when dispatch, distribution, or the event was stopped', () => {
+        const data = {
+                a: 'a',
+                b: 'b',
+                c: 'c'
+            },
+            distributor = _Pubsub(),
+            pubsub = _Pubsub();
+
+        let subscriptionsExecuted = [];
+
+        pubsub.addDistributor(distributor);
+
+        pubsub.defineDispatcher([
+            'testEvent0',
+            'testEvent1',
+            'testEvent2'
+        ], {
+            allowPublicPublish: true,
+            publishOnce: true
+        });
+
+        pubsub.on('testEvent0', event => {
+            subscriptionsExecuted.push('on');
+            event.stopDispatch();
+        });
+
+        pubsub.on('testEvent0', () => {
+            subscriptionsExecuted.push('onAfterStoppedDispatch');
+        });
+
+        distributor.on('testEvent0', () => {
+            subscriptionsExecuted.push('distributorOn');
+        });
+
+        pubsub.publish('testEvent0', data);
+
+        _chai.expect(subscriptionsExecuted).to.deep.equal([
+            'on',
+            'distributorOn'
+        ]);
+
+        subscriptionsExecuted = [];
+
+        pubsub.before('testEvent0', event => {
+            _chai.expect(event).to.have.property('data', data);
+            _chai.expect(event).to.have.property('completed', true);
+            _chai.expect(event).to.have.property('dispatchStopped', false);
+            subscriptionsExecuted.push('lateBefore');
+        });
+
+        pubsub.on('testEvent0', () => {
+            subscriptionsExecuted.push('lateOn');
+        });
+
+        pubsub.after('testEvent0', () => {
+            subscriptionsExecuted.push('lateAfter');
+        });
+
+        _chai.expect(subscriptionsExecuted).to.deep.equal([
+            'lateBefore',
+            'lateOn',
+            'lateAfter'
+        ]);
+
+        subscriptionsExecuted = [];
+
+        pubsub.on('testEvent1', event => {
+            subscriptionsExecuted.push('on');
+            event.stopDistribution();
+        });
+
+        pubsub.on('testEvent1', () => {
+            subscriptionsExecuted.push('onAfterStoppedDistribution');
+        });
+
+        distributor.on('testEvent1', () => {
+            subscriptionsExecuted.push('distributorOn');
+        });
+
+        pubsub.publish('testEvent1', data);
+
+        _chai.expect(subscriptionsExecuted).to.deep.equal([
+            'on',
+            'onAfterStoppedDistribution'
+        ]);
+
+        subscriptionsExecuted = [];
+
+        pubsub.before('testEvent1', event => {
+            _chai.expect(event).to.have.property('data', data);
+            _chai.expect(event).to.have.property('completed', true);
+            _chai.expect(event).to.have.property('distributionStopped', false);
+            subscriptionsExecuted.push('lateBefore');
+        });
+
+        pubsub.on('testEvent1', () => {
+            subscriptionsExecuted.push('lateOn');
+        });
+
+        pubsub.after('testEvent1', () => {
+            subscriptionsExecuted.push('lateAfter');
+        });
+
+        _chai.expect(subscriptionsExecuted).to.deep.equal([
+            'lateBefore',
+            'lateOn',
+            'lateAfter'
+        ]);
+
+        subscriptionsExecuted = [];
+
+        pubsub.on('testEvent2', event => {
+            subscriptionsExecuted.push('on');
+            event.stopEvent();
+        });
+
+        pubsub.after('testEvent2', () => {
+            subscriptionsExecuted.push('afterStoppedEvent');
+        });
+
+        pubsub.publish('testEvent2', data);
+
+        _chai.expect(subscriptionsExecuted).to.deep.equal([
+            'on'
+        ]);
+
+        subscriptionsExecuted = [];
+
+        pubsub.before('testEvent2', event => {
+            _chai.expect(event).to.have.property('data', data);
+            _chai.expect(event).to.have.property('eventStopped', true);
+            _chai.expect(event).to.have.property('stageName', 'on');
+            _chai.expect(event.completed).to.be.undefined;
+            subscriptionsExecuted.push('lateBefore');
+        });
+
+        pubsub.on('testEvent2', () => {
+            subscriptionsExecuted.push('lateOn');
+        });
+
+        pubsub.after('testEvent2', () => {
+            subscriptionsExecuted.push('lateAfter');
+        });
+
+        _chai.expect(subscriptionsExecuted).to.deep.equal([
+            'lateBefore',
+            'lateOn',
+            'lateAfter'
+        ]);
+    });
 
     _test.it('should be destroyable', () => {
         let subscriptionsExecuted = [];
