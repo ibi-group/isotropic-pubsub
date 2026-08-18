@@ -1388,6 +1388,64 @@ _test.describe('pubsub', () => {
         }).hasDistributor(distributor)).to.be.true;
     });
 
+    _test.it('should not loop infinitely when distributors form a cycle', () => {
+        const pubsubA = _Pubsub(),
+            pubsubB = _Pubsub(),
+            subscriptionsExecuted = [];
+
+        pubsubA.addDistributor(pubsubB);
+        pubsubB.addDistributor(pubsubA);
+
+        pubsubA.on('testEvent', () => {
+            subscriptionsExecuted.push('pubsubA');
+        });
+
+        pubsubB.on('testEvent', () => {
+            subscriptionsExecuted.push('pubsubB');
+        });
+
+        pubsubA.publish('testEvent');
+
+        _chai.expect(subscriptionsExecuted).to.deep.equal([
+            'pubsubA',
+            'pubsubB'
+        ]);
+
+        subscriptionsExecuted.length = 0;
+
+        pubsubB.publish('testEvent');
+
+        _chai.expect(subscriptionsExecuted).to.deep.equal([
+            'pubsubB',
+            'pubsubA'
+        ]);
+    });
+
+    _test.it('should distribute an event only once to a distributor reachable by multiple paths', () => {
+        const distributor0 = _Pubsub(),
+            distributor1 = _Pubsub(),
+            grandDistributor = _Pubsub(),
+            pubsub = _Pubsub(),
+            subscriptionsExecuted = [];
+
+        pubsub.addDistributor([
+            distributor0,
+            distributor1
+        ]);
+        distributor0.addDistributor(grandDistributor);
+        distributor1.addDistributor(grandDistributor);
+
+        grandDistributor.on('testEvent', () => {
+            subscriptionsExecuted.push('grandDistributor');
+        });
+
+        pubsub.publish('testEvent');
+
+        _chai.expect(subscriptionsExecuted).to.deep.equal([
+            'grandDistributor'
+        ]);
+    });
+
     _test.it('should not execute further stages if the event is stopped', () => {
         const distributor0 = _Pubsub(),
             distributor0a = _Pubsub(),
