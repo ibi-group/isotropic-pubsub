@@ -6874,12 +6874,40 @@ _test.describe('pubsub', () => {
             pubsub.publish('anotherEvent');
         }).to.throw(TypeError); // eslint-disable-line no-restricted-globals -- This is testing a value provided by the runtime environment.
 
-        _chai.expect(() => {
-            pubsub.destroy('a', 'b', 'c');
-        }).to.throw(TypeError); // eslint-disable-line no-restricted-globals -- This is testing a value provided by the runtime environment.
+        _chai.expect(pubsub.destroy('a', 'b', 'c')).to.equal(pubsub);
 
         _chai.expect(pubsub).to.have.property('destroyed', true);
         _chai.expect(subscriptionsExecuted).to.deep.equal([]);
+    });
+
+    _test.it('should be repeatedly destroyable with no error', () => {
+        const pubsub = _Pubsub(),
+            subscriptionsExecuted = [];
+
+        pubsub.on('destroyComplete', () => {
+            subscriptionsExecuted.push('destroyComplete');
+        });
+
+        pubsub.destroy();
+        pubsub.destroy();
+        pubsub.destroy();
+
+        _chai.expect(pubsub).to.have.property('destroyed', true);
+        _chai.expect(subscriptionsExecuted).to.deep.equal([
+            'destroyComplete'
+        ]);
+    });
+
+    _test.it('should be disposable after it has already been destroyed', () => {
+        const pubsub = _Pubsub();
+
+        pubsub.destroy();
+
+        _chai.expect(() => {
+            using disposablePubsub = pubsub; // eslint-disable-line no-unused-vars -- The disposal is the subject of this test.
+        }).not.to.throw();
+
+        _chai.expect(pubsub).to.have.property('destroyed', true);
     });
 
     _test.it('should be destroyed automatically when disposed', () => {
