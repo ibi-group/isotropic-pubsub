@@ -456,10 +456,70 @@ Publishing the event, unsubscribing, canceling, and disposing all clear a pendin
 | The `timeout` elapsed | `TimeoutError` | `` `${subject} timed out` `` |
 | An `AbortSignal` aborted | `AbortError` | `` `${subject} aborted` `` |
 | `cancel()` with no reason | `CanceledError` | `` `${subject} canceled` `` |
+| A `reject` event was published | `RejectError` | `` `${subject} rejected` `` |
 
 Calling `cancel({ reason })` delivers that reason as-is instead of a generated error, and `cancel({ silent: true })` releases the subscription without rejecting.
 
 These extra properties exist only on the promise returned by the `until` method. Chaining the promise with `then` returns an ordinary promise without them.
+
+#### Rejecting On An Error Event
+
+Racing a success event against a failure event resolves either way, which leaves the awaiting code to check which event it got. The `reject` config property moves the failure onto the promise's rejection channel instead, so ordinary `try`/`catch` handles it:
+
+```javascript
+try {
+    const eventSnapshot = await pubsub.until({
+        eventName: 'success',
+        reject: 'failure'
+    });
+
+    console.log('Succeeded with', eventSnapshot.data);
+} catch (error) {
+    // error.name is 'RejectError'
+    console.error('Failed with', error.details.eventSnapshot.data);
+}
+```
+
+This is a common pattern when an event's complete stage begins asynchronous work. The event dispatch is synchronous so listeners of that event are only notified that the work began. In order for listeners to know when the work is complete or to observe the outcome, it publishes a separate completion event when the work finishes, or a separate error event if it failed. An observer that wants the outcome had to subscribe to both and then sort out which arrived. With `reject`, the promise expresses the outcome directly.
+
+The rejection is an [isotropic-error](https://github.com/ibi-group/isotropic-error) named `RejectError`, with the message `` `${subject} rejected` ``. Its `details` object carries the `eventSnapshot` of the event that caused the rejection, alongside any `details` given to the `until` config.
+
+`reject` accepts an event name, a config object, or an iterable of either:
+
+```javascript
+// A single event name
+await pubsub.until({
+    eventName: 'success',
+    reject: 'failure'
+});
+
+// Several event names
+await pubsub.until({
+    eventName: 'success',
+    reject: [
+        'failure',
+        'canceled'
+    ]
+});
+
+// A config object, for a different stage or a filter function
+await pubsub.until({
+    eventName: 'jobDone',
+    reject: {
+        eventName: 'jobFailed',
+        filterFunction: event => event.data.jobId === jobId,
+        stageName: 'on'
+    }
+});
+```
+
+A reject config object accepts the same subscription properties as `eventName` does, other than `callbackFunction` and `once`. Its `eventName` may itself be an iterable. Each reject entry inherits the `until` config's `stageName` unless it sets its own, and it does not inherit the config's `filterFunction` or other subscription properties, since those describe the resolve event.
+
+A few points of behavior:
+
+- **Resolution wins a tie.** If the resolve event and a reject event are both spent one-time events that have already been published, the promise resolves. The resolve subscription is registered first, so it is the one that runs.
+- **`silent` does not apply.** `silent` suppresses rejections from *cancellation*. A reject event is an outcome rather than a cancellation, so it rejects even when `silent` is `true`.
+- **Settling releases everything.** Resolving, rejecting, canceling, unsubscribing, or disposing releases the resolve subscription and every reject subscription together.
 
 #### Events That Never Publish
 
@@ -1640,12 +1700,13 @@ Accepted by `after`, `before`, `bulkSubscribe`, `on`, `onceAfter`, `onceBefore`,
 `until` accepts an event name, or a config object with `eventName`, `filterFunction`, `host`, and `stageName` from the subscription config (but not `callbackFunction` or `once`), plus the cancellation options:
 
 - **details**: An object included as the `details` of generated errors
+- **reject**: An event name, a subscription config object, or an iterable of either. Publishing one of these events rejects the promise with a `RejectError`.
 - **signal**: An `AbortSignal` that cancels the subscription when it aborts
-- **silent**: When `true`, the promise never rejects. Default: `false`
+- **silent**: When `true`, cancellation never rejects the promise. Does not apply to `reject` events. Default: `false`
 - **subject**: The subject of generated error messages. Default: `'Event'`
 - **timeout**: A number of milliseconds or a `Temporal.Duration` after which the promise rejects with a `TimeoutError`
 
-`stageName` defaults to `'after'` rather than `'on'`.
+`stageName` defaults to `'after'` rather than `'on'`. Each `reject` entry inherits it unless it sets its own.
 
 ### Event Object
 

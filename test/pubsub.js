@@ -1,5 +1,6 @@
 import _chai from 'isotropic-dev-dependencies/lib/chai.js';
 import _Dispatcher from '../lib/dispatcher.js';
+import _Error from 'isotropic-error';
 import _Event from '../lib/event.js';
 import _later from 'isotropic-later';
 import _make from 'isotropic-make';
@@ -11714,5 +11715,371 @@ _test.describe('pubsub', () => {
         }
 
         _chai.expect(error).to.have.property('name', 'TimeoutError');
+    });
+
+    _test.it('should resolve an until promise with a reject config when the resolve event is published', async () => {
+        const pubsub = _Pubsub({
+                pubsub: {
+                    rejectEvent: {
+                        allowPublicPublish: true
+                    },
+                    resolveEvent: {
+                        allowPublicPublish: true
+                    }
+                }
+            }),
+
+            promise = pubsub.until({
+                eventName: 'resolveEvent',
+                reject: 'rejectEvent'
+            });
+
+        pubsub.publish('resolveEvent');
+
+        _chai.expect(await promise).to.have.property('name', 'resolveEvent');
+        _chai.expect(promise).to.have.property('subscribed').that.is.false;
+        _chai.expect(pubsub._eventStateByEventName.rejectEvent.subscriptionMapByStageName).not.to.have.property('after');
+    });
+
+    _test.it('should reject an until promise when a reject event is published', async () => {
+        let error;
+
+        const pubsub = _Pubsub({
+                pubsub: {
+                    rejectEvent: {
+                        allowPublicPublish: true
+                    },
+                    resolveEvent: {
+                        allowPublicPublish: true
+                    }
+                }
+            }),
+
+            promise = pubsub.until({
+                eventName: 'resolveEvent',
+                reject: 'rejectEvent'
+            });
+
+        pubsub.publish('rejectEvent', {
+            value: 'testValue'
+        });
+
+        try {
+            await promise;
+        } catch (caughtError) {
+            error = caughtError;
+        }
+
+        _chai.expect(error).to.be.an.instanceOf(_Error);
+        _chai.expect(error).to.have.property('name', 'RejectError');
+        _chai.expect(error).to.have.property('message', 'Event rejected');
+        _chai.expect(error.details.eventSnapshot).to.have.property('name', 'rejectEvent');
+        _chai.expect(error.details.eventSnapshot).to.have.property('data').that.deep.equals({
+            value: 'testValue'
+        });
+        _chai.expect(promise).to.have.property('subscribed').that.is.false;
+    });
+
+    _test.it('should include the until subject and details in a reject error', async () => {
+        let error;
+
+        const pubsub = _Pubsub({
+                pubsub: {
+                    rejectEvent: {
+                        allowPublicPublish: true
+                    }
+                }
+            }),
+
+            promise = pubsub.until({
+                details: {
+                    value: 'testValue'
+                },
+                eventName: 'resolveEvent',
+                reject: 'rejectEvent',
+                subject: 'Test'
+            });
+
+        pubsub.publish('rejectEvent');
+
+        try {
+            await promise;
+        } catch (caughtError) {
+            error = caughtError;
+        }
+
+        _chai.expect(error).to.have.property('message', 'Test rejected');
+        _chai.expect(error.details).to.have.property('value', 'testValue');
+    });
+
+    _test.it('should reject an until promise for an already published reject event', async () => {
+        let error;
+
+        const pubsub = _Pubsub({
+            pubsub: {
+                rejectEvent: {
+                    allowPublicPublish: true,
+                    publishOnce: true
+                }
+            }
+        });
+
+        pubsub.publish('rejectEvent');
+
+        try {
+            await pubsub.until({
+                eventName: 'resolveEvent',
+                reject: 'rejectEvent'
+            });
+        } catch (caughtError) {
+            error = caughtError;
+        }
+
+        _chai.expect(error).to.have.property('name', 'RejectError');
+    });
+
+    _test.it('should resolve rather than reject an until promise when both once events have already been published', async () => {
+        const pubsub = _Pubsub({
+            pubsub: {
+                rejectEvent: {
+                    allowPublicPublish: true,
+                    publishOnce: true
+                },
+                resolveEvent: {
+                    allowPublicPublish: true,
+                    publishOnce: true
+                }
+            }
+        });
+
+        pubsub.publish('rejectEvent');
+        pubsub.publish('resolveEvent');
+
+        _chai.expect(await pubsub.until({
+            eventName: 'resolveEvent',
+            reject: 'rejectEvent'
+        })).to.have.property('name', 'resolveEvent');
+    });
+
+    _test.it('should accept an iterable of reject event names', async () => {
+        let error;
+
+        const pubsub = _Pubsub({
+                pubsub: {
+                    rejectEventA: {
+                        allowPublicPublish: true
+                    },
+                    rejectEventB: {
+                        allowPublicPublish: true
+                    }
+                }
+            }),
+
+            promise = pubsub.until({
+                eventName: 'resolveEvent',
+                reject: [
+                    'rejectEventA',
+                    'rejectEventB'
+                ]
+            });
+
+        pubsub.publish('rejectEventB');
+
+        try {
+            await promise;
+        } catch (caughtError) {
+            error = caughtError;
+        }
+
+        _chai.expect(error.details.eventSnapshot).to.have.property('name', 'rejectEventB');
+    });
+
+    _test.it('should accept a reject config object with its own stage and filter function', async () => {
+        let error;
+
+        const pubsub = _Pubsub({
+                pubsub: {
+                    rejectEvent: {
+                        allowPublicPublish: true
+                    }
+                }
+            }),
+
+            promise = pubsub.until({
+                eventName: 'resolveEvent',
+                reject: {
+                    eventName: 'rejectEvent',
+                    filterFunction: event => event.data.value === 'testValue',
+                    stageName: 'on'
+                }
+            });
+
+        pubsub.publish('rejectEvent', {
+            value: 'otherValue'
+        });
+        pubsub.publish('rejectEvent', {
+            value: 'testValue'
+        });
+
+        try {
+            await promise;
+        } catch (caughtError) {
+            error = caughtError;
+        }
+
+        _chai.expect(error.details.eventSnapshot).to.have.property('stageName', 'on');
+        _chai.expect(error.details.eventSnapshot).to.have.property('data').that.deep.equals({
+            value: 'testValue'
+        });
+    });
+
+    _test.it('should accept an iterable of reject config objects', async () => {
+        let error;
+
+        const pubsub = _Pubsub({
+                pubsub: {
+                    rejectEventA: {
+                        allowPublicPublish: true
+                    },
+                    rejectEventB: {
+                        allowPublicPublish: true
+                    }
+                }
+            }),
+
+            promise = pubsub.until({
+                eventName: 'resolveEvent',
+                reject: [{
+                    eventName: 'rejectEventA',
+                    stageName: 'before'
+                }, {
+                    eventName: 'rejectEventB'
+                }]
+            });
+
+        pubsub.publish('rejectEventA');
+
+        try {
+            await promise;
+        } catch (caughtError) {
+            error = caughtError;
+        }
+
+        _chai.expect(error.details.eventSnapshot).to.have.property('name', 'rejectEventA');
+        _chai.expect(error.details.eventSnapshot).to.have.property('stageName', 'before');
+    });
+
+    _test.it('should not silence a reject event when the until subscription is silent', async () => {
+        let error;
+
+        const pubsub = _Pubsub({
+                pubsub: {
+                    rejectEvent: {
+                        allowPublicPublish: true
+                    }
+                }
+            }),
+
+            promise = pubsub.until({
+                eventName: 'resolveEvent',
+                reject: 'rejectEvent',
+                silent: true
+            });
+
+        pubsub.publish('rejectEvent');
+
+        try {
+            await promise;
+        } catch (caughtError) {
+            error = caughtError;
+        }
+
+        _chai.expect(error).to.have.property('name', 'RejectError');
+    });
+
+    _test.it('should unsubscribe reject subscriptions when an until promise is unsubscribed', () => {
+        const pubsub = _Pubsub(),
+
+            promise = pubsub.until({
+                eventName: 'resolveEvent',
+                reject: 'rejectEvent'
+            });
+
+        _chai.expect(promise).to.have.property('subscribed').that.is.true;
+        _chai.expect(promise.unsubscribe()).to.be.true;
+        _chai.expect(promise).to.have.property('subscribed').that.is.false;
+        _chai.expect(pubsub._eventStateByEventName.rejectEvent.subscriptionMapByStageName).not.to.have.property('after');
+    });
+
+    _test.it('should unsubscribe reject subscriptions when an until promise is disposed', () => {
+        let promise;
+
+        {
+            using disposablePromise = _Pubsub().until({
+                eventName: 'resolveEvent',
+                reject: 'rejectEvent'
+            });
+
+            promise = disposablePromise;
+
+            _chai.expect(promise).to.have.property('subscribed').that.is.true;
+        }
+
+        _chai.expect(promise).to.have.property('subscribed').that.is.false;
+    });
+
+    _test.it('should unsubscribe reject subscriptions when an until promise is canceled', async () => {
+        let error;
+
+        const pubsub = _Pubsub(),
+
+            promise = pubsub.until({
+                eventName: 'resolveEvent',
+                reject: 'rejectEvent',
+                timeout: 10
+            });
+
+        try {
+            await promise;
+        } catch (caughtError) {
+            error = caughtError;
+        }
+
+        _chai.expect(error).to.have.property('name', 'TimeoutError');
+        _chai.expect(promise).to.have.property('subscribed').that.is.false;
+        _chai.expect(pubsub._eventStateByEventName.rejectEvent.subscriptionMapByStageName).not.to.have.property('after');
+    });
+
+    _test.it('should allow protected until subscriptions with a reject config', async () => {
+        let error;
+
+        const testThing = _make('TestThing', _Pubsub, {}, {
+            _pubsub: {
+                protectedRejectEvent: {
+                    allowPublicSubscription: false
+                },
+                protectedResolveEvent: {
+                    allowPublicSubscription: false
+                }
+            }
+        })();
+
+        {
+            const promise = testThing._until({
+                eventName: 'protectedResolveEvent',
+                reject: 'protectedRejectEvent'
+            });
+
+            testThing._publish('protectedRejectEvent');
+
+            try {
+                await promise;
+            } catch (caughtError) {
+                error = caughtError;
+            }
+        }
+
+        _chai.expect(error).to.have.property('name', 'RejectError');
+        _chai.expect(error.details.eventSnapshot).to.have.property('name', 'protectedRejectEvent');
     });
 });

@@ -2,6 +2,7 @@
     "author": "Steven Olmsted <steven.olmsted@ibigroup.com>",
     "bugs": "https://github.com/ibi-group/isotropic-pubsub/issues",
     "dependencies": {
+        "isotropic-error": "~0.14.0",
         "isotropic-make": "~0.14.0",
         "isotropic-property-chainer": "~0.15.0",
         "isotropic-timeout-cancel": "~0.1.0"
