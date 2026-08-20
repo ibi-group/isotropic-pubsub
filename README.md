@@ -1610,6 +1610,7 @@ const pubsub = _Pubsub(options);
 - **bulkUnsubscribe([stageName], [eventName])**: Unsubscribe from multiple events
 - **defineDispatcher(eventName, config)**: Define a custom event dispatcher
 - **destroy(...args)**: Destroy the pubsub instance
+- **getOnceEventSnapshot(eventName)**: Return the event snapshot of a spent `completeOnce` or `publishOnce` event, or `null`
 - **hasDistributor(distributor)**: Check if distributor has been added
 - **on(eventName, config)**: Subscribe to the on stage of an event
 - **onceAfter(eventName, config)**: Subscribe once to the after stage
@@ -1787,6 +1788,14 @@ pubsub.publish('load'); // Ignored entirely, no stage runs
 The difference between the two is what a prevented publish costs you. `publishOnce` spends the event on the first publish attempt, whether or not it completes. `completeOnce` only spends it on the publish that reaches the complete stage, so prevented attempts don't count. Neither one runs any stage once the event is spent.
 
 For both `completeOnce` and `publishOnce`, after the event has been spent, any new subscriber is executed immediately with the event that spent it.
+
+#### Reading Retained Once Event State
+
+The `getOnceEventSnapshot(eventName)` method returns the [event snapshot](#event-snapshot) of a spent `completeOnce` or `publishOnce` event, or `null` if the event has not been spent. This makes the retained state readable synchronously, without subscribing.
+
+It returns `null` for an event that is neither `completeOnce` nor `publishOnce`, since no state is retained for those, and for any event on a destroyed object. The public method returns `null` for an event that does not allow public subscription. The protected `_getOnceEventSnapshot` does not apply that restriction.
+
+A `publishOnce` event is spent by the publish attempt itself, so its snapshot becomes readable even if the event was prevented before completing. Read the snapshot's `completed` property to distinguish the two. A `completeOnce` event is only spent by a publish that reaches the complete stage, and its snapshot is readable from within its own `completeFunction`.
 
 ## Event Lifecycle Functions
 
@@ -2069,6 +2078,7 @@ The library provides paired public and protected versions of its core methods:
 | `before()` | `_before()` | Subscribe to the "before" stage |
 | `bulkSubscribe()` | `_bulkSubscribe()` | Subscribe to multiple events |
 | `bulkUnsubscribe()` | `_bulkUnsubscribe()` | Unsubscribe from multiple events |
+| `getOnceEventSnapshot()` | `_getOnceEventSnapshot()` | Read the retained snapshot of a spent once event |
 | `on()` | `_on()` | Subscribe to the "on" stage of an event |
 | `onceAfter()` | `_onceAfter()` | Subscribe once to the "after" stage |
 | `onceBefore()` | `_onceBefore()` | Subscribe once to the "before" stage |

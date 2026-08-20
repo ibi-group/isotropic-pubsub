@@ -6097,6 +6097,157 @@ _test.describe('pubsub', () => {
         ]);
     });
 
+    _test.it('should return null from getOnceEventSnapshot before a once event is published', () => {
+        _chai.expect(_Pubsub({
+            pubsub: {
+                testEvent: {
+                    allowPublicPublish: true,
+                    publishOnce: true
+                }
+            }
+        }).getOnceEventSnapshot('testEvent')).to.be.null;
+    });
+
+    _test.it('should return an event snapshot from getOnceEventSnapshot for a published publishOnce event', () => {
+        const pubsub = _Pubsub({
+            pubsub: {
+                testEvent: {
+                    allowPublicPublish: true,
+                    publishOnce: true
+                }
+            }
+        });
+
+        pubsub.publish('testEvent', {
+            value: 'testValue'
+        });
+
+        {
+            const eventSnapshot = pubsub.getOnceEventSnapshot('testEvent');
+
+            _chai.expect(eventSnapshot).to.have.property('name', 'testEvent');
+            _chai.expect(eventSnapshot).to.have.property('completed', true);
+            _chai.expect(eventSnapshot).to.have.property('publisher', pubsub);
+            _chai.expect(eventSnapshot).to.have.property('data').that.deep.equals({
+                value: 'testValue'
+            });
+            _chai.expect(Object.isFrozen(eventSnapshot)).to.be.true;
+        }
+    });
+
+    _test.it('should return an event snapshot from getOnceEventSnapshot for a completed completeOnce event', () => {
+        const pubsub = _Pubsub({
+            pubsub: {
+                testEvent: {
+                    allowPublicPublish: true,
+                    completeOnce: true
+                }
+            }
+        });
+
+        _chai.expect(pubsub.getOnceEventSnapshot('testEvent')).to.be.null;
+
+        pubsub.publish('testEvent');
+
+        _chai.expect(pubsub.getOnceEventSnapshot('testEvent')).to.have.property('name', 'testEvent');
+    });
+
+    _test.it('should provide the once event snapshot to the complete function of a completeOnce event', () => {
+        let snapshotDuringCompleteStage;
+
+        _make('TestThing', _Pubsub, {
+            _eventTestEvent () {
+                snapshotDuringCompleteStage = this._getOnceEventSnapshot('testEvent');
+            }
+        }, {
+            _pubsub: {
+                testEvent: {
+                    allowPublicPublish: true,
+                    completeFunction: '_eventTestEvent',
+                    completeOnce: true
+                }
+            }
+        })().publish('testEvent');
+
+        _chai.expect(snapshotDuringCompleteStage).to.have.property('name', 'testEvent');
+    });
+
+    _test.it('should not return a once event snapshot from getOnceEventSnapshot for a completeOnce event that was prevented', () => {
+        const pubsub = _Pubsub({
+            pubsub: {
+                testEvent: {
+                    allowPublicPublish: true,
+                    completeOnce: true
+                }
+            }
+        });
+
+        pubsub.on('testEvent', event => {
+            event.prevent();
+        });
+
+        pubsub.publish('testEvent');
+
+        _chai.expect(pubsub.getOnceEventSnapshot('testEvent')).to.be.null;
+    });
+
+    _test.it('should return null from getOnceEventSnapshot for an event that is not a once event', () => {
+        const pubsub = _Pubsub({
+            pubsub: {
+                testEvent: {
+                    allowPublicPublish: true
+                }
+            }
+        });
+
+        pubsub.publish('testEvent');
+
+        _chai.expect(pubsub.getOnceEventSnapshot('testEvent')).to.be.null;
+    });
+
+    _test.it('should return null from getOnceEventSnapshot for an undefined event', () => {
+        const pubsub = _Pubsub();
+
+        _chai.expect(pubsub.getOnceEventSnapshot('undefinedEvent')).to.be.null;
+        _chai.expect(pubsub._eventStateByEventName).not.to.have.property('undefinedEvent');
+    });
+
+    _test.it('should return null from the public getOnceEventSnapshot for an event that does not allow public subscription', () => {
+        const testThing = _make('TestThing', _Pubsub, {}, {
+            _pubsub: {
+                protectedEvent: {
+                    allowPublicPublish: true,
+                    allowPublicSubscription: false,
+                    publishOnce: true
+                }
+            }
+        })();
+
+        testThing.publish('protectedEvent');
+
+        _chai.expect(testThing.getOnceEventSnapshot('protectedEvent')).to.be.null;
+        _chai.expect(testThing._getOnceEventSnapshot('protectedEvent')).to.have.property('name', 'protectedEvent');
+    });
+
+    _test.it('should return null from getOnceEventSnapshot after the pubsub object is destroyed', () => {
+        const pubsub = _Pubsub({
+            pubsub: {
+                testEvent: {
+                    allowPublicPublish: true,
+                    publishOnce: true
+                }
+            }
+        });
+
+        pubsub.publish('testEvent');
+
+        _chai.expect(pubsub.getOnceEventSnapshot('testEvent')).to.have.property('name', 'testEvent');
+
+        pubsub.destroy();
+
+        _chai.expect(pubsub.getOnceEventSnapshot('testEvent')).to.be.null;
+    });
+
     _test.it('should allow symbol event names', () => {
         const pubsub = _Pubsub(),
             subscriptionsExecuted = [],
