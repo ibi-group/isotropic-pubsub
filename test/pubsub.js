@@ -7265,7 +7265,7 @@ _test.describe('pubsub', () => {
         pubsub.destroy();
 
         _chai.expect(() => {
-            using disposablePubsub = pubsub; // eslint-disable-line no-unused-vars -- The disposal is the subject of this test.
+            using disposablePubsub = pubsub;
         }).not.to.throw();
 
         _chai.expect(pubsub).to.have.property('destroyed', true);
