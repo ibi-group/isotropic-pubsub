@@ -1,6 +1,8 @@
 import _chai from 'isotropic-dev-dependencies/lib/chai.js';
 import _Dispatcher from '../lib/dispatcher.js';
+import _Error from 'isotropic-error';
 import _Event from '../lib/event.js';
+import _later from 'isotropic-later';
 import _make from 'isotropic-make';
 import _Pubsub from '../lib/pubsub.js';
 import _Subscription from '../lib/subscription.js';
@@ -158,6 +160,79 @@ _test.describe('pubsub', () => {
             'on 2',
             'after 0',
             'after 2'
+        ]);
+    });
+
+    _test.it('should accept a config object in subscribe', () => {
+        const pubsub = _Pubsub(),
+            subscriptionsExecuted = [];
+
+        _chai.expect(pubsub.subscribe({
+            callbackFunction: event => {
+                subscriptionsExecuted.push(event.stageName);
+            },
+            eventName: 'testEvent',
+            stageName: 'before'
+        })).to.have.property('subscribed').that.is.true;
+
+        pubsub.publish('testEvent');
+
+        _chai.expect(subscriptionsExecuted).to.deep.equal([
+            'before'
+        ]);
+    });
+
+    _test.it('should accept a config object in _subscribe', () => {
+        const subscriptionsExecuted = [],
+            testThing = _make('TestThing', _Pubsub, {}, {
+                _pubsub: {
+                    protectedEvent: {
+                        allowPublicSubscription: false
+                    }
+                }
+            })();
+
+        _chai.expect(testThing._subscribe({
+            callbackFunction: () => {
+                subscriptionsExecuted.push('protected');
+            },
+            eventName: 'protectedEvent',
+            stageName: 'on'
+        })).to.have.property('subscribed').that.is.true;
+
+        _chai.expect(testThing.subscribe({
+            callbackFunction: () => {
+                subscriptionsExecuted.push('public');
+            },
+            eventName: 'protectedEvent',
+            stageName: 'on'
+        })).to.have.property('subscribed').that.is.false;
+
+        testThing._publish('protectedEvent');
+
+        _chai.expect(subscriptionsExecuted).to.deep.equal([
+            'protected'
+        ]);
+    });
+
+    _test.it('should accept once in a subscribe config object', () => {
+        const pubsub = _Pubsub(),
+            subscriptionsExecuted = [];
+
+        pubsub.subscribe({
+            callbackFunction: () => {
+                subscriptionsExecuted.push('executed');
+            },
+            eventName: 'testEvent',
+            once: true,
+            stageName: 'on'
+        });
+
+        pubsub.publish('testEvent');
+        pubsub.publish('testEvent');
+
+        _chai.expect(subscriptionsExecuted).to.deep.equal([
+            'executed'
         ]);
     });
 
@@ -611,6 +686,23 @@ _test.describe('pubsub', () => {
         _chai.expect(testSubscription.unsubscribe()).to.be.true;
     });
 
+    _test.it('should return false when unsubscribing from within a complete function', () => {
+        let unsubscribeResult;
+
+        const pubsub = _Pubsub();
+
+        pubsub.defineDispatcher('testEvent', {
+            allowPublicPublish: true,
+            completeFunction: event => {
+                unsubscribeResult = event.unsubscribe();
+            }
+        });
+
+        pubsub.publish('testEvent');
+
+        _chai.expect(unsubscribeResult).to.be.false;
+    });
+
     _test.it('should unsubscribe when subscription is disposed', () => {
         const pubsub = _Pubsub(),
             subscriptionsExecuted = [];
@@ -620,7 +712,7 @@ _test.describe('pubsub', () => {
                 subscriptionsExecuted.push('a');
             });
 
-            pubsub.on('testEvent', event => {
+            pubsub.on('testEvent', () => {
                 subscriptionsExecuted.push('b');
             });
 
@@ -866,6 +958,148 @@ _test.describe('pubsub', () => {
         ]);
     });
 
+    _test.it('should filter subscription executions', () => {
+        const pubsub = _Pubsub(),
+            subscriptionsExecuted = [];
+
+        pubsub.on('testEvent', {
+            callbackFunction: event => {
+                subscriptionsExecuted.push(event.data.value);
+            },
+            filterFunction: event => event.data.value % 2 === 0
+        });
+
+        for (const value of [
+            1,
+            2,
+            3,
+            4
+        ]) {
+            pubsub.publish('testEvent', {
+                value
+            });
+        }
+
+        _chai.expect(subscriptionsExecuted).to.deep.equal([
+            2,
+            4
+        ]);
+    });
+
+    _test.it('should allow a method name as a filter function', () => {
+        const subscriptionsExecuted = [],
+            testThing = _make('TestThing', _Pubsub, {
+                filterMethod (event) {
+                    return event.data.value === 'wanted';
+                }
+            })();
+
+        testThing.on('testEvent', {
+            callbackFunction: event => {
+                subscriptionsExecuted.push(event.data.value);
+            },
+            filterFunction: 'filterMethod'
+        });
+
+        testThing.publish('testEvent', {
+            value: 'unwanted'
+        });
+
+        testThing.publish('testEvent', {
+            value: 'wanted'
+        });
+
+        _chai.expect(subscriptionsExecuted).to.deep.equal([
+            'wanted'
+        ]);
+    });
+
+    _test.it('should keep a once subscription active until its filter function passes', () => {
+        const pubsub = _Pubsub(),
+            subscriptionsExecuted = [];
+
+        pubsub.onceOn('testEvent', {
+            callbackFunction: event => {
+                subscriptionsExecuted.push(event.data.value);
+            },
+            filterFunction: event => event.data.value === 3
+        });
+
+        for (const value of [
+            1,
+            2,
+            3,
+            4,
+            3
+        ]) {
+            pubsub.publish('testEvent', {
+                value
+            });
+        }
+
+        _chai.expect(subscriptionsExecuted).to.deep.equal([
+            3
+        ]);
+    });
+
+    _test.it('should filter subscription executions of an already published publishOnce event', () => {
+        const pubsub = _Pubsub({
+                pubsub: {
+                    testEvent: {
+                        allowPublicPublish: true,
+                        publishOnce: true
+                    }
+                }
+            }),
+            subscriptionsExecuted = [];
+
+        pubsub.publish('testEvent', {
+            value: 'testValue'
+        });
+
+        pubsub.on('testEvent', {
+            callbackFunction: () => {
+                subscriptionsExecuted.push('filtered out');
+            },
+            filterFunction: () => false
+        });
+
+        pubsub.on('testEvent', {
+            callbackFunction: event => {
+                subscriptionsExecuted.push(event.data.value);
+            },
+            filterFunction: () => true
+        });
+
+        _chai.expect(subscriptionsExecuted).to.deep.equal([
+            'testValue'
+        ]);
+    });
+
+    _test.it('should allow a filter function to stop dispatch', () => {
+        const pubsub = _Pubsub(),
+            subscriptionsExecuted = [];
+
+        pubsub.on('testEvent', {
+            callbackFunction: () => {
+                subscriptionsExecuted.push('first');
+            },
+            filterFunction: event => {
+                event.stopDispatch();
+
+                return false;
+            }
+        });
+
+        pubsub.on('testEvent', () => {
+            subscriptionsExecuted.push('second');
+        });
+
+        pubsub.publish('testEvent');
+
+        _chai.expect(subscriptionsExecuted).to.deep.equal([]);
+    });
+
     _test.it('should distribute events to distributors', () => {
         const distributor0 = _Pubsub(),
             distributor0a = _Pubsub(),
@@ -1105,6 +1339,112 @@ _test.describe('pubsub', () => {
             'distributor2b after 0',
             'distributor2b after 1',
             'distributor2b after 2'
+        ]);
+    });
+
+    _test.it('should accept distributors in the construction config', () => {
+        const distributorA = _Pubsub(),
+            distributorB = _Pubsub(),
+            pubsub = _Pubsub({
+                distributors: [
+                    distributorA,
+                    distributorB
+                ]
+            }),
+            subscriptionsExecuted = [];
+
+        _chai.expect(pubsub.hasDistributor(distributorA)).to.be.true;
+        _chai.expect(pubsub.hasDistributor(distributorB)).to.be.true;
+
+        distributorA.on('testEvent', () => {
+            subscriptionsExecuted.push('distributorA');
+        });
+
+        distributorB.on('testEvent', () => {
+            subscriptionsExecuted.push('distributorB');
+        });
+
+        pubsub.publish('testEvent');
+
+        _chai.expect(subscriptionsExecuted).to.deep.equal([
+            'distributorA',
+            'distributorB'
+        ]);
+    });
+
+    _test.it('should accept any iterable of distributors in the construction config', () => {
+        const distributor = _Pubsub();
+
+        _chai.expect(_Pubsub({
+            distributors: new Set([
+                distributor
+            ])
+        }).hasDistributor(distributor)).to.be.true;
+    });
+
+    _test.it('should accept a single distributor in the construction config', () => {
+        const distributor = _Pubsub();
+
+        _chai.expect(_Pubsub({
+            distributors: distributor
+        }).hasDistributor(distributor)).to.be.true;
+    });
+
+    _test.it('should not loop infinitely when distributors form a cycle', () => {
+        const pubsubA = _Pubsub(),
+            pubsubB = _Pubsub(),
+            subscriptionsExecuted = [];
+
+        pubsubA.addDistributor(pubsubB);
+        pubsubB.addDistributor(pubsubA);
+
+        pubsubA.on('testEvent', () => {
+            subscriptionsExecuted.push('pubsubA');
+        });
+
+        pubsubB.on('testEvent', () => {
+            subscriptionsExecuted.push('pubsubB');
+        });
+
+        pubsubA.publish('testEvent');
+
+        _chai.expect(subscriptionsExecuted).to.deep.equal([
+            'pubsubA',
+            'pubsubB'
+        ]);
+
+        subscriptionsExecuted.length = 0;
+
+        pubsubB.publish('testEvent');
+
+        _chai.expect(subscriptionsExecuted).to.deep.equal([
+            'pubsubB',
+            'pubsubA'
+        ]);
+    });
+
+    _test.it('should distribute an event only once to a distributor reachable by multiple paths', () => {
+        const distributor0 = _Pubsub(),
+            distributor1 = _Pubsub(),
+            grandDistributor = _Pubsub(),
+            pubsub = _Pubsub(),
+            subscriptionsExecuted = [];
+
+        pubsub.addDistributor([
+            distributor0,
+            distributor1
+        ]);
+        distributor0.addDistributor(grandDistributor);
+        distributor1.addDistributor(grandDistributor);
+
+        grandDistributor.on('testEvent', () => {
+            subscriptionsExecuted.push('grandDistributor');
+        });
+
+        pubsub.publish('testEvent');
+
+        _chai.expect(subscriptionsExecuted).to.deep.equal([
+            'grandDistributor'
         ]);
     });
 
@@ -2137,7 +2477,6 @@ _test.describe('pubsub', () => {
             'on 3 a',
             'on 3 b',
             'on 3 c',
-            'after 2',
             'before 0',
             'before 2',
             'on 2',
@@ -2274,7 +2613,6 @@ _test.describe('pubsub', () => {
             'on 3 a',
             'on 3 b',
             'on 3 c',
-            'after 2',
             'before 0',
             'before 2',
             'on 2',
@@ -2290,6 +2628,400 @@ _test.describe('pubsub', () => {
             'on 3 c',
             'after 0'
         ]);
+    });
+
+    _test.it('should treat a bulk subscription with once as a single group', async () => {
+        const pubsub = _Pubsub(),
+            subscriptionsExecuted = [],
+            testSubscription = pubsub.bulkSubscribe({
+                callbackFunction: event => {
+                    subscriptionsExecuted.push(`callbackFunction ${event.stageName} ${event.name}`);
+                },
+                eventName: [
+                    'testEventA',
+                    'testEventB',
+                    'testEventC'
+                ],
+                once: true,
+                stageName: 'on'
+            });
+
+        pubsub.publish('testEventB');
+
+        _chai.expect(testSubscription).to.have.property('subscribed', false);
+
+        pubsub.publish('testEventA').publish('testEventC');
+
+        _chai.expect(subscriptionsExecuted).to.deep.equal([
+            'callbackFunction on testEventB'
+        ]);
+
+        await Promise.resolve();
+
+        _chai.expect(testSubscription).to.have.property('subscribed', false);
+    });
+
+    _test.it('should execute every callback function of a once group for the triggering event', () => {
+        const pubsub = _Pubsub(),
+            subscriptionsExecuted = [];
+
+        pubsub.bulkSubscribe({
+            callbackFunction: [
+                event => {
+                    subscriptionsExecuted.push(`a ${event.stageName} ${event.name}`);
+                },
+                event => {
+                    subscriptionsExecuted.push(`b ${event.stageName} ${event.name}`);
+                },
+                event => {
+                    subscriptionsExecuted.push(`c ${event.stageName} ${event.name}`);
+                }
+            ],
+            eventName: [
+                'testEventA',
+                'testEventB'
+            ],
+            once: true,
+            stageName: 'on'
+        });
+
+        pubsub.publish('testEventA');
+        pubsub.publish('testEventB');
+        pubsub.publish('testEventA');
+
+        _chai.expect(subscriptionsExecuted).to.deep.equal([
+            'a on testEventA',
+            'b on testEventA',
+            'c on testEventA'
+        ]);
+    });
+
+    _test.it('should keep a once group subscribed until its filter function passes', () => {
+        const pubsub = _Pubsub(),
+            subscriptionsExecuted = [];
+
+        pubsub.bulkSubscribe({
+            callbackFunction: event => {
+                subscriptionsExecuted.push(event.data.value);
+            },
+            eventName: [
+                'testEventA',
+                'testEventB'
+            ],
+            filterFunction: event => event.data.value >= 3,
+            once: true,
+            stageName: 'on'
+        });
+
+        for (const value of [
+            1,
+            2,
+            3,
+            4
+        ]) {
+            pubsub.publish('testEventA', {
+                value
+            });
+            pubsub.publish('testEventB', {
+                value
+            });
+        }
+
+        _chai.expect(subscriptionsExecuted).to.deep.equal([
+            3
+        ]);
+    });
+
+    _test.it('should apply a bulk subscription filter function to all events in the group', () => {
+        const pubsub = _Pubsub(),
+            subscriptionsExecuted = [];
+
+        pubsub.bulkSubscribe({
+            callbackFunction: event => {
+                subscriptionsExecuted.push(event.data.value);
+            },
+            eventName: [
+                'testEventA',
+                'testEventB'
+            ],
+            filterFunction: event => event.data.value % 2 === 0,
+            stageName: 'on'
+        });
+
+        for (const value of [
+            1,
+            2
+        ]) {
+            pubsub.publish('testEventA', {
+                value
+            });
+            pubsub.publish('testEventB', {
+                value
+            });
+        }
+
+        _chai.expect(subscriptionsExecuted).to.deep.equal([
+            2,
+            2
+        ]);
+    });
+
+    _test.it('should accept a method name as a bulk subscription filter function', () => {
+        const subscriptionsExecuted = [],
+            testThing = _make('TestThing', _Pubsub, {
+                filterMethod (event) {
+                    return event.data.value === 'wanted';
+                }
+            })();
+
+        testThing.bulkSubscribe({
+            callbackFunction: event => {
+                subscriptionsExecuted.push(event.data.value);
+            },
+            eventName: 'testEvent',
+            filterFunction: 'filterMethod',
+            stageName: 'on'
+        });
+
+        testThing.publish('testEvent', {
+            value: 'unwanted'
+        });
+
+        testThing.publish('testEvent', {
+            value: 'wanted'
+        });
+
+        _chai.expect(subscriptionsExecuted).to.deep.equal([
+            'wanted'
+        ]);
+    });
+
+    _test.it('should ignore an unresolvable method name as a bulk subscription filter function', () => {
+        const pubsub = _Pubsub(),
+            subscriptionsExecuted = [];
+
+        pubsub.bulkSubscribe({
+            callbackFunction: () => {
+                subscriptionsExecuted.push('executed');
+            },
+            eventName: 'testEvent',
+            filterFunction: 'thisMethodDoesNotExist',
+            stageName: 'on'
+        });
+
+        pubsub.publish('testEvent');
+
+        _chai.expect(subscriptionsExecuted).to.deep.equal([]);
+    });
+
+    _test.it('should compose a bulk subscription filter function with config filter function', () => {
+        const pubsub = _Pubsub(),
+            subscriptionsExecuted = [];
+
+        pubsub.bulkSubscribe({
+            config: [{
+                callbackFunction: event => {
+                    subscriptionsExecuted.push(`configFilterFunction a ${event.data.value}`);
+                },
+                filterFunction: event => event.data.value !== 2
+            }, {
+                callbackFunction: event => {
+                    subscriptionsExecuted.push(`configFilterFunction b ${event.data.value}`);
+                }
+            }],
+            eventName: 'testEvent',
+            filterFunction: event => event.data.value < 3,
+            stageName: 'on'
+        });
+
+        for (const value of [
+            1,
+            2,
+            3
+        ]) {
+            pubsub.publish('testEvent', {
+                value
+            });
+        }
+
+        _chai.expect(subscriptionsExecuted).to.deep.equal([
+            'configFilterFunction a 1',
+            'configFilterFunction b 1',
+            'configFilterFunction b 2'
+        ]);
+    });
+
+    _test.it('should accept a callbackFunction as an alternative to config in a bulk subscription', () => {
+        const pubsub = _Pubsub(),
+            subscriptionsExecuted = [];
+
+        pubsub.bulkSubscribe({
+            callbackFunction: event => {
+                subscriptionsExecuted.push(`callbackFunction ${event.stageName} ${event.name}`);
+            },
+            eventName: 'testEvent',
+            stageName: 'before'
+        });
+
+        pubsub.publish('testEvent');
+
+        _chai.expect(subscriptionsExecuted).to.deep.equal([
+            'callbackFunction before testEvent'
+        ]);
+    });
+
+    _test.it('should accept a method name as a bulk subscription callback function', () => {
+        const subscriptionsExecuted = [],
+            testThing = _make('TestThing', _Pubsub, {
+                handlerMethod (event) {
+                    subscriptionsExecuted.push(`handlerMethod ${event.stageName} ${event.name}`);
+                }
+            })();
+
+        testThing.bulkSubscribe({
+            callbackFunction: 'handlerMethod',
+            eventName: 'testEvent',
+            stageName: 'on'
+        });
+
+        testThing.publish('testEvent');
+
+        _chai.expect(subscriptionsExecuted).to.deep.equal([
+            'handlerMethod on testEvent'
+        ]);
+    });
+
+    _test.it('should not give a config filtered member of a spent once group another chance', () => {
+        const pubsub = _Pubsub(),
+            subscriptionsExecuted = [];
+
+        pubsub.bulkSubscribe({
+            config: [{
+                callbackFunction: () => {
+                    subscriptionsExecuted.push('a');
+                }
+            }, {
+                callbackFunction: () => {
+                    subscriptionsExecuted.push('b');
+                },
+                filterFunction: () => false
+            }],
+            eventName: 'testEvent',
+            once: true,
+            stageName: 'on'
+        });
+
+        pubsub.publish('testEvent');
+        pubsub.publish('testEvent');
+
+        _chai.expect(subscriptionsExecuted).to.deep.equal([
+            'a'
+        ]);
+    });
+
+    _test.it('should accept subscribe in the construction config', () => {
+        const subscriptionsExecuted = [];
+
+        _Pubsub({
+            subscribe: {
+                testEvent: event => {
+                    subscriptionsExecuted.push(`callbackFunction ${event.stageName} ${event.name}`);
+                }
+            }
+        }).publish('testEvent');
+
+        _chai.expect(subscriptionsExecuted).to.deep.equal([
+            'callbackFunction on testEvent'
+        ]);
+    });
+
+    _test.it('should accept a subscribe construction config with a stage name and once', () => {
+        const subscriptionsExecuted = [],
+
+            callbackFunction = event => {
+                subscriptionsExecuted.push(`callbackFunction ${event.stageName} ${event.name}`);
+            },
+            pubsub = _Pubsub({
+                subscribe: {
+                    testEventA: {
+                        callbackFunction,
+                        stageName: 'before'
+                    },
+                    testEventB: {
+                        callbackFunction,
+                        once: true,
+                        stageName: 'after'
+                    }
+                }
+            });
+
+        pubsub.publish('testEventA');
+        pubsub.publish('testEventB');
+        pubsub.publish('testEventA');
+        pubsub.publish('testEventB');
+
+        _chai.expect(subscriptionsExecuted).to.deep.equal([
+            'callbackFunction before testEventA',
+            'callbackFunction after testEventB',
+            'callbackFunction before testEventA'
+        ]);
+    });
+
+    _test.it('should accept a method name in a subscribe construction config', () => {
+        const subscriptionsExecuted = [];
+
+        _make('TestThing', _Pubsub, {
+            handlerMethod (event) {
+                subscriptionsExecuted.push(`handlerMethod ${event.stageName} ${event.name}`);
+            }
+        })({
+            subscribe: {
+                testEvent: 'handlerMethod'
+            }
+        }).publish('testEvent');
+
+        _chai.expect(subscriptionsExecuted).to.deep.equal([
+            'handlerMethod on testEvent'
+        ]);
+    });
+
+    _test.it('should accept a symbol event name in a subscribe construction config', () => {
+        const eventNameSymbol = Symbol('testEvent'),
+            subscriptionsExecuted = [];
+
+        _Pubsub({
+            subscribe: {
+                [eventNameSymbol]: event => {
+                    _chai.expect(event).to.have.property('name', eventNameSymbol);
+
+                    subscriptionsExecuted.push('symbol');
+                }
+            }
+        }).publish(eventNameSymbol);
+
+        _chai.expect(subscriptionsExecuted).to.deep.equal([
+            'symbol'
+        ]);
+    });
+
+    _test.it('should respect allowPublicSubscription in a subscribe construction config', () => {
+        const subscriptionsExecuted = [];
+
+        _make('TestThing', _Pubsub, {}, {
+            _pubsub: {
+                protectedEvent: {
+                    allowPublicSubscription: false
+                }
+            }
+        })({
+            subscribe: {
+                protectedEvent: () => {
+                    subscriptionsExecuted.push('protectedEvent');
+                }
+            }
+        })._publish('protectedEvent');
+
+        _chai.expect(subscriptionsExecuted).to.deep.equal([]);
     });
 
     _test.it('should allow bulk unsubscription of all subscriptions', () => {
@@ -5366,6 +6098,157 @@ _test.describe('pubsub', () => {
         ]);
     });
 
+    _test.it('should return null from getOnceEventSnapshot before a once event is published', () => {
+        _chai.expect(_Pubsub({
+            pubsub: {
+                testEvent: {
+                    allowPublicPublish: true,
+                    publishOnce: true
+                }
+            }
+        }).getOnceEventSnapshot('testEvent')).to.be.null;
+    });
+
+    _test.it('should return an event snapshot from getOnceEventSnapshot for a published publishOnce event', () => {
+        const pubsub = _Pubsub({
+            pubsub: {
+                testEvent: {
+                    allowPublicPublish: true,
+                    publishOnce: true
+                }
+            }
+        });
+
+        pubsub.publish('testEvent', {
+            value: 'testValue'
+        });
+
+        {
+            const eventSnapshot = pubsub.getOnceEventSnapshot('testEvent');
+
+            _chai.expect(eventSnapshot).to.have.property('name', 'testEvent');
+            _chai.expect(eventSnapshot).to.have.property('completed', true);
+            _chai.expect(eventSnapshot).to.have.property('publisher', pubsub);
+            _chai.expect(eventSnapshot).to.have.property('data').that.deep.equals({
+                value: 'testValue'
+            });
+            _chai.expect(Object.isFrozen(eventSnapshot)).to.be.true;
+        }
+    });
+
+    _test.it('should return an event snapshot from getOnceEventSnapshot for a completed completeOnce event', () => {
+        const pubsub = _Pubsub({
+            pubsub: {
+                testEvent: {
+                    allowPublicPublish: true,
+                    completeOnce: true
+                }
+            }
+        });
+
+        _chai.expect(pubsub.getOnceEventSnapshot('testEvent')).to.be.null;
+
+        pubsub.publish('testEvent');
+
+        _chai.expect(pubsub.getOnceEventSnapshot('testEvent')).to.have.property('name', 'testEvent');
+    });
+
+    _test.it('should provide the once event snapshot to the complete function of a completeOnce event', () => {
+        let snapshotDuringCompleteStage;
+
+        _make('TestThing', _Pubsub, {
+            _eventTestEvent () {
+                snapshotDuringCompleteStage = this._getOnceEventSnapshot('testEvent');
+            }
+        }, {
+            _pubsub: {
+                testEvent: {
+                    allowPublicPublish: true,
+                    completeFunction: '_eventTestEvent',
+                    completeOnce: true
+                }
+            }
+        })().publish('testEvent');
+
+        _chai.expect(snapshotDuringCompleteStage).to.have.property('name', 'testEvent');
+    });
+
+    _test.it('should not return a once event snapshot from getOnceEventSnapshot for a completeOnce event that was prevented', () => {
+        const pubsub = _Pubsub({
+            pubsub: {
+                testEvent: {
+                    allowPublicPublish: true,
+                    completeOnce: true
+                }
+            }
+        });
+
+        pubsub.on('testEvent', event => {
+            event.prevent();
+        });
+
+        pubsub.publish('testEvent');
+
+        _chai.expect(pubsub.getOnceEventSnapshot('testEvent')).to.be.null;
+    });
+
+    _test.it('should return null from getOnceEventSnapshot for an event that is not a once event', () => {
+        const pubsub = _Pubsub({
+            pubsub: {
+                testEvent: {
+                    allowPublicPublish: true
+                }
+            }
+        });
+
+        pubsub.publish('testEvent');
+
+        _chai.expect(pubsub.getOnceEventSnapshot('testEvent')).to.be.null;
+    });
+
+    _test.it('should return null from getOnceEventSnapshot for an undefined event', () => {
+        const pubsub = _Pubsub();
+
+        _chai.expect(pubsub.getOnceEventSnapshot('undefinedEvent')).to.be.null;
+        _chai.expect(pubsub._eventStateByEventName).not.to.have.property('undefinedEvent');
+    });
+
+    _test.it('should return null from the public getOnceEventSnapshot for an event that does not allow public subscription', () => {
+        const testThing = _make('TestThing', _Pubsub, {}, {
+            _pubsub: {
+                protectedEvent: {
+                    allowPublicPublish: true,
+                    allowPublicSubscription: false,
+                    publishOnce: true
+                }
+            }
+        })();
+
+        testThing.publish('protectedEvent');
+
+        _chai.expect(testThing.getOnceEventSnapshot('protectedEvent')).to.be.null;
+        _chai.expect(testThing._getOnceEventSnapshot('protectedEvent')).to.have.property('name', 'protectedEvent');
+    });
+
+    _test.it('should return null from getOnceEventSnapshot after the pubsub object is destroyed', () => {
+        const pubsub = _Pubsub({
+            pubsub: {
+                testEvent: {
+                    allowPublicPublish: true,
+                    publishOnce: true
+                }
+            }
+        });
+
+        pubsub.publish('testEvent');
+
+        _chai.expect(pubsub.getOnceEventSnapshot('testEvent')).to.have.property('name', 'testEvent');
+
+        pubsub.destroy();
+
+        _chai.expect(pubsub.getOnceEventSnapshot('testEvent')).to.be.null;
+    });
+
     _test.it('should allow symbol event names', () => {
         const pubsub = _Pubsub(),
             subscriptionsExecuted = [],
@@ -6092,7 +6975,157 @@ _test.describe('pubsub', () => {
         _chai.expect(subscriptionsExecuted).to.deep.equal([]);
     });
 
-    // TODO: test late subscribers to once events when dispatch, distribution, and event is stopped
+    _test.it('should immediately execute late subscribers to once events when dispatch, distribution, or the event was stopped', () => {
+        const data = {
+                a: 'a',
+                b: 'b',
+                c: 'c'
+            },
+            distributor = _Pubsub(),
+            pubsub = _Pubsub();
+
+        let subscriptionsExecuted = [];
+
+        pubsub.addDistributor(distributor);
+
+        pubsub.defineDispatcher([
+            'testEvent0',
+            'testEvent1',
+            'testEvent2'
+        ], {
+            allowPublicPublish: true,
+            publishOnce: true
+        });
+
+        pubsub.on('testEvent0', event => {
+            subscriptionsExecuted.push('on');
+            event.stopDispatch();
+        });
+
+        pubsub.on('testEvent0', () => {
+            subscriptionsExecuted.push('onAfterStoppedDispatch');
+        });
+
+        distributor.on('testEvent0', () => {
+            subscriptionsExecuted.push('distributorOn');
+        });
+
+        pubsub.publish('testEvent0', data);
+
+        _chai.expect(subscriptionsExecuted).to.deep.equal([
+            'on',
+            'distributorOn'
+        ]);
+
+        subscriptionsExecuted = [];
+
+        pubsub.before('testEvent0', event => {
+            _chai.expect(event).to.have.property('data', data);
+            _chai.expect(event).to.have.property('completed', true);
+            _chai.expect(event).to.have.property('dispatchStopped', false);
+            subscriptionsExecuted.push('lateBefore');
+        });
+
+        pubsub.on('testEvent0', () => {
+            subscriptionsExecuted.push('lateOn');
+        });
+
+        pubsub.after('testEvent0', () => {
+            subscriptionsExecuted.push('lateAfter');
+        });
+
+        _chai.expect(subscriptionsExecuted).to.deep.equal([
+            'lateBefore',
+            'lateOn',
+            'lateAfter'
+        ]);
+
+        subscriptionsExecuted = [];
+
+        pubsub.on('testEvent1', event => {
+            subscriptionsExecuted.push('on');
+            event.stopDistribution();
+        });
+
+        pubsub.on('testEvent1', () => {
+            subscriptionsExecuted.push('onAfterStoppedDistribution');
+        });
+
+        distributor.on('testEvent1', () => {
+            subscriptionsExecuted.push('distributorOn');
+        });
+
+        pubsub.publish('testEvent1', data);
+
+        _chai.expect(subscriptionsExecuted).to.deep.equal([
+            'on',
+            'onAfterStoppedDistribution'
+        ]);
+
+        subscriptionsExecuted = [];
+
+        pubsub.before('testEvent1', event => {
+            _chai.expect(event).to.have.property('data', data);
+            _chai.expect(event).to.have.property('completed', true);
+            _chai.expect(event).to.have.property('distributionStopped', false);
+            subscriptionsExecuted.push('lateBefore');
+        });
+
+        pubsub.on('testEvent1', () => {
+            subscriptionsExecuted.push('lateOn');
+        });
+
+        pubsub.after('testEvent1', () => {
+            subscriptionsExecuted.push('lateAfter');
+        });
+
+        _chai.expect(subscriptionsExecuted).to.deep.equal([
+            'lateBefore',
+            'lateOn',
+            'lateAfter'
+        ]);
+
+        subscriptionsExecuted = [];
+
+        pubsub.on('testEvent2', event => {
+            subscriptionsExecuted.push('on');
+            event.stopEvent();
+        });
+
+        pubsub.after('testEvent2', () => {
+            subscriptionsExecuted.push('afterStoppedEvent');
+        });
+
+        pubsub.publish('testEvent2', data);
+
+        _chai.expect(subscriptionsExecuted).to.deep.equal([
+            'on'
+        ]);
+
+        subscriptionsExecuted = [];
+
+        pubsub.before('testEvent2', event => {
+            _chai.expect(event).to.have.property('data', data);
+            _chai.expect(event).to.have.property('eventStopped', true);
+            _chai.expect(event).to.have.property('stageName', 'on');
+            _chai.expect(event.completed).to.be.undefined;
+            subscriptionsExecuted.push('lateBefore');
+        });
+
+        pubsub.on('testEvent2', () => {
+            subscriptionsExecuted.push('lateOn');
+        });
+
+        pubsub.after('testEvent2', () => {
+            subscriptionsExecuted.push('lateAfter');
+        });
+
+        _chai.expect(subscriptionsExecuted).to.deep.equal([
+            'lateBefore',
+            'lateOn',
+            'lateAfter'
+        ]);
+    });
 
     _test.it('should be destroyable', () => {
         let subscriptionsExecuted = [];
@@ -6202,12 +7235,40 @@ _test.describe('pubsub', () => {
             pubsub.publish('anotherEvent');
         }).to.throw(TypeError); // eslint-disable-line no-restricted-globals -- This is testing a value provided by the runtime environment.
 
-        _chai.expect(() => {
-            pubsub.destroy('a', 'b', 'c');
-        }).to.throw(TypeError); // eslint-disable-line no-restricted-globals -- This is testing a value provided by the runtime environment.
+        _chai.expect(pubsub.destroy('a', 'b', 'c')).to.equal(pubsub);
 
         _chai.expect(pubsub).to.have.property('destroyed', true);
         _chai.expect(subscriptionsExecuted).to.deep.equal([]);
+    });
+
+    _test.it('should be repeatedly destroyable with no error', () => {
+        const pubsub = _Pubsub(),
+            subscriptionsExecuted = [];
+
+        pubsub.on('destroyComplete', () => {
+            subscriptionsExecuted.push('destroyComplete');
+        });
+
+        pubsub.destroy();
+        pubsub.destroy();
+        pubsub.destroy();
+
+        _chai.expect(pubsub).to.have.property('destroyed', true);
+        _chai.expect(subscriptionsExecuted).to.deep.equal([
+            'destroyComplete'
+        ]);
+    });
+
+    _test.it('should be disposable after it has already been destroyed', () => {
+        const pubsub = _Pubsub();
+
+        pubsub.destroy();
+
+        _chai.expect(() => {
+            using disposablePubsub = pubsub;
+        }).not.to.throw();
+
+        _chai.expect(pubsub).to.have.property('destroyed', true);
     });
 
     _test.it('should be destroyed automatically when disposed', () => {
@@ -9736,7 +10797,7 @@ _test.describe('pubsub', () => {
             });
 
             _chai.expect(subscription).to.be.an.instanceOf(_Subscription);
-            _chai.expect(subscription.subscribed).to.not.be.true;
+            _chai.expect(subscription.subscribed).to.be.false;
 
             pubsub.publish('testEvent');
 
@@ -10078,5 +11139,947 @@ _test.describe('pubsub', () => {
             'public custom',
             'protected custom'
         ]);
+    });
+
+    _test.it('should allow awaiting an event', async () => {
+        const pubsub = _Pubsub(),
+
+            promise = pubsub.until('testEvent');
+
+        _chai.expect(promise).to.be.an.instanceOf(Promise);
+        _chai.expect(promise).to.have.property('subscribed').that.is.true;
+        _chai.expect(promise).to.have.property('unsubscribe').that.is.a('function');
+        _chai.expect(promise[Symbol.dispose]).to.be.a('function');
+
+        pubsub.publish('testEvent', {
+            value: 'testValue'
+        });
+
+        {
+            const eventSnapshot = await promise;
+
+            _chai.expect(promise).to.have.property('subscribed').that.is.false;
+            _chai.expect(eventSnapshot).to.be.an('object');
+            _chai.expect(Object.isFrozen(eventSnapshot)).to.be.true;
+            _chai.expect(eventSnapshot).to.have.property('completed').that.is.true;
+            _chai.expect(eventSnapshot).to.have.property('data').that.deep.equals({
+                value: 'testValue'
+            });
+            _chai.expect(eventSnapshot).to.have.property('distributor').that.equals(pubsub);
+            _chai.expect(eventSnapshot).not.to.have.property('isPrevented');
+            _chai.expect(eventSnapshot).to.have.property('name', 'testEvent');
+            _chai.expect(eventSnapshot).not.to.have.property('prevent');
+            _chai.expect(eventSnapshot).to.have.property('publisher').that.equals(pubsub);
+            _chai.expect(eventSnapshot).to.have.property('stageName', 'after');
+            _chai.expect(eventSnapshot).not.to.have.property('stopDispatch');
+            _chai.expect(eventSnapshot).not.to.have.property('stopDistribution');
+            _chai.expect(eventSnapshot).not.to.have.property('stopEvent');
+            _chai.expect(eventSnapshot).not.to.have.property('unsubscribe');
+        }
+    });
+
+    _test.it('should allow awaiting an event with a symbol event name', async () => {
+        const eventNameSymbol = Symbol('testEvent'),
+            pubsub = _Pubsub(),
+
+            promise = pubsub.until(eventNameSymbol);
+
+        pubsub.publish(eventNameSymbol);
+
+        _chai.expect(await promise).to.have.property('name', eventNameSymbol);
+    });
+
+    _test.it('should accept a config object for until', async () => {
+        const pubsub = _Pubsub(),
+
+            promise = pubsub.until({
+                eventName: 'testEvent',
+                stageName: 'before'
+            });
+
+        pubsub.publish('testEvent');
+
+        _chai.expect(await promise).to.have.property('stageName', 'before');
+    });
+
+    _test.it('should resolve an until promise subscribed to the before stage of a prevented event', async () => {
+        const pubsub = _Pubsub(),
+
+            afterPromise = pubsub.until('testEvent'),
+            beforePromise = pubsub.until({
+                eventName: 'testEvent',
+                stageName: 'before'
+            });
+
+        let afterResolved = false;
+
+        afterPromise.then(() => {
+            afterResolved = true;
+        });
+
+        pubsub.before('testEvent', event => {
+            event.prevent();
+        });
+
+        pubsub.publish('testEvent');
+
+        _chai.expect(await beforePromise).to.have.property('stageName', 'before');
+
+        await Promise.resolve();
+
+        _chai.expect(afterResolved).to.be.false;
+        _chai.expect(afterPromise).to.have.property('subscribed').that.is.true;
+    });
+
+    _test.it('should resolve an until promise for an already published publishOnce event', async () => {
+        const pubsub = _Pubsub({
+            pubsub: {
+                testEvent: {
+                    allowPublicPublish: true,
+                    publishOnce: true
+                }
+            }
+        });
+
+        pubsub.publish('testEvent', {
+            value: 'testValue'
+        });
+
+        _chai.expect(await pubsub.until('testEvent')).to.have.property('data').that.deep.equals({
+            value: 'testValue'
+        });
+    });
+
+    _test.it('should allow unsubscribing an until promise', async () => {
+        const pubsub = _Pubsub(),
+
+            promise = pubsub.until('testEvent');
+
+        _chai.expect(promise).to.have.property('subscribed').that.is.true;
+        _chai.expect(promise.unsubscribe()).to.be.true;
+        _chai.expect(promise).to.have.property('subscribed').that.is.false;
+
+        let promiseResolved = false;
+
+        promise.then(() => {
+            promiseResolved = true;
+        });
+
+        pubsub.publish('testEvent');
+
+        await Promise.resolve();
+
+        _chai.expect(promiseResolved).to.be.false;
+    });
+
+    _test.it('should allow disposing an until promise', () => {
+        let promise;
+
+        {
+            using disposablePromise = _Pubsub().until('testEvent');
+
+            promise = disposablePromise;
+
+            _chai.expect(promise).to.have.property('subscribed').that.is.true;
+        }
+
+        _chai.expect(promise).to.have.property('subscribed').that.is.false;
+    });
+
+    _test.it('should allow protected until subscriptions', async () => {
+        const testThing = _make('TestThing', _Pubsub, {}, {
+                _pubsub: {
+                    protectedEvent: {
+                        allowPublicSubscription: false
+                    }
+                }
+            })(),
+
+            promise = testThing._until({
+                eventName: 'protectedEvent',
+                stageName: 'on'
+            });
+
+        _chai.expect(testThing.until({
+            eventName: 'protectedEvent',
+            stageName: 'on'
+        })).to.have.property('subscribed').that.is.false;
+
+        testThing._publish('protectedEvent', {
+            value: 'testValue'
+        });
+
+        _chai.expect(await promise).to.have.property('data').that.deep.equals({
+            value: 'testValue'
+        });
+    });
+
+    _test.it('should keep an until subscription active until its filter function passes', async () => {
+        const publisher = _Pubsub(),
+            pubsub = _Pubsub(),
+
+            promise = pubsub.until({
+                eventName: 'testEvent',
+                filterFunction: event => event.publisher !== pubsub
+            });
+
+        publisher.addDistributor(pubsub);
+
+        pubsub.publish('testEvent', {
+            value: 'fromPubsub'
+        });
+
+        publisher.publish('testEvent', {
+            value: 'fromPublisher'
+        });
+
+        _chai.expect(await promise).to.have.property('data').that.deep.equals({
+            value: 'fromPublisher'
+        });
+    });
+
+    _test.it('should allow awaiting multiple events', async () => {
+        const pubsub = _Pubsub(),
+
+            promise = pubsub.until({
+                eventName: [
+                    'failure',
+                    'success'
+                ]
+            });
+
+        pubsub.publish('success', {
+            value: 'testValue'
+        });
+
+        pubsub.publish('failure', {
+            reason: 'timeout'
+        });
+
+        {
+            const eventSnapshot = await promise;
+
+            _chai.expect(eventSnapshot).to.have.property('name', 'success');
+            _chai.expect(eventSnapshot).to.have.property('data').that.deep.equals({
+                value: 'testValue'
+            });
+        }
+    });
+
+    _test.it('should allow awaiting multiple events with a filter function', async () => {
+        const pubsub = _Pubsub(),
+
+            promise = pubsub.until({
+                eventName: [
+                    'jobComplete',
+                    'jobFailed'
+                ],
+                filterFunction: event => event.data.id === 7
+            });
+
+        pubsub.publish('jobComplete', {
+            id: 5
+        });
+
+        pubsub.publish('jobFailed', {
+            id: 7
+        });
+
+        _chai.expect(await promise).to.have.property('name', 'jobFailed');
+    });
+
+    _test.it('should unsubscribe from all events within the until subscription when an until promise is unsubscribed', async () => {
+        const pubsub = _Pubsub(),
+
+            promise = pubsub.until({
+                eventName: [
+                    'failure',
+                    'success'
+                ]
+            });
+
+        _chai.expect(promise).to.have.property('subscribed').that.is.true;
+        _chai.expect(promise.unsubscribe()).to.be.true;
+        _chai.expect(promise).to.have.property('subscribed').that.is.false;
+
+        let promiseResolved = false;
+
+        promise.then(() => {
+            promiseResolved = true;
+        });
+
+        pubsub.publish('success');
+        pubsub.publish('failure');
+
+        await Promise.resolve();
+
+        _chai.expect(promiseResolved).to.be.false;
+    });
+
+    _test.it('should throw synchronously when an until subscription cannot be created', () => {
+        const pubsub = _Pubsub();
+
+        pubsub.destroy();
+
+        _chai.expect(() => {
+            pubsub.until({
+                eventName: 'testEvent',
+                timeout: 60000
+            });
+        }).to.throw(TypeError); // eslint-disable-line no-restricted-globals -- This is testing a value provided by the runtime environment.
+    });
+
+    _test.it('should reject an until promise when its timeout elapses', async () => {
+        const promise = _Pubsub().until({
+            eventName: 'testEvent',
+            timeout: 10
+        });
+
+        let error;
+
+        try {
+            await promise;
+        } catch (caughtError) {
+            error = caughtError;
+        }
+
+        _chai.expect(error).to.have.property('name', 'TimeoutError');
+        _chai.expect(error).to.have.property('message', 'Event timed out');
+        _chai.expect(error).to.have.property('details').that.has.property('duration', 10);
+        _chai.expect(promise).to.have.property('canceled').that.is.true;
+        _chai.expect(promise).to.have.property('subscribed').that.is.false;
+    });
+
+    _test.it('should allow a custom subject and details for until errors', async () => {
+        let error;
+
+        try {
+            await _Pubsub().until({
+                details: {
+                    resource: 'testResource'
+                },
+                eventName: 'testEvent',
+                subject: 'Test event',
+                timeout: 10
+            });
+        } catch (caughtError) {
+            error = caughtError;
+        }
+
+        _chai.expect(error).to.have.property('message', 'Test event timed out');
+        _chai.expect(error).to.have.property('details').that.has.property('resource', 'testResource');
+    });
+
+    _test.it('should not settle a silent until promise when its timeout elapses', async () => {
+        const promise = _Pubsub().until({
+            eventName: 'testEvent',
+            silent: true,
+            timeout: 10
+        });
+
+        let settled = false;
+
+        promise.then(() => {
+            settled = true;
+        }, () => {
+            settled = true;
+        });
+
+        await _later(30);
+
+        _chai.expect(settled).to.be.false;
+        _chai.expect(promise).to.have.property('canceled').that.is.true;
+        _chai.expect(promise).to.have.property('subscribed').that.is.false;
+    });
+
+    _test.it('should clear the until timeout when the event is published', async () => {
+        const pubsub = _Pubsub(),
+
+            promise = pubsub.until({
+                eventName: 'testEvent',
+                timeout: 10
+            });
+
+        pubsub.publish('testEvent', {
+            value: 'testValue'
+        });
+
+        _chai.expect(await promise).to.have.property('data').that.deep.equals({
+            value: 'testValue'
+        });
+
+        let rejected = false;
+
+        promise.catch(() => {
+            rejected = true;
+        });
+
+        await _later(30);
+
+        _chai.expect(rejected).to.be.false;
+        _chai.expect(promise).to.have.property('canceled').that.is.false;
+    });
+
+    _test.it('should clear the until timeout when the subscription is unsubscribed', async () => {
+        const promise = _Pubsub().until({
+            eventName: 'testEvent',
+            timeout: 10
+        });
+
+        let settled = false;
+
+        promise.then(() => {
+            settled = true;
+        }, () => {
+            settled = true;
+        });
+
+        _chai.expect(promise.unsubscribe()).to.be.true;
+
+        await _later(30);
+
+        _chai.expect(settled).to.be.false;
+        _chai.expect(promise).to.have.property('canceled').that.is.false;
+    });
+
+    _test.it('should allow canceling an until promise', async () => {
+        const promise = _Pubsub().until('testEvent');
+
+        _chai.expect(promise.cancel()).to.equal(promise);
+
+        let error;
+
+        try {
+            await promise;
+        } catch (caughtError) {
+            error = caughtError;
+        }
+
+        _chai.expect(error).to.have.property('name', 'CanceledError');
+        _chai.expect(error).to.have.property('message', 'Event canceled');
+        _chai.expect(promise).to.have.property('canceled').that.is.true;
+        _chai.expect(promise).to.have.property('subscribed').that.is.false;
+    });
+
+    _test.it('should allow canceling an until promise with a reason', async () => {
+        const reason = new Error('testReason'), // eslint-disable-line no-restricted-globals -- This is testing an arbitrary caller provided error.
+
+            promise = _Pubsub().until('testEvent');
+
+        promise.cancel({
+            reason
+        });
+
+        let error;
+
+        try {
+            await promise;
+        } catch (caughtError) {
+            error = caughtError;
+        }
+
+        _chai.expect(error).to.equal(reason);
+    });
+
+    _test.it('should allow canceling an until promise silently', async () => {
+        const promise = _Pubsub().until('testEvent');
+
+        let settled = false;
+
+        promise.then(() => {
+            settled = true;
+        }, () => {
+            settled = true;
+        });
+
+        promise.cancel({
+            silent: true
+        });
+
+        await _later(10);
+
+        _chai.expect(settled).to.be.false;
+        _chai.expect(promise).to.have.property('canceled').that.is.true;
+        _chai.expect(promise).to.have.property('subscribed').that.is.false;
+    });
+
+    _test.it('should not cancel an until promise after it has resolved', async () => {
+        const pubsub = _Pubsub(),
+
+            promise = pubsub.until('testEvent');
+
+        pubsub.publish('testEvent');
+
+        await promise;
+
+        promise.cancel();
+
+        _chai.expect(promise).to.have.property('canceled').that.is.false;
+        _chai.expect(await promise).to.have.property('name', 'testEvent');
+    });
+
+    _test.it('should reject an until promise when an abort signal is aborted', async () => {
+        const abortController = new AbortController(),
+            promise = _Pubsub().until({
+                eventName: 'testEvent',
+                signal: abortController.signal
+            });
+
+        _chai.expect(promise).to.have.property('subscribed').that.is.true;
+
+        abortController.abort();
+
+        let error;
+
+        try {
+            await promise;
+        } catch (caughtError) {
+            error = caughtError;
+        }
+
+        _chai.expect(error).to.have.property('name', 'AbortError');
+        _chai.expect(error).to.have.property('message', 'Event aborted');
+        _chai.expect(promise).to.have.property('subscribed').that.is.false;
+    });
+
+    _test.it('should not subscribe an until promise when its abort signal is already aborted', async () => {
+        const pubsub = _Pubsub(),
+
+            promise = pubsub.until({
+                eventName: 'testEvent',
+                signal: AbortSignal.abort()
+            });
+
+        _chai.expect(promise).to.have.property('subscribed').that.is.false;
+
+        let error;
+
+        try {
+            await promise;
+        } catch (caughtError) {
+            error = caughtError;
+        }
+
+        _chai.expect(error).to.have.property('name', 'AbortError');
+
+        pubsub.publish('testEvent');
+
+        _chai.expect(pubsub._eventStateByEventName.testEvent.subscriptionMapByStageName).not.to.have.property('after');
+    });
+
+    _test.it('should release the remaining until subscriptions when one of its events has already been published', async () => {
+        const pubsub = _Pubsub({
+            pubsub: {
+                alreadyPublished: {
+                    allowPublicPublish: true,
+                    publishOnce: true
+                }
+            }
+        });
+
+        pubsub.publish('alreadyPublished', {
+            value: 'testValue'
+        });
+
+        {
+            const promise = pubsub.until({
+                eventName: [
+                    'alreadyPublished',
+                    'neverPublished'
+                ]
+            });
+
+            _chai.expect(await promise).to.have.property('name', 'alreadyPublished');
+            _chai.expect(promise).to.have.property('subscribed').that.is.false;
+            _chai.expect(pubsub._eventStateByEventName.neverPublished.subscriptionMapByStageName).not.to.have.property('after');
+        }
+    });
+
+    _test.it('should allow protected until subscriptions to be canceled', async () => {
+        let error;
+
+        try {
+            await _make('TestThing', _Pubsub, {}, {
+                _pubsub: {
+                    protectedEvent: {
+                        allowPublicSubscription: false
+                    }
+                }
+            })()._until({
+                eventName: 'protectedEvent',
+                stageName: 'on',
+                timeout: 10
+            });
+        } catch (caughtError) {
+            error = caughtError;
+        }
+
+        _chai.expect(error).to.have.property('name', 'TimeoutError');
+    });
+
+    _test.it('should resolve an until promise with a reject config when the resolve event is published', async () => {
+        const pubsub = _Pubsub({
+                pubsub: {
+                    rejectEvent: {
+                        allowPublicPublish: true
+                    },
+                    resolveEvent: {
+                        allowPublicPublish: true
+                    }
+                }
+            }),
+
+            promise = pubsub.until({
+                eventName: 'resolveEvent',
+                reject: 'rejectEvent'
+            });
+
+        pubsub.publish('resolveEvent');
+
+        _chai.expect(await promise).to.have.property('name', 'resolveEvent');
+        _chai.expect(promise).to.have.property('subscribed').that.is.false;
+        _chai.expect(pubsub._eventStateByEventName.rejectEvent.subscriptionMapByStageName).not.to.have.property('after');
+    });
+
+    _test.it('should reject an until promise when a reject event is published', async () => {
+        let error;
+
+        const pubsub = _Pubsub({
+                pubsub: {
+                    rejectEvent: {
+                        allowPublicPublish: true
+                    },
+                    resolveEvent: {
+                        allowPublicPublish: true
+                    }
+                }
+            }),
+
+            promise = pubsub.until({
+                eventName: 'resolveEvent',
+                reject: 'rejectEvent'
+            });
+
+        pubsub.publish('rejectEvent', {
+            value: 'testValue'
+        });
+
+        try {
+            await promise;
+        } catch (caughtError) {
+            error = caughtError;
+        }
+
+        _chai.expect(error).to.be.an.instanceOf(_Error);
+        _chai.expect(error).to.have.property('name', 'RejectError');
+        _chai.expect(error).to.have.property('message', 'Event rejected');
+        _chai.expect(error.details.eventSnapshot).to.have.property('name', 'rejectEvent');
+        _chai.expect(error.details.eventSnapshot).to.have.property('data').that.deep.equals({
+            value: 'testValue'
+        });
+        _chai.expect(promise).to.have.property('subscribed').that.is.false;
+    });
+
+    _test.it('should include the until subject and details in a reject error', async () => {
+        let error;
+
+        const pubsub = _Pubsub({
+                pubsub: {
+                    rejectEvent: {
+                        allowPublicPublish: true
+                    }
+                }
+            }),
+
+            promise = pubsub.until({
+                details: {
+                    value: 'testValue'
+                },
+                eventName: 'resolveEvent',
+                reject: 'rejectEvent',
+                subject: 'Test'
+            });
+
+        pubsub.publish('rejectEvent');
+
+        try {
+            await promise;
+        } catch (caughtError) {
+            error = caughtError;
+        }
+
+        _chai.expect(error).to.have.property('message', 'Test rejected');
+        _chai.expect(error.details).to.have.property('value', 'testValue');
+    });
+
+    _test.it('should reject an until promise for an already published reject event', async () => {
+        let error;
+
+        const pubsub = _Pubsub({
+            pubsub: {
+                rejectEvent: {
+                    allowPublicPublish: true,
+                    publishOnce: true
+                }
+            }
+        });
+
+        pubsub.publish('rejectEvent');
+
+        try {
+            await pubsub.until({
+                eventName: 'resolveEvent',
+                reject: 'rejectEvent'
+            });
+        } catch (caughtError) {
+            error = caughtError;
+        }
+
+        _chai.expect(error).to.have.property('name', 'RejectError');
+    });
+
+    _test.it('should resolve rather than reject an until promise when both once events have already been published', async () => {
+        const pubsub = _Pubsub({
+            pubsub: {
+                rejectEvent: {
+                    allowPublicPublish: true,
+                    publishOnce: true
+                },
+                resolveEvent: {
+                    allowPublicPublish: true,
+                    publishOnce: true
+                }
+            }
+        });
+
+        pubsub.publish('rejectEvent');
+        pubsub.publish('resolveEvent');
+
+        _chai.expect(await pubsub.until({
+            eventName: 'resolveEvent',
+            reject: 'rejectEvent'
+        })).to.have.property('name', 'resolveEvent');
+    });
+
+    _test.it('should accept an iterable of reject event names', async () => {
+        let error;
+
+        const pubsub = _Pubsub({
+                pubsub: {
+                    rejectEventA: {
+                        allowPublicPublish: true
+                    },
+                    rejectEventB: {
+                        allowPublicPublish: true
+                    }
+                }
+            }),
+
+            promise = pubsub.until({
+                eventName: 'resolveEvent',
+                reject: [
+                    'rejectEventA',
+                    'rejectEventB'
+                ]
+            });
+
+        pubsub.publish('rejectEventB');
+
+        try {
+            await promise;
+        } catch (caughtError) {
+            error = caughtError;
+        }
+
+        _chai.expect(error.details.eventSnapshot).to.have.property('name', 'rejectEventB');
+    });
+
+    _test.it('should accept a reject config object with its own stage and filter function', async () => {
+        let error;
+
+        const pubsub = _Pubsub({
+                pubsub: {
+                    rejectEvent: {
+                        allowPublicPublish: true
+                    }
+                }
+            }),
+
+            promise = pubsub.until({
+                eventName: 'resolveEvent',
+                reject: {
+                    eventName: 'rejectEvent',
+                    filterFunction: event => event.data.value === 'testValue',
+                    stageName: 'on'
+                }
+            });
+
+        pubsub.publish('rejectEvent', {
+            value: 'otherValue'
+        });
+        pubsub.publish('rejectEvent', {
+            value: 'testValue'
+        });
+
+        try {
+            await promise;
+        } catch (caughtError) {
+            error = caughtError;
+        }
+
+        _chai.expect(error.details.eventSnapshot).to.have.property('stageName', 'on');
+        _chai.expect(error.details.eventSnapshot).to.have.property('data').that.deep.equals({
+            value: 'testValue'
+        });
+    });
+
+    _test.it('should accept an iterable of reject config objects', async () => {
+        let error;
+
+        const pubsub = _Pubsub({
+                pubsub: {
+                    rejectEventA: {
+                        allowPublicPublish: true
+                    },
+                    rejectEventB: {
+                        allowPublicPublish: true
+                    }
+                }
+            }),
+
+            promise = pubsub.until({
+                eventName: 'resolveEvent',
+                reject: [{
+                    eventName: 'rejectEventA',
+                    stageName: 'before'
+                }, {
+                    eventName: 'rejectEventB'
+                }]
+            });
+
+        pubsub.publish('rejectEventA');
+
+        try {
+            await promise;
+        } catch (caughtError) {
+            error = caughtError;
+        }
+
+        _chai.expect(error.details.eventSnapshot).to.have.property('name', 'rejectEventA');
+        _chai.expect(error.details.eventSnapshot).to.have.property('stageName', 'before');
+    });
+
+    _test.it('should not silence a reject event when the until subscription is silent', async () => {
+        let error;
+
+        const pubsub = _Pubsub({
+                pubsub: {
+                    rejectEvent: {
+                        allowPublicPublish: true
+                    }
+                }
+            }),
+
+            promise = pubsub.until({
+                eventName: 'resolveEvent',
+                reject: 'rejectEvent',
+                silent: true
+            });
+
+        pubsub.publish('rejectEvent');
+
+        try {
+            await promise;
+        } catch (caughtError) {
+            error = caughtError;
+        }
+
+        _chai.expect(error).to.have.property('name', 'RejectError');
+    });
+
+    _test.it('should unsubscribe reject subscriptions when an until promise is unsubscribed', () => {
+        const pubsub = _Pubsub(),
+
+            promise = pubsub.until({
+                eventName: 'resolveEvent',
+                reject: 'rejectEvent'
+            });
+
+        _chai.expect(promise).to.have.property('subscribed').that.is.true;
+        _chai.expect(promise.unsubscribe()).to.be.true;
+        _chai.expect(promise).to.have.property('subscribed').that.is.false;
+        _chai.expect(pubsub._eventStateByEventName.rejectEvent.subscriptionMapByStageName).not.to.have.property('after');
+    });
+
+    _test.it('should unsubscribe reject subscriptions when an until promise is disposed', () => {
+        let promise;
+
+        {
+            using disposablePromise = _Pubsub().until({
+                eventName: 'resolveEvent',
+                reject: 'rejectEvent'
+            });
+
+            promise = disposablePromise;
+
+            _chai.expect(promise).to.have.property('subscribed').that.is.true;
+        }
+
+        _chai.expect(promise).to.have.property('subscribed').that.is.false;
+    });
+
+    _test.it('should unsubscribe reject subscriptions when an until promise is canceled', async () => {
+        let error;
+
+        const pubsub = _Pubsub(),
+
+            promise = pubsub.until({
+                eventName: 'resolveEvent',
+                reject: 'rejectEvent',
+                timeout: 10
+            });
+
+        try {
+            await promise;
+        } catch (caughtError) {
+            error = caughtError;
+        }
+
+        _chai.expect(error).to.have.property('name', 'TimeoutError');
+        _chai.expect(promise).to.have.property('subscribed').that.is.false;
+        _chai.expect(pubsub._eventStateByEventName.rejectEvent.subscriptionMapByStageName).not.to.have.property('after');
+    });
+
+    _test.it('should allow protected until subscriptions with a reject config', async () => {
+        let error;
+
+        const testThing = _make('TestThing', _Pubsub, {}, {
+            _pubsub: {
+                protectedRejectEvent: {
+                    allowPublicSubscription: false
+                },
+                protectedResolveEvent: {
+                    allowPublicSubscription: false
+                }
+            }
+        })();
+
+        {
+            const promise = testThing._until({
+                eventName: 'protectedResolveEvent',
+                reject: 'protectedRejectEvent'
+            });
+
+            testThing._publish('protectedRejectEvent');
+
+            try {
+                await promise;
+            } catch (caughtError) {
+                error = caughtError;
+            }
+        }
+
+        _chai.expect(error).to.have.property('name', 'RejectError');
+        _chai.expect(error.details.eventSnapshot).to.have.property('name', 'protectedRejectEvent');
     });
 });

@@ -9,12 +9,15 @@ A powerful and flexible event system for JavaScript applications that implements
 
 ## Why Use This?
 
-- **Flexible Event Architecture**: Comprehensive event lifecycle with before, on, and after stages
-- **Event Distribution**: Distribute events through object hierarchies
+- **Preventable Default Behavior**: An event's default behavior runs *inside* the event, in a dedicated complete stage, so a subscriber can inspect it, prevent it, or replace it before it happens
+- **Staged Event Lifecycle**: Before, on, complete, and after stages, each with its own subscribers
+- **Event Distribution**: Distribute events through object hierarchies, with automatic teardown
+- **Event Encapsulation**: Keep events entirely internal or expose them for others to observe
 - **Fine-Grained Control**: Prevent, stop, or modify events during their lifecycle
+- **Filtered Subscriptions**: Let a subscription choose which events it runs for
+- **Awaitable Events**: Get a cancelable subscription promise that resolves aynchronously when an event is published
 - **Customizable Behavior**: Configure dispatchers with custom behavior for each event type
 - **Multiple Integration Options**: Use as standalone, base class, or mixin
-- **Chainable API**: Fluent interface for elegant code
 
 ## Installation
 
@@ -43,16 +46,67 @@ import _Pubsub from 'isotropic-pubsub';
 }
 ```
 
-## Key Concepts
+## The Event Lifecycle
 
-### Event Lifecycle
+With some other event emitters, an object does its work and *then* announces it. By the time a listener is called, the thing has already happened. Listeners are spectators.
 
-Events in isotropic-pubsub flow through distinct stages:
+In isotropic-pubsub, events *can* work that way if that is the functionality you desire, but it's intended that an event's default behavior is part of the event itself. Publishing an event will run four stages in order:
 
-1. **Before Stage**: Runs first - subscribers can prevent the event from continuing
-2. **On Stage**: Main event processing - the default stage for most subscribers
-3. **Complete Stage**: Special internal stage that executes after the "on" stage
-4. **After Stage**: Final stage - for cleanup or logging
+1. **Before Stage**: Subscribers inspect the event and may prevent it
+2. **On Stage**: The main stage for ordinary observers
+3. **Complete Stage**: Where the event's *default behavior* runs
+4. **After Stage**: The thing has already happened. This stage runs only if the event was not prevented
+
+Since the default behavior lives in the complete stage rather than in the code that called `publish`, a subscriber gets to run **before** it. That is what makes the behavior preventable:
+
+```javascript
+import _make from 'isotropic-make';
+import _Pubsub from 'isotropic-pubsub';
+
+const _Document = _make('Document', _Pubsub, {
+    save (contents) {
+        // The write is not performed here. It is published as an event.
+        return this._publish('save', {
+            contents
+        });
+    },
+    _eventSave (event) {
+        // This is the default behavior, and it runs in the complete stage
+        this._contents = event.data.contents;
+    }
+}, {
+    _pubsub: {
+        save: {
+            completeFunction: '_eventSave'
+        }
+    }
+});
+
+{
+    const document = _Document();
+
+    document.before('save', event => {
+        if (!event.data.contents.trim()) {
+            // The write never happens
+            event.prevent();
+        }
+    });
+
+    document.before('save', event => {
+        // Rewrite what is about to be saved
+        event.data.contents = event.data.contents.trimEnd();
+    });
+
+    document.after('save', () => {
+        // Only reached when the save actually happened
+        console.log('saved');
+    })
+}
+```
+
+A subscriber can prevent the write, change the data to write, or observe that the write definitely happened.
+
+`event.prevent()` prevents the `complete` stage, and the `after` stage is skipped along with it. The `on` stage still runs, because prevention is about the default behavior rather than about notification. (It is possible to prevent the `on` stage or control other aspects of event dispatch.)
 
 ### Subscription Stages
 
@@ -103,11 +157,387 @@ pubsub.on('notification', {
 });
 ```
 
+### Filtering Subscriptions
+
+Any subscription can declare a `filterFunction`. It runs before the callback function and decides whether this particular event is one the subscriber cares about. Returning a truthy value runs the callback function as usual. Returning a falsy value skips it entirely.
+
+```javascript
+pubsub.on('dataChanged', {
+    callbackFunction: event => {
+        console.log('An even value:', event.data.value);
+    },
+    filterFunction: event => event.data.value % 2 === 0
+});
+```
+
+A filtered out event never reaches the call function, so a `once` subscription that filters an event out will **remain subscribed**. This lets a one-time subscription wait for the *right* event rather than merely the *next* one:
+
+```javascript
+// Runs once, for the first event published by a particular object
+pubsub.onceOn('dataChanged', {
+    callbackFunction: event => {
+        console.log('Got it:', event.data);
+    },
+    filterFunction: event => event.publisher === interestingObject
+});
+```
+
+Without a filter function, the same functionality requires an ordinary subscription that unsubscribes itself:
+
+```javascript
+// Equivalent to the above
+pubsub.on('dataChanged', event => {
+    if (event.publisher === interestingObject) {
+        event.unsubscribe();
+        console.log('Got it:', event.data);
+    }
+});
+```
+
+A filter function receives the event object and is called with the same host as the callback function, so a method name works too:
+
+```javascript
+pubsub.on('dataChanged', {
+    callbackFunction: '_handleDataChanged',
+    filterFunction: '_isInterestingDataChange'
+});
+```
+
+Filter functions receive the event fully populated for the current stage, so `event.distributor`, `event.publisher`, and `event.stageName` are all available. A filter function may also call the event control methods. A filter function that calls `event.stopDispatch()` stops the stage even though its own callback function did not run.
+
+## Subscription
+
+### The Subscription Config
+
+There are multiple ways of subscribing to events and all of them are a shorthand for the same underlying configuration object:
+
+```javascript
+{
+    callbackFunction, // Function or method name to execute
+    eventName, // Name of the event
+    filterFunction, // Decides whether a given event is the one the subscriber wants
+    once, // Unsubscribe after it runs
+    stageName // Stage to subscribe to
+}
+```
+
+The `subscribe` method accepts this kind of config object directly:
+
+```
+pubsub.subscribe({
+    callbackFunction: event => {
+        console.log('Saving:', event.data);
+    },
+    eventName: 'save',
+    stageName: 'before'
+});
+```
+
+The `subscribe` method also accepts positional arguments: `pubsub.subscribe(stageName, eventName, callbackFunction)`. In place of a callback function, a config object may be passed with `callbackFunction`, `filterFunction`, and `once` properties.
+
+There are shortcut methods for subscribing to every stage. The method names match the stage name: `after`, `before`, and `on`. There are also methods for subscribing once: `onceAfter`, `onceBefore`, and `onceOn`. The `stageName` and `once` configs are supplied by the method name, so they don't need to be passed in. These staged subscription methods accept two arguments: the event name and the callback function. In place of a callback function, a config object may be passed with `callbackFunction` and `filterFunction` properties.
+
+```javascript
+pubsub.after('save', {
+    callbackFunction: () => {
+        console.log('Important data was saved');
+    },
+    filterFunction: event => event.data.important
+});
+
+pubsub.before('save', event => {
+    console.log('About to save:', event.data);
+});
+
+pubsub.onceOn('save', () => {
+    console.log('This is the first save');
+});
+```
+
+A string can be passed as the callback function. The string is the name of the method to call.
+
+An array (or iterable) of event names can be passed instead of a single event name. An array (or iterable) of callback functions can be passed instead of a single callback function. This sets up a bulk subscription.
+
+### Bulk Subscriptions
+
+The `bulkSubscribe` method accepts the same subscribe config object, except that `callbackFunction` and `eventName` may each be an iterable:
+
+```javascript
+pubsub.bulkSubscribe({
+    callbackFunction: event => {
+        console.log(`User ${event.name} event:`, event.data);
+    },
+    eventName: [
+        'userLogin',
+        'userLogout'
+    ],
+    stageName: 'on'
+});
+```
+
+Pass an array of subscribe configs to set up unrelated subscriptions in one call:
+
+```javascript
+pubsub.bulkSubscribe([{
+    callbackFunction: event => {
+        console.log(`User ${event.name} event:`, event.data);
+    },
+    eventName: [
+        'userLogin',
+        'userLogout'
+    ],
+    stageName: 'on'
+}, {
+    callbackFunction: 'validateForm',
+    eventName: 'formSubmit',
+    once: true,
+    stageName: 'before'
+}]);
+```
+
+#### A Bulk Subscription Is One Subscription
+
+The `bulkSubscribe` method produces a single logical subscription, even when it covers multiple events or multiple callback functions. It returns one `Subscription` instance with an `unsubscribe` method that releases everything it created.
+
+For each subscription config passed to `bulkSubscribe`, `once` means *the callback function runs once*, not *the callback function runs once per event*. When multiple event names are given, this sets up a race where the first event to be published (and pass a filter function) is the one that wins.
+
+```javascript
+// Whichever event is published first wins. The rest are unsubscribed.
+pubsub.bulkSubscribe({
+    callbackFunction: event => {
+        console.log(event.name);
+    },
+    eventName: [
+        'failure',
+        'success'
+    ],
+    once: true,
+    stageName: 'on'
+});
+```
+
+When multiple callback functions are given, they form a group. The group of callback functions share the config's `filterFunction` and `once` properties. For a group, `once` means *every callback function in the group runs once*. If multiple event names are given, the first event to be published (and pass a filter function) is still the one that wins, but all of the callback functions in the group will be executed once. When a `filterFunction` is provided for a group of callback functions, the filter function is only run once per event.
+
+Within a bulk subscribe config, in place of a `callbackFunction` property, a `config` property may be provided with an object with `callbackFunction` and `filterFunction` properties. This enables a specific callback function to have its own filter function in addition to the group's filter function.
+
+### Asynchronous Subscriptions
+
+The `until` method subscribes to an event once and returns a promise that resolves with a snapshot of the event. This enables awaiting an event. It accepts an event name argument:
+
+```javascript
+await pubsub.until('dataChanged');
+```
+
+By default, `until` subscribes to the `after` stage. Pass a config object to choose a different stage or to supply a filter function:
+
+```javascript
+const eventSnapshot = await pubsub.until({
+    eventName: 'dataChanged',
+    filterFunction: event => event.publisher === interestingObject,
+    stageName: 'before'
+});
+```
+
+The `until` method's config object does not accept a `callbackFunction` or `once` property. It also accepts more properties which are described under [Canceling](#canceling) below.
+
+#### Racing Several Events
+
+`until` is a bulk subscription with `once`, so passing several event names produces a race. The promise resolves with whichever event is published first, and the rest are released:
+
+```javascript
+const {
+    data,
+    name
+} = await pubsub.until({
+    eventName: [
+        'failure',
+        'success'
+    ]
+});
+
+if (name === 'failure') {
+    throw data.error;
+}
+```
+
+Combine it with a filter function to wait for a specific outcome:
+
+```javascript
+// Resolves for whichever of these events reports the job we care about
+const eventSnapshot = await pubsub.until({
+    eventName: [
+        'jobDone',
+        'jobFailed'
+    ],
+    filterFunction: event => event.data.jobId === jobId
+});
+```
+
+#### Awaited Events Are Always Complete
+
+An `await` always resumes asynchronously. A published event's dispatch is always entirely synchronous. By the time an awaiting function resumes, the event has already finished every stage it was going to reach. This has two consequences for the promise returned by the `until` method:
+
+- **The promise cannot influence the event.** There is no opportunity to call `prevent()`, `stopDispatch()`, `stopDistribution()`, or `stopEvent()`, no matter which stage was subscribed to. `until` is for observing events, not controlling them. Use an ordinary subscription when the handler needs to participate in the event lifecycle.
+- **Mutable event data reflects its final state.** The resolved snapshot holds a reference to the same `data` object the event carried. It is not cloned. If a later stage mutated that object, an awaiting function sees the mutated version even when it subscribed to the `before` stage.
+
+You might ask: If the event lifecycle is finished no matter what, why would I ever call the `until` method to subscribe to any other event stage? The stage still determines *whether the promise resolves at all*. A prevented event runs its `before` stage but never reaches `after`, so a `before` stage promise settles for every publish attempt while an `after` stage promise only settles for events that completed.
+
+#### The Event Snapshot
+
+The resolved value is a frozen snapshot captured at the moment the subscription ran, not the live event instance. After dispatch, an event instance would report the last stage reached rather than the stage that was subscribed to. The snapshot has no event control methods. It contains:
+
+- **completed**: Whether the event had completed its complete stage
+- **data**: Data associated with the event
+- **distributor**: Object that distributed the event
+- **name**: Name of the event
+- **publisher**: Object that published the event
+- **stageName**: Stage when the subscription ran
+
+#### Canceling
+
+An `until` subscription is a cancelable task, and it uses the same interface as the rest of the isotropic ecosystem, provided by [isotropic-timeout-cancel](https://github.com/ibi-group/isotropic-timeout-cancel).
+
+The returned promise carries a `cancel` method, a `canceled` getter, a `subscribed` getter, an `unsubscribe` method, and a `Symbol.dispose` method:
+
+```javascript
+{
+    const promise = pubsub.until('dataChanged');
+
+    if (noLongerInterested) {
+        promise.cancel();
+    }
+}
+
+{
+    using promise = pubsub.until('dataChanged');
+
+    if (stillInterested) {
+        console.log((await promise).data);
+    }
+
+    // The subscription is released automatically at the end of this block
+}
+```
+
+There are two ways to release the subscription, and they differ only in whether the promise settles:
+
+- **`cancel(config)`** releases the subscription and rejects the promise with a standardized error. It returns the promise, so it can be chained.
+- **`unsubscribe()`** releases the subscription and leaves the promise unsettled, exactly like unsubscribing any other subscription. It returns a Boolean.
+
+`Symbol.dispose` behaves like `unsubscribe`, so a `using` declaration that goes out of scope never produces a rejection to handle.
+
+##### Timeouts And Signals
+
+The config object accepts the same cancellation options as any other isotropic cancelable task:
+
+- **details**: An object included as the `details` of generated errors
+- **signal**: An `AbortSignal` that cancels the subscription when it aborts. A signal that has already aborted cancels before any subscription is created.
+- **silent**: When `true`, the promise never rejects. Every form of cancellation, including a timeout, simply releases the subscription and leaves the promise unsettled. Default: `false`
+- **subject**: The subject of generated error messages, as in `` `${subject} timed out` ``. Default: `'Event'`
+- **timeout**: A number of milliseconds or a `Temporal.Duration`. If the event has not been published by the time it elapses, the subscription is released and the promise rejects with a `TimeoutError`.
+
+```javascript
+// Give up after five seconds
+try {
+    const eventSnapshot = await pubsub.until({
+        eventName: 'dataChanged',
+        subject: 'Data change',
+        timeout: 5000
+    });
+} catch (error) {
+    // Error: Data change timed out
+}
+```
+
+Publishing the event, unsubscribing, canceling, and disposing all clear a pending timeout, so a settled or released `until` never leaves a timer behind.
+
+| Cause | Error name | Message |
+| --- | --- | --- |
+| The `timeout` elapsed | `TimeoutError` | `` `${subject} timed out` `` |
+| An `AbortSignal` aborted | `AbortError` | `` `${subject} aborted` `` |
+| `cancel()` with no reason | `CanceledError` | `` `${subject} canceled` `` |
+| A `reject` event was published | `RejectError` | `` `${subject} rejected` `` |
+
+Calling `cancel({ reason })` delivers that reason as-is instead of a generated error, and `cancel({ silent: true })` releases the subscription without rejecting.
+
+These extra properties exist only on the promise returned by the `until` method. Chaining the promise with `then` returns an ordinary promise without them.
+
+#### Rejecting On An Error Event
+
+Racing a success event against a failure event resolves either way, which leaves the awaiting code to check which event it got. The `reject` config property moves the failure onto the promise's rejection channel instead, so ordinary `try`/`catch` handles it:
+
+```javascript
+try {
+    const eventSnapshot = await pubsub.until({
+        eventName: 'success',
+        reject: 'failure'
+    });
+
+    console.log('Succeeded with', eventSnapshot.data);
+} catch (error) {
+    // error.name is 'RejectError'
+    console.error('Failed with', error.details.eventSnapshot.data);
+}
+```
+
+This is a common pattern when an event's complete stage begins asynchronous work. The event dispatch is synchronous so listeners of that event are only notified that the work began. In order for listeners to know when the work is complete or to observe the outcome, it publishes a separate completion event when the work finishes, or a separate error event if it failed. An observer that wants the outcome had to subscribe to both and then sort out which arrived. With `reject`, the promise expresses the outcome directly.
+
+The rejection is an [isotropic-error](https://github.com/ibi-group/isotropic-error) named `RejectError`, with the message `` `${subject} rejected` ``. Its `details` object carries the `eventSnapshot` of the event that caused the rejection, alongside any `details` given to the `until` config.
+
+`reject` accepts an event name, a config object, or an iterable of either:
+
+```javascript
+// A single event name
+await pubsub.until({
+    eventName: 'success',
+    reject: 'failure'
+});
+
+// Several event names
+await pubsub.until({
+    eventName: 'success',
+    reject: [
+        'failure',
+        'canceled'
+    ]
+});
+
+// A config object, for a different stage or a filter function
+await pubsub.until({
+    eventName: 'jobDone',
+    reject: {
+        eventName: 'jobFailed',
+        filterFunction: event => event.data.jobId === jobId,
+        stageName: 'on'
+    }
+});
+```
+
+A reject config object accepts the same subscription properties as `eventName` does, other than `callbackFunction` and `once`. Its `eventName` may itself be an iterable. Each reject entry inherits the `until` config's `stageName` unless it sets its own, and it does not inherit the config's `filterFunction` or other subscription properties, since those describe the resolve event.
+
+A few points of behavior:
+
+- **Resolution wins a tie.** If the resolve event and a reject event are both spent one-time events that have already been published, the promise resolves. The resolve subscription is registered first, so it is the one that runs.
+- **`silent` does not apply.** `silent` suppresses rejections from *cancellation*. A reject event is an outcome rather than a cancellation, so it rejects even when `silent` is `true`.
+- **Settling releases everything.** Resolving, rejecting, canceling, unsubscribing, or disposing releases the resolve subscription and every reject subscription together.
+
+#### Events That Never Publish
+
+If the event is never published, the promise never settles. Destroying the object releases the subscription but does not settle the promise, and neither does `unsubscribe`. This is deliberate: an `until` subscription that is still waiting is still live, and a promise that resolves only when the event actually happens is the purpose of the method.
+
+Since the subscription is registered on the object, the object holds a reference to the promise for as long as it stays subscribed. It is not eligible for garbage collection during that time. That means an `until` that will *never* be satisfied is retained by a long-lived object until something releases it. This will leak memory if the promise goes out of scope but the object remains. Use `timeout`, `signal`, `cancel()`, `unsubscribe()`, or `using` for any `until` whose event is not guaranteed to be published, and you are no longer interested in waiting for it.
+
+#### Awaiting A Once Event That Already Published
+
+Subscribing to a `publishOnce` event that has already been published executes the subscription immediately, so `until` resolves whether or not the event has already happened. This makes it a reliable way to wait on one-time events, and it works when racing several event names too. If one of them has already been published, the promise resolves with it and the subscriptions to the others are released immediately.
+
 ## Advanced Features
 
 ### Event Distribution
 
-Events can be distributed through object hierarchies:
+An object can distribute its events to other objects, so that subscribers on those other objects are executed too.
+
+`a.addDistributor(b)` means *`b` also receives `a`'s events*. Read it as "add `b` to the set of objects my events are distributed to." Distribution flows from the object that publishes toward the distributors it was given, so to make child events reach a parent, the **child** adds the **parent**:
 
 ```javascript
 import _Pubsub from 'isotropic-pubsub';
@@ -119,24 +549,26 @@ import _Pubsub from 'isotropic-pubsub';
         grandchild = _Pubsub(),
         root = _Pubsub();
 
-    // Set up distribution
-    root.addDistributor([
-        child1,
-        child2
-    ]);
-    child1.addDistributor(grandchild);
+    // Each object distributes its events up to its parent
+    child1.addDistributor(root);
+    child2.addDistributor(root);
+    grandchild.addDistributor(child1);
 
     // Subscribe only at the root
     root.on('dataChanged', event => {
-        console.log(`Data changed by: ${event.distributor.id}, published by: ${event.publisher.id}`);
+        console.log(`Data changed by: ${event.publisher.id}, seen at: ${event.distributor.id}`);
     });
 
-    // Events published anywhere in the hierarchy will bubble up to root
+    // Events published anywhere in the hierarchy reach root
     grandchild.publish('dataChanged', {
         value: 'new value'
     });
 }
 ```
+
+Here `grandchild.publish` reaches `grandchild`, then `child1`, then `root`, so the root subscriber runs.
+
+Each object appears in a distribution path at most once, so distributors may re-converge or even form cycles without an event being delivered twice.
 
 ### Custom Event Dispatchers
 
@@ -168,30 +600,85 @@ pubsub.publish('formSubmit', {
 
 When you publish or subscribe to an event that hasn't been explicitly defined using `defineDispatcher`, a default configuration is used automatically. However, best practice is to explicitly define events.
 
-### Bulk Subscriptions
+> **Note:** the automatic default configuration sets `allowPublicPublish: true`, but a dispatcher you define yourself defaults to `allowPublicPublish: false`. If you define a dispatcher for an event that application code publishes with the public `publish()` method, set `allowPublicPublish: true` explicitly.
 
-Subscribe to multiple events at once:
+### Construction Configuration
+
+The constructor accepts an optional config object with three optional properties that set up the event system before the instance is used: `pubsub` defines dispatchers, `distributors` establishes event distribution, and `subscribe` registers subscriptions.
 
 ```javascript
-// Subscribe to multiple events
-pubsub.bulkSubscribe([{
-    config: {
-        callbackFunction: event => console.log(`User ${event.name} event:`, event.data)
-    },
-    eventName: [
-        'userLogin',
-        'userLogout'
+const pubsub = _Pubsub({
+    distributors: [
+        parent
     ],
-    stageName: 'on'
-}, {
-    config: {
-        callbackFunction: 'validateForm',
-        once: true
+    pubsub: {
+        dataChanged: {
+            allowPublicPublish: true
+        }
     },
-    eventName: 'formSubmit',
-    stageName: 'before'
-}]);
+    subscribe: {
+        dataChanged: event => {
+            console.log('Data changed:', event.data);
+        }
+    }
+});
 ```
+
+#### `distributors`
+
+Distributes this object's events to one or more other objects, equivalent to calling `addDistributor` immediately after construction. It accepts a single object or any iterable of objects.
+
+```javascript
+const child = _Pubsub({
+    distributors: new Set([
+        parentA,
+        parentB
+    ])
+});
+```
+
+This matters for subclasses that publish events while initializing. Distribution paths are resolved when an event is published. By passing distributors to the constructor, it ensures they are in place before any events are published.
+
+#### `subscribe`
+
+Registers subscriptions on the new instance, keyed by event name. Each value may be a callback function, a method name, a subscription config object, or an iterable of any of those:
+
+```javascript
+const pubsub = _Pubsub({
+    subscribe: {
+        // A callback function, subscribed to the on stage
+        dataChanged: event => {
+            console.log('Data changed:', event.data);
+        },
+
+        // A method name
+        dataLoaded: '_handleDataLoaded',
+
+        // A config object, which may specify a stage name
+        dataSaved: {
+            callbackFunction: event => {
+                console.log('Saved:', event.data);
+            },
+            once: true,
+            stageName: 'after'
+        },
+
+        // Several subscriptions to the same event
+        dataRemoved: [
+            '_handleDataRemoved',
+            {
+                callbackFunction: '_validateRemoval',
+                filterFunction: '_isRemovable',
+                stageName: 'before'
+            }
+        ]
+    }
+});
+```
+
+Subscriptions default to the `on` stage. Any other subscription config is passed through.
+
+These are public subscriptions so events configured with `allowPublicSubscription: false` are not subscribed this way. A subclass that needs to subscribe to its own protected events should do so with `_bulkSubscribe` in its `_init` method instead.
 
 ### Using as a Base Class
 
@@ -653,7 +1140,7 @@ const _Cart = _make('Cart', {
 }
 ```
 
-### Cancellable Operations
+### Cancelable Operations
 
 ```javascript
 import _later from 'isotropic-later';
@@ -665,6 +1152,7 @@ class FileUploader {
 
         // Configure the upload event
         this.pubsub.defineDispatcher('upload', {
+            allowPublicPublish: true,
             eventStoppable: true,
             preventable: true
         });
@@ -839,21 +1327,25 @@ class DataService {
         this.pubsub.defineDispatcher({
             // Create operation
             'create': {
+                allowPublicPublish: true,
                 completeFunction: '_handleCreate',
                 lifecycleHost: this
             },
             // Delete operation
             'delete': {
+                allowPublicPublish: true,
                 completeFunction: '_handleDelete',
                 lifecycleHost: this
             },
             // Read operation
             'read': {
+                allowPublicPublish: true,
                 completeFunction: '_handleRead',
                 lifecycleHost: this
             },
             // Update operation
             'update': {
+                allowPublicPublish: true,
                 completeFunction: '_handleUpdate',
                 lifecycleHost: this
             }
@@ -1029,22 +1521,31 @@ class DataService {
     // Usage
     const service = new DataService();
 
-    service.create('user1', {
-        email: 'john@example.com',
-        name: 'John'
+    service.create({
+        data: {
+            email: 'john@example.com',
+            name: 'John'
+        },
+        id: 'user1'
     });
     // Created: user1
-    // [LOG] create - {"id":"user1","data":{"name":"John","email":"john@example.com"}}
+    // [LOG] create - {"data":{"email":"john@example.com","name":"John"},"id":"user1"}
 
-    service.update('user1', {
-        name: 'John Doe'
+    service.update({
+        data: {
+            name: 'John Doe'
+        },
+        id: 'user1'
     });
     // Updated: user1
-    // [LOG] update - {"id":"user1","data":{"name":"John Doe"}}
+    // [LOG] update - {"data":{"name":"John Doe"},"id":"user1"}
 
     // Try to update non-existent record
-    service.update('user2', {
-        name: 'Jane'
+    service.update({
+        data: {
+            name: 'Jane'
+        },
+        id: 'user2'
     });
     // Id user2 does not exist
 }
@@ -1156,6 +1657,10 @@ This inheritance pattern allows you to build complex event systems while maintai
 const pubsub = _Pubsub(options);
 ```
 
+- **distributors**: An object or iterable of objects to distribute this object's events to
+- **pubsub**: Event dispatcher definitions, as passed to `defineDispatcher`
+- **subscribe**: Subscriptions to register, keyed by event name
+
 #### Instance Methods
 
 - **addDistributor(distributor)**: Add an object to distribute events to
@@ -1165,14 +1670,43 @@ const pubsub = _Pubsub(options);
 - **bulkUnsubscribe([stageName], [eventName])**: Unsubscribe from multiple events
 - **defineDispatcher(eventName, config)**: Define a custom event dispatcher
 - **destroy(...args)**: Destroy the pubsub instance
+- **getOnceEventSnapshot(eventName)**: Return the event snapshot of a spent `completeOnce` or `publishOnce` event, or `null`
 - **hasDistributor(distributor)**: Check if distributor has been added
 - **on(eventName, config)**: Subscribe to the on stage of an event
-- **publish(eventName, data)**: Publish an event with optional data
 - **onceAfter(eventName, config)**: Subscribe once to the after stage
 - **onceBefore(eventName, config)**: Subscribe once to the before stage
 - **onceOn(eventName, config)**: Subscribe once to the on stage
+- **publish(eventName, data)**: Publish an event with optional data
 - **removeDistributor(distributor)**: Remove a distributor
-- **subscribe(stageName, eventName, config)**: Subscribe to an event at a specific stage
+- **subscribe(config)**: Subscribe to an event at a specific stage
+- **subscribe(stageName, eventName, config)**: Alternative way to subscribe to an event as a specific stage
+- **until(eventNameOrConfig)**: Subscribe once and return a promise that resolves with an event snapshot
+
+#### Subscription Config
+
+Accepted by `after`, `before`, `bulkSubscribe`, `on`, `onceAfter`, `onceBefore`, `onceOn`, `subscribe`, `until` and the `subscribe` construction config. Shortcut methods supply some of these properties automatically.
+
+- **callbackFunction**: Function or method name executed when the event is dispatched
+- **eventName**: Name of the event
+- **filterFunction**: Function or method name that decides whether the callback function runs for a given event
+- **host**: The value of `this` within the callback function and filter function, and the object a method name is resolved against
+- **once**: Whether to unsubscribe after the callback function runs
+- **stageName**: Stage to subscribe to
+
+`bulkSubscribe` and the stage shortcut methods accept an iterable of event names and/or an iterable of callback functions. `bulkSubscribe` additionally accepts a `config` property in place of `callbackFunction`.
+
+#### Until Config
+
+`until` accepts an event name, or a config object with `eventName`, `filterFunction`, `host`, and `stageName` from the subscription config (but not `callbackFunction` or `once`), plus the cancellation options:
+
+- **details**: An object included as the `details` of generated errors
+- **reject**: An event name, a subscription config object, or an iterable of either. Publishing one of these events rejects the promise with a `RejectError`.
+- **signal**: An `AbortSignal` that cancels the subscription when it aborts
+- **silent**: When `true`, cancellation never rejects the promise. Does not apply to `reject` events. Default: `false`
+- **subject**: The subject of generated error messages. Default: `'Event'`
+- **timeout**: A number of milliseconds or a `Temporal.Duration` after which the promise rejects with a `TimeoutError`
+
+`stageName` defaults to `'after'` rather than `'on'`. Each `reject` entry inherits it unless it sets its own.
 
 ### Event Object
 
@@ -1186,6 +1720,7 @@ Event objects are passed to subscribers and contain:
 - **eventStopped**: Whether event is stopped
 - **name**: Name of the event
 - **publisher**: Object that published the event
+- **snapshot**: A frozen copy of event state
 - **stageName**: Current stage name
 
 #### Event Control Methods
@@ -1197,12 +1732,33 @@ Event objects are passed to subscribers and contain:
 - **stopEvent()**: Stop all stages of the event
 - **unsubscribe()**: Unsubscribe the current handler
 
+### Event Snapshot
+
+A promise returned by the `until` method will resolve with an event snapshot. It is a frozen object that captures the event's state at the time the subscription ran. It has no event control methods.
+
+- **completed**: Whether the event has completed its complete stage
+- **data**: Data associated with the event
+- **distributor**: Object that distributed the event
+- **name**: Name of the event
+- **publisher**: Object that published the event
+- **stageName**: Stage when the subscription ran
+
 ### Subscription Object
 
 Returned when subscribing to events:
 
 - **subscribed**: Whether the subscription is active
 - **unsubscribe()**: Method to unsubscribe
+
+### Until Promise
+
+Returned by the `until` method. A promise that resolves with an event snapshot, with subscription management and cancellation added:
+
+- **cancel(config)**: Releases the subscription and rejects the promise. Accepts `reason`, `signal`, and `silent`, as in [isotropic-cancel](https://github.com/ibi-group/isotropic-cancel). Returns the promise.
+- **canceled**: Whether the subscription was canceled
+- **subscribed**: Whether the subscription is active
+- **unsubscribe()**: Releases the subscription without settling the promise. Returns a Boolean.
+- **[Symbol.dispose]()**: Releases the subscription without settling the promise, for `using` declarations
 
 ## Advanced Configuration
 
@@ -1269,20 +1825,38 @@ pubsub.publish('initialize', { data: 123 }); // Works
 pubsub.publish('initialize', { data: 456 }); // Ignored
 ```
 
-- **`completeOnce`**: When set to `true`, the event can be published multiple times, but the complete function will only run the first time.
+- **`completeOnce`**: When set to `true`, the event may be published repeatedly until one of those publishes actually *completes*. Once the complete stage has run, the event is closed and further publishes are ignored entirely.
 
 ```javascript
 // This event can be published multiple times, but the complete function only runs once
 pubsub.defineDispatcher('load', {
-    completeOnce: true,
-    completeFunction: () => console.log('Loading resources')
+    allowPublicPublish: true,
+    completeFunction: () => console.log('Loading resources'),
+    completeOnce: true
 });
 
-pubsub.publish('load'); // Prints "Loading resources"
-pubsub.publish('load'); // Complete function doesn't run
+pubsub.before('load', event => {
+    if (!readyToLoad) {
+        event.prevent(); // The complete stage does not run, so the event is not spent
+    }
+});
+
+pubsub.publish('load'); // Prevented. Nothing completes, so the event stays open
+pubsub.publish('load'); // Prints "Loading resources". The event is now closed
+pubsub.publish('load'); // Ignored entirely, no stage runs
 ```
 
-For both `completeOnce` and `publishOnce`, after the event has already been completed or published, any new subscriber is executed immediately.
+The difference between the two is what a prevented publish costs you. `publishOnce` spends the event on the first publish attempt, whether or not it completes. `completeOnce` only spends it on the publish that reaches the complete stage, so prevented attempts don't count. Neither one runs any stage once the event is spent.
+
+For both `completeOnce` and `publishOnce`, after the event has been spent, any new subscriber is executed immediately with the event that spent it.
+
+#### Reading Retained Once Event State
+
+The `getOnceEventSnapshot(eventName)` method returns the [event snapshot](#event-snapshot) of a spent `completeOnce` or `publishOnce` event, or `null` if the event has not been spent. This makes the retained state readable synchronously, without subscribing.
+
+It returns `null` for an event that is neither `completeOnce` nor `publishOnce`, since no state is retained for those, and for any event on a destroyed object. The public method returns `null` for an event that does not allow public subscription. The protected `_getOnceEventSnapshot` does not apply that restriction.
+
+A `publishOnce` event is spent by the publish attempt itself, so its snapshot becomes readable even if the event was prevented before completing. Read the snapshot's `completed` property to distinguish the two. A `completeOnce` event is only spent by a publish that reaches the complete stage, and its snapshot is readable from within its own `completeFunction`.
 
 ## Event Lifecycle Functions
 
@@ -1565,11 +2139,14 @@ The library provides paired public and protected versions of its core methods:
 | `before()` | `_before()` | Subscribe to the "before" stage |
 | `bulkSubscribe()` | `_bulkSubscribe()` | Subscribe to multiple events |
 | `bulkUnsubscribe()` | `_bulkUnsubscribe()` | Unsubscribe from multiple events |
+| `getOnceEventSnapshot()` | `_getOnceEventSnapshot()` | Read the retained snapshot of a spent once event |
 | `on()` | `_on()` | Subscribe to the "on" stage of an event |
 | `onceAfter()` | `_onceAfter()` | Subscribe once to the "after" stage |
 | `onceBefore()` | `_onceBefore()` | Subscribe once to the "before" stage |
 | `onceOn()` | `_onceOn()` | Subscribe once to the "on" stage |
 | `publish()` | `_publish()` | Publish an event |
+| `subscribe()` | `_subscribe()` | Subscribe to an event at a specific stage |
+| `until()` | `_until()` | Subscribe once and await an event snapshot |
 
 ### When to Use Each Version
 
@@ -1712,7 +2289,7 @@ component._on('_updateState', () => {
 5. **Use consistent naming conventions**
    Consider prefixing internal events with an underscore (like `_internalEvent`) to make it clear they're not part of the public API.
 
-This public/protected pattern allows `isotropic-pubsub` to support both encapsulated, implementation-detail events and public, API-level events in the same system, providing flexibility while maintaining control over access. Note that this is only advisory access control. There is nothing to prevent any code from accesing the protected methods when they aren't supposed to.
+This public/protected pattern allows `isotropic-pubsub` to support both encapsulated, implementation-detail events and public, API-level events in the same system, providing flexibility while maintaining control over access. Note that this is only advisory access control. There is nothing to prevent any code from accessing the protected methods when they aren't supposed to.
 
 ### Event Stages Control
 
@@ -1889,7 +2466,7 @@ The exact order of event processing across distributors follows these rules:
    - First, all handlers for that stage on the publisher execute
    - Then, all handlers for that stage on all the publisher's distributors execute in the order they were added
    - Then, all handlers for that stage on all of the first distributor's distributors execute and so on
-   - This repeats for each subsequent distributor 
+   - This repeats for each subsequent distributor
 
 This breadth-first traversal ensures predictable event flow and allows for complex event propagation patterns.
 
@@ -1956,9 +2533,10 @@ const customDispatcher = {
     // Create a new state object for this event type
     newState () {
         return {
-            // Custom state properties
-            subscriptions: {}, // Required for storing subscriptions
-            customData: {} // Any additional data you need
+            // Any additional data you need
+            customData: {},
+            // Required: subscriptions are stored here, keyed by stage name
+            subscriptionMapByStageName: Object.create(null)
         };
     },
     // Handle event publishing
@@ -1971,6 +2549,7 @@ const customDispatcher = {
         // config.eventName - Event name
         // config.getDistributionPath - Function to get distribution objects
         // config.lifecycleHost - Execution context for lifecycle methods
+        // config.publicPublish - Whether the public publish method was used
         // config.publisher - Publishing object
         // config.state - Event state from newState()
 
@@ -1990,6 +2569,8 @@ const customDispatcher = {
     }
 };
 ```
+
+A plain object like this replaces the dispatcher entirely, so it is responsible for the whole event flow. If instead you only want to change *part* of the behavior, extend `Dispatcher` with `isotropic-make` rather than delegating to `Dispatcher.prototype` from an object literal. The prototype methods rely on `this._config`, which only exists on an actual dispatcher instance.
 
 ### Using a Custom Dispatcher
 
@@ -2020,43 +2601,60 @@ Custom dispatchers are useful for specialized event patterns such as:
 
 ```javascript
 import _Dispatcher from 'isotropic-pubsub/lib/dispatcher.js';
+import _make from 'isotropic-make';
 
 // A dispatcher that limits event frequency
-const throttledDispatcher = {
-    newState () {
-        return {
-            lastFired: 0,
-            pendingSubscriptions: [],
-            subscriptions: {},
-            throttleDuration: 100 // Minimum milliseconds between events
-        };
+const _ThrottledDispatcher = _make('ThrottledDispatcher', _Dispatcher, {
+    newState (...args) {
+        return Object.assign(Reflect.apply(_Dispatcher.prototype.newState, this, args), {
+            lastFired: 0
+        });
     },
-    publish (config) {
-        const now = Date.now(),
-            state = config.state;
+    publish (...args) {
+        const [{
+                state
+            }] = args,
+            now = Temporal.Now.instant().epochMilliseconds;
 
         // Check if enough time has passed
-        if (now - state.lastFired >= state.throttleDuration) {
-            state.lastFired = now;
-
-            // Use the standard dispatcher's publish method for actual dispatching
-            _Dispatcher.prototype.publish.call(this, config);
-        } else {
+        if (now - state.lastFired < this._throttleDuration) {
             console.log('Event throttled');
+
+            return this;
         }
 
-        return this;
+        state.lastFired = now;
+
+        // Use the standard dispatcher's publish method for actual dispatching
+        return Reflect.apply(_Dispatcher.prototype.publish, this, args);
     },
-    subscribe(config) {
-        // Use the standard dispatcher's subscribe method
-        return _Dispatcher.prototype.subscribe.call(this, config);
+    _init ({
+        throttleDuration = 100,
+        ...config
+    } = {}) {
+        Reflect.apply(_Dispatcher.prototype._init, this, [
+            config
+        ]);
+
+        // Minimum milliseconds between events
+        this._throttleDuration = throttleDuration;
+
+        return this;
     }
-};
+});
 
 // Use the throttled dispatcher for high-frequency events
-pubsub.defineDispatcher('scroll', throttledDispatcher);
-pubsub.defineDispatcher('resize', throttledDispatcher);
+pubsub.defineDispatcher([
+    'resize',
+    'scroll'
+], {
+    allowPublicPublish: true,
+    Dispatcher: _ThrottledDispatcher,
+    throttleDuration: 100
+});
 ```
+
+`newState` and `subscribe` are inherited unchanged, so subscriptions continue to work exactly as they do for any other event. Only `publish` is overridden. Note the `Dispatcher` property in the config: it tells `defineDispatcher` which dispatcher class to construct, and the rest of the config object is passed to that class.
 
 Custom dispatchers provide a powerful extension point for the event system, allowing you to tailor event behavior to your specific application needs while maintaining compatibility with the rest of the pubsub infrastructure.
 
