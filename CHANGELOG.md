@@ -1,4 +1,184 @@
-# Changelog
+# isotropic-pubsub Changelog
+
+## 0.17.0 - 2026-08-23
+
+### Breaking changes
+
+**A bulk `once` subscription is now a single subscription that fires once in total, not once per event.** This is the change most likely to alter the behavior of existing code.
+
+Subscribing to several events at once with a `once` method previously created independent subscriptions that each fired once. Subscribing to three events meant up to three calls. The subscription is now treated as a group: the first event that arrives runs the callback function and unsubscribes the whole group, including the other event names.
+
+```javascript
+pubsub.onceOn([
+    'a',
+    'b'
+], event => console.log(event.name));
+
+pubsub.publish('a');
+pubsub.publish('b');
+
+// Before: logs 'a', then logs 'b'
+// After:  logs 'a'
+```
+
+This applies to every bulk form: an array of event names, an event-name-to-config object, and the protected `_onceOn` / `_onceBefore` / `_onceAfter` counterparts.
+
+Two things that look similar are unaffected. Separate `once` calls remain independent, because each is its own subscription:
+
+```javascript
+pubsub.onceOn('a', callbackFunctionA);
+pubsub.onceOn('b', callbackFunctionB);
+
+// Both still fire, exactly as before.
+```
+
+And several callback functions bound to the same event in one bulk call all still run for that event, because they are one group observing one occurrence:
+
+```javascript
+pubsub.onceOn('a', [
+    callbackFunctionOne,
+    callbackFunctionTwo
+]);
+
+// Both still run when 'a' publishes.
+```
+
+#### Migration
+
+Audit every bulk `once` subscription that spans more than one event name. For each, decide which of the two meanings you intended:
+
+```javascript
+// Intent: "tell me when the first of these happens", now the default
+pubsub.onceOn([
+    'succeeded',
+    'failed'
+], event => finish(event));
+
+// Intent: "tell me once about each of these"
+// Split into separate subscriptions to keep the old behavior
+pubsub.onceOn('succeeded', event => recordSuccess(event));
+pubsub.onceOn('failed', event => recordFailure(event));
+```
+
+Non-`once` bulk subscriptions are unchanged, so a bulk `on` spanning several events still fires for every one of them.
+
+**The protected event-state property was renamed from `_eventState` to `_eventStateByEventName`,** and the per-event state object's `subscriptions` property was renamed to `subscriptionMapByStageName`. Both are internal, but a subclass or a custom `Dispatcher` that reached into them will need updating. The shapes are otherwise the same: an event-name-keyed object of states, each holding a stage-name-keyed object of `Map`s.
+
+### Added
+
+**`until(config)` awaits an event and resolves with a snapshot of it.** It subscribes once, resolves when the event completes, and cleans up after itself. Given a string or symbol it awaits that event at the `after` stage:
+
+```javascript
+const {
+    data
+} = await pubsub.until('ready');
+```
+
+The config form accepts `eventName`, `filterFunction`, `stageName`, and the other subscription properties, plus:
+
+- `details` (Object): merged into the details of any error the wait produces.
+- `reject` (String, Symbol, Object, or iterable of any of those): events that reject the promise instead of resolving it. The rejection is an `isotropic-error` named `RejectError` carrying the offending event's snapshot in `details.eventSnapshot`.
+- `signal` (AbortSignal): cancels the wait.
+- `silent` (Boolean): cancel without rejecting.
+- `subject` (String): names the operation in error messages. Defaults to `'Event'`.
+- `timeout` (Number): rejects with a `TimeoutError` if the event has not arrived in time.
+
+```javascript
+try {
+    await pubsub.until({
+        eventName: 'connected',
+        reject: 'connectionError',
+        subject: 'Connection',
+        timeout: 30000
+    });
+} catch (error) {
+    // Error: Connection rejected, or Error: Connection timed out
+}
+```
+
+The returned promise carries `cancel(config)`, `canceled`, `subscribed`, `unsubscribe()`, and `Symbol.dispose`, so a pending wait can be abandoned without leaking a subscription. A protected `_until` is available for events that do not allow public subscription.
+
+Because a bulk `once` subscription is now a group, `until` can race several events with a single call, and awaiting a `publishOnce` event that has already published resolves immediately rather than waiting forever.
+
+**A `filterFunction` on any subscription config decides whether the callback function runs for a given event.** It receives the event and runs before the callback function. Returning a falsy value skips the callback function *without consuming a `once` subscription*, so a one-time subscription stays in place until the event it actually wants arrives:
+
+```javascript
+pubsub.onceOn('statusChange', {
+    callbackFunction: event => console.log('Shipped'),
+    filterFunction: event => event.data.newValue === 'shipped',
+    once: true
+});
+```
+
+This is what makes "wait for the *right* event" expressible, rather than settling for the next one. It composes: a `filterFunction` given on a bulk config and one given on an individual config both run, and both must pass.
+
+**`getOnceEventSnapshot(eventName)` reads the retained state of a `completeOnce` or `publishOnce` event.** It returns a frozen snapshot if the event has already published and `null` otherwise, which makes "has this happened yet?" answerable without subscribing. The public method returns `null` for events that do not allow public subscription. The protected `_getOnceEventSnapshot` has no such restriction.
+
+**An `event.snapshot` getter** returns a frozen plain object with `completed`, `data`, `distributor`, `name`, `publisher`, and `stageName`. This is what `until` resolves with, and it is safe to retain after dispatch has finished, unlike the live event object.
+
+**Two construction config properties.** `distributors` registers distributors at construction time, equivalent to calling `addDistributor`. `subscribe` takes an event-name-keyed object of subscription configs, so an instance can be built with its subscriptions already in place:
+
+```javascript
+const pubsub = _Pubsub({
+    distributors: [
+        parent
+    ],
+    subscribe: {
+        change: event => console.log(event.data),
+        error: {
+            callbackFunction: handleError,
+            once: true,
+            stageName: 'before'
+        }
+    }
+});
+```
+
+Each value may be a callback function, a config object, or an array of either. `stageName` defaults to `'on'`.
+
+### Fixed
+
+**Cyclic distributor graphs no longer hang or crash.** Two instances registered as distributors of each other sent `_getDistributionPath` into an unbounded loop, which surfaced as `RangeError: Invalid array length` once the distributor array outgrew its limit. The distribution path is now built with a visited check, so a cycle is traversed once and each participant is notified exactly once.
+
+```javascript
+const config = {
+        pubsub: {
+            change: {
+                allowPublicPublish: true,
+                distributable: true
+            }
+        }
+    },
+    a = _Pubsub(config),
+    b = _Pubsub(config);
+
+a.addDistributor(b);
+b.addDistributor(a);
+
+b.publish('change'); // Before: RangeError. After: both are notified.
+```
+
+**Calling `destroy()` on an already-destroyed instance is now a no-op.** It previously threw a `TypeError` while trying to publish through state that destruction had already torn down. `destroy()` now returns the instance unchanged when `destroyed` is already true, which makes destruction idempotent and makes `Symbol.dispose` safe to reach twice.
+
+**`Subscription.subscribed` always returns a boolean.** It previously returned whatever the underlying config held, which for a refused subscription was `undefined` rather than `false`. Truthiness checks are unaffected. Strict comparisons against `false` now work.
+
+**A bulk subscription's `unsubscribe()` returns `true`** rather than `undefined`, matching the single-subscription form so the result can be tested consistently.
+
+### Changed
+
+- `addDistributor` now uses a `once` subscription with a `filterFunction` to watch for a distributor's `destroyComplete`, replacing a manual identity check and self-unsubscribe inside the callback function. Behavior is unchanged.
+- Subscription methods are installed only when the prototype does not already define a function of that name. Previously the check was on truthiness, so a non-function property of the same name would have been left in place and then called.
+- `isotropic-error` and `isotropic-timeout-cancel` are new runtime dependencies, supporting `until`'s rejection and cancellation. `isotropic-later` is a new dev dependency.
+- Recommends `node ^26.7.0` / `npm ^11.19.0`.
+- `repository` now uses npm's preferred object form with explicit `type` and `url` properties rather than the `github:` shorthand. This is package metadata only.
+
+### Internal
+
+- The bulk subscribe, bulk unsubscribe, publish, subscribe, `until`, and once-snapshot method bodies moved from module-scoped factory functions into static methods (`_createBulkSubscribeMethod`, `_createPublishMethod`, `_createSubscribeMethod`, `_createUntilMethod`, `_createGetOnceEventSnapshotMethod`, and friends), so a subclass can override how they are built.
+- `Pubsub` now mixes in `CallbackFunctionHost`, giving it the same string/symbol/function callback resolution that `Dispatcher` uses. This is what lets a `filterFunction` be given as a method name.
+- The dispatcher tracks the subscription object itself during dispatch instead of binding a fresh unsubscribe closure per subscription per event, which removes an allocation from the inner dispatch loop. `event.unsubscribe()` is unchanged.
+- The README was substantially expanded, with new sections on filtering, bulk subscription semantics, asynchronous subscriptions, event snapshots, and construction configuration.
+- Test suite expanded from 66 to 190 tests, holding 100% statement, branch, function, and line coverage.
 
 ## 0.16.0 - 2026-07-15
 
